@@ -6,6 +6,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 #prepare config
 include (Arch.cmake)
+include (include.cmake)
 
 set(BLAST_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR}/built/${TARGET_ARCH})
 set(BIN_BUILD_OUTPUT_DIRECTORY ${BLAST_ROOT_DIR}/bin)

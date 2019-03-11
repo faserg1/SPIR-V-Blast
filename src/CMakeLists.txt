@@ -6,12 +6,14 @@ set(BlastHeaders
 	${SOURCE_DIR}/reader.hpp
 	${SOURCE_DIR}/shader.hpp
 	${SOURCE_DIR}/preprocessor.hpp
+	${SOURCE_DIR}/shader_preprocessed_info.hpp
 )
 
 set(BlastSources
 	${SOURCE_DIR}/reader.cpp
 	${SOURCE_DIR}/shader.cpp
 	${SOURCE_DIR}/preprocessor.cpp
+	${SOURCE_DIR}/shader_preprocessed_info.cpp
 	${SOURCE_DIR}/main.cpp
 )
 
