@@ -3,13 +3,19 @@
 
 #include <memory>
 #include <string>
+#include <vector>
+#include <filesystem>
 
-class Shader;
-
-class Reader
+class Reader :
+	public std::enable_shared_from_this<Reader>
 {
 public:
-	std::shared_ptr<Shader> readFromFile(std::string path);
+	void addSearchPath(std::string path);
+	std::string read(std::string filename);
+private:
+	std::vector<std::filesystem::path> searchPaths_;
+private:
+	std::string internalRead(std::string path);
 };
 
 #endif
