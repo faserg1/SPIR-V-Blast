@@ -1,6 +1,8 @@
 #include "args.hpp"
 #include "args_processor.hpp"
 
+#include <algorithm>
+
 #include "preprocessor.hpp"
 #include "reader.hpp"
 

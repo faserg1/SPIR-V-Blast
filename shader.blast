@@ -1,1 +1,19 @@
-#define NICE
+
+
+
+     #define NICE    \   
+	 \
+	 \
+	GOOD
+	#define CODE "   "
+	#define LOOK ' '
+
+void main()
+{
+	int NICE = 0;
+}
+
+#undef NICE  
+
+
+#define SUCK \

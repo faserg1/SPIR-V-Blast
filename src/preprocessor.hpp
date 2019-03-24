@@ -15,11 +15,14 @@ public:
 	void addDefine(std::string key, std::string value = "");
 	void setSearchFileCallback(searchCallback searchCallback);
 	void setLoadCallback(loadCallback loadCallback);
-	void startProcess(std::string file);
-private:
+	std::string process(std::string file);
+private /*members*/:
 	std::unordered_map<std::string, std::string> defines_;
 	searchCallback searchCallback_;
 	loadCallback loadCallback_;
+private /*functions*/:
+	std::string recursiveParse(std::unordered_map<std::string, std::string> defines, std::string inputText);
+	std::string removeWhitespaces(std::string text);
 };
 
 #endif
