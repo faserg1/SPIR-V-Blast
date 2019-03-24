@@ -74,12 +74,16 @@ bool Args::validateOption(const std::string &arg)
 {
 	if (arg == "-o" || arg == "--output")
 		return true;
+	if (arg == "-D" || arg == "--define")
+		return true;
 	return false;
 }
 
 int Args::getOptionArgsCount(const std::string &option)
 {
 	if (option == "-o" || option == "--output")
+		return 1;
+	if (option == "-D" || option == "--define")
 		return 1;
 	return 0;
 }

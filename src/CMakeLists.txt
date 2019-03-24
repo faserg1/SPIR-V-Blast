@@ -4,6 +4,7 @@ set(SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR})
 
 set(BlastHeaders
 	${SOURCE_DIR}/args.hpp
+	${SOURCE_DIR}/args_processor.hpp
 	${SOURCE_DIR}/reader.hpp
 	${SOURCE_DIR}/shader.hpp
 	${SOURCE_DIR}/compiler.hpp
@@ -13,6 +14,7 @@ set(BlastHeaders
 
 set(BlastSources
 	${SOURCE_DIR}/args.cpp
+	${SOURCE_DIR}/args_processor.cpp
 	${SOURCE_DIR}/reader.cpp
 	${SOURCE_DIR}/shader.cpp
 	${SOURCE_DIR}/compiler.cpp

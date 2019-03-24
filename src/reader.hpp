@@ -11,11 +11,12 @@ class Reader :
 {
 public:
 	void addSearchPath(std::string path);
-	std::string read(std::string filename);
+	std::string read(std::filesystem::path path);
+	std::filesystem::path search(std::filesystem::path currentFolder, std::string filename, bool local);
 private:
 	std::vector<std::filesystem::path> searchPaths_;
 private:
-	std::string internalRead(std::string path);
+	std::string internalRead(std::filesystem::path path);
 };
 
 #endif
