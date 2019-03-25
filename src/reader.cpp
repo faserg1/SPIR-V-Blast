@@ -56,6 +56,8 @@ std::string Reader::internalRead(std::filesystem::path path)
 		throw std::runtime_error("Can't open \"" + path.string() + "\"!");
 	}
 	readedFile.resize(fsize);
+	if (!fsize)
+		return readedFile;
 	while (!fstream.eof())
 	{
 		fstream.read(readedFile.data(), fsize);

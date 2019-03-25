@@ -26,11 +26,14 @@ std::string Preprocessor::process(std::string file)
 	if (!loadCallback_ || !searchCallback_)
 		throw std::runtime_error("Load or search callbacks are invalid!");
 	auto text = loadCallback_(currentPath);
-	return recursiveParse(defines_, std::move(text));
+	auto definesCopy = defines_;
+	return recursiveParse(std::filesystem::current_path(), definesCopy, std::move(text));
 }
 
-std::string Preprocessor::recursiveParse(std::unordered_map<std::string, std::string> defines, std::string text)
+std::string Preprocessor::recursiveParse(std::filesystem::path currentFolder, std::unordered_map<std::string, std::string> &defines, std::string text)
 {
+	if (text.empty())
+		return std::move(text);
 	auto removeDiscardAfter = std::remove(text.begin(), text.end(), '\r');
 	text.erase(removeDiscardAfter, text.end());
 	text = removeWhitespaces(std::move(text));
@@ -73,6 +76,14 @@ std::string Preprocessor::recursiveParse(std::unordered_map<std::string, std::st
 	}
 
 	// TODO: Parse rows
+
+	for (auto &row : rows)
+	{
+		if (row[0] == '#')
+			text += parsePreprocessorCommand(currentFolder, row, defines);
+		else
+			text += replaceByPreprocessorDefines(row, defines) + "\n";
+	}
 
 	return std::move(text);
 }
@@ -119,4 +130,85 @@ std::string Preprocessor::removeWhitespaces(std::string text)
 	}
 	textCopy.shrink_to_fit();
 	return std::move(textCopy);
+}
+
+std::string Preprocessor::parsePreprocessorCommand(std::filesystem::path currentFolder, std::string text, std::unordered_map<std::string, std::string> &defines)
+{
+	std::sregex_iterator end;
+
+	std::regex defineRegex("^#define\\s+(\\w+)(\\s+(\\w+|\".*\"|\'.*\'))?$", std::regex_constants::ECMAScript);
+	auto defineMatchIter = std::sregex_iterator(text.begin(), text.end(), defineRegex);
+	if (defineMatchIter != end && !(*defineMatchIter).empty())
+	{
+		auto match = *defineMatchIter;
+		std::string key = match[1];
+		std::string value;
+		if (match.size() > 2)
+			value = replaceByPreprocessorDefines(match[3], defines);
+		if (defines.find(key) == defines.end())
+			defines.insert(std::make_pair(key, value));
+		else
+			defines[key] = value;
+		return std::string();
+	}
+
+	std::regex undefRegex("^#undef\\s+(\\w+)$", std::regex_constants::ECMAScript);
+	auto undefMatchIter = std::sregex_iterator(text.begin(), text.end(), undefRegex);
+	if (undefMatchIter != end && !(*undefMatchIter).empty())
+	{
+		auto match = *undefMatchIter;
+		std::string key = match[1];
+		defines.erase(key);
+		return std::string();
+	}
+
+	std::regex includeLocalRegex("^#include\\s+\\\"([\\w\\.\\d_\\-\\/\\\\]+)\\\"$", std::regex_constants::ECMAScript);
+	auto includeLocalMatchIter = std::sregex_iterator(text.begin(), text.end(), includeLocalRegex);
+	if (includeLocalMatchIter != end && !(*includeLocalMatchIter).empty())
+	{
+		auto match = *includeLocalMatchIter;
+		std::string filename = match[1];
+		auto filepath = searchCallback_(currentFolder, filename, true);
+		auto includeText = loadCallback_(filepath);
+		return recursiveParse(filepath.parent_path(), defines, std::move(includeText));
+	}
+
+	return std::string();
+}
+
+std::string Preprocessor::replaceByPreprocessorDefines(std::string text, const std::unordered_map<std::string, std::string> &defines)
+{
+	struct Replaces
+	{
+		std::string::iterator begin;
+		size_t count;
+		std::string replacer;
+	};
+	std::vector<Replaces> reps;
+	for (const auto &define : defines)
+	{
+		std::regex self_regex("\\b" + define.first + "\\b", std::regex_constants::ECMAScript);
+		auto replaces = std::sregex_iterator(text.begin(), text.end(), self_regex);
+		auto replacesEnd = std::sregex_iterator();
+		for (auto i = replaces; i != replacesEnd; ++i)
+		{
+			auto match = *i;
+			auto beg = text.begin() + match.position();
+			size_t len = match.length();
+			reps.push_back(
+				{
+					beg,
+					len,
+					define.second,
+				});
+		}
+	}
+	int64_t offset = 0;
+	for (auto &rep : reps)
+	{
+		auto where = text.erase(rep.begin + offset, rep.begin + offset + rep.count);
+		offset += ((int64_t) rep.replacer.size()) - ((int64_t) rep.count);
+		text.insert(where, rep.replacer.begin(), rep.replacer.end());
+	}
+	return std::move(text);
 }

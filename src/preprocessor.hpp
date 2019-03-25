@@ -21,8 +21,10 @@ private /*members*/:
 	searchCallback searchCallback_;
 	loadCallback loadCallback_;
 private /*functions*/:
-	std::string recursiveParse(std::unordered_map<std::string, std::string> defines, std::string inputText);
+	std::string recursiveParse(std::filesystem::path currentFolder, std::unordered_map<std::string, std::string> &defines, std::string inputText);
 	std::string removeWhitespaces(std::string text);
+	std::string parsePreprocessorCommand(std::filesystem::path currentFolder, std::string text, std::unordered_map<std::string, std::string> &defines);
+	std::string replaceByPreprocessorDefines(std::string text, const std::unordered_map<std::string, std::string> &defines);
 };
 
 #endif
