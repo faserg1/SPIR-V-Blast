@@ -1,6 +1,11 @@
-#define GOOD MIKU
+#define GOOD MIKU // God damn miku!
 
+/*
 
+// HAHA
+
+Multi line comment!!!
+*/
 
      #define NICE    \   
 	 \
@@ -20,5 +25,6 @@ void main()
 
 #undef NICE  
 
+// I join the LOPATA
 
 #define LUCK \

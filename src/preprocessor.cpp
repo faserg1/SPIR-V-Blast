@@ -37,6 +37,7 @@ std::string Preprocessor::recursiveParse(std::filesystem::path currentFolder, st
 	auto removeDiscardAfter = std::remove(text.begin(), text.end(), '\r');
 	text.erase(removeDiscardAfter, text.end());
 	text = removeWhitespaces(std::move(text));
+	text = removeComments(std::move(text));
 
 	std::vector<std::string> rows;
 	while (!text.empty())
@@ -75,8 +76,6 @@ std::string Preprocessor::recursiveParse(std::filesystem::path currentFolder, st
 		rows.push_back(removeWhitespaces(std::move(row)));
 	}
 
-	// TODO: Parse rows
-
 	for (auto &row : rows)
 	{
 		if (row[0] == '#')
@@ -94,7 +93,7 @@ std::string Preprocessor::removeWhitespaces(std::string text)
 	textCopy.reserve(text.size());
 
 	bool symbolCopy = false;
-	bool space = false;
+	bool space = false; 
 
 	for (auto &c : text)
 	{
@@ -130,6 +129,36 @@ std::string Preprocessor::removeWhitespaces(std::string text)
 	}
 	textCopy.shrink_to_fit();
 	return std::move(textCopy);
+}
+
+std::string Preprocessor::removeComments(std::string text)
+{
+	std::sregex_iterator end;
+	while (true)
+	{
+		std::regex multilineCommentRegex("\\/\\*(.|\\n)*\\*\\/", std::regex_constants::ECMAScript | std::regex_constants::optimize);
+		auto multilineCommentMatchIter = std::sregex_iterator(text.begin(), text.end(), multilineCommentRegex);
+		if (multilineCommentMatchIter != end && !(*multilineCommentMatchIter).empty())
+		{
+			auto match = *multilineCommentMatchIter;
+			text.erase(text.begin() + match.position(), text.begin() + match.position() + match.length());
+			continue;
+		}
+
+		std::regex inlineCommentRegex("\\/\\/.*\n", std::regex_constants::ECMAScript);
+		auto inlineCommentMatchIter = std::sregex_iterator(text.begin(), text.end(), inlineCommentRegex);
+		if (inlineCommentMatchIter != end && !(*inlineCommentMatchIter).empty())
+		{
+			auto match = *inlineCommentMatchIter;
+			auto lineCommentEnd = text.erase(text.begin() + match.position(), text.begin() + match.position() + match.length());
+			text.insert(lineCommentEnd, '\n');
+			continue;
+		}
+
+		break;
+	}
+	
+	return std::move(text);
 }
 
 std::string Preprocessor::parsePreprocessorCommand(std::filesystem::path currentFolder, std::string text, std::unordered_map<std::string, std::string> &defines)
@@ -169,6 +198,17 @@ std::string Preprocessor::parsePreprocessorCommand(std::filesystem::path current
 		auto match = *includeLocalMatchIter;
 		std::string filename = match[1];
 		auto filepath = searchCallback_(currentFolder, filename, true);
+		auto includeText = loadCallback_(filepath);
+		return recursiveParse(filepath.parent_path(), defines, std::move(includeText));
+	}
+
+	std::regex includeGlobalRegex("^#include\\s+\\<([\\w\\.\\d_\\-\\/\\\\]+)\\>$", std::regex_constants::ECMAScript);
+	auto includeGlobalMatchIter = std::sregex_iterator(text.begin(), text.end(), includeGlobalRegex);
+	if (includeGlobalMatchIter != end && !(*includeGlobalMatchIter).empty())
+	{
+		auto match = *includeGlobalMatchIter;
+		std::string filename = match[1];
+		auto filepath = searchCallback_(currentFolder, filename, false);
 		auto includeText = loadCallback_(filepath);
 		return recursiveParse(filepath.parent_path(), defines, std::move(includeText));
 	}
