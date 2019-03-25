@@ -59,7 +59,7 @@ Include some files is shader! Reuse your code :)
 ## Entry point
 
 ```
-#entry <entry_id> <function_name> <execution_model>
+#entry <function_name> <execution_model>
 ```
 
 ## Memory model

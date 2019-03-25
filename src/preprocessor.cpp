@@ -272,12 +272,12 @@ std::string Preprocessor::parsePreprocessorCommand(std::filesystem::path current
 
 	// Meta-data
 
-	std::regex entryPointRegex("^#entry\\s+(\\w+)\\s+(\\w+)\\s+(\\w+)$", std::regex_constants::ECMAScript);
+	std::regex entryPointRegex("^#entry\\s+(\\w+)\\s+(\\w+)$", std::regex_constants::ECMAScript);
 	auto entryPointMatchIter = std::sregex_iterator(text.begin(), text.end(), entryPointRegex);
 	if (entryPointMatchIter != end && !(*entryPointMatchIter).empty())
 	{
 		auto match = *entryPointMatchIter;
-		preprocessedInfo_.addEntryPoint(match[1], match[2], match[3]);
+		preprocessedInfo_.addEntryPoint(match[1], match[2]);
 		return std::string();
 	}
 
@@ -287,6 +287,15 @@ std::string Preprocessor::parsePreprocessorCommand(std::filesystem::path current
 	{
 		auto match = *memoryModelMatchIter;
 		preprocessedInfo_.setMemoryModel(match[1], match[2]);
+		return std::string();
+	}
+
+	std::regex capabilityRegex("^#capability\\s+(\\w+)$", std::regex_constants::ECMAScript);
+	auto capabilityMatchIter = std::sregex_iterator(text.begin(), text.end(), capabilityRegex);
+	if (capabilityMatchIter != end && !(*capabilityMatchIter).empty())
+	{
+		auto match = *capabilityMatchIter;
+		preprocessedInfo_.addCapability(match[1]);
 		return std::string();
 	}
 

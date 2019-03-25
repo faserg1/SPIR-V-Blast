@@ -1,6 +1,9 @@
 #define GOOD MIKU // God damn miku!
-#entry main1 main Vertex
+#entry main Vertex
 #memory Logical Simple
+
+#capability Shader
+#capability Int64
 
 /*
 
