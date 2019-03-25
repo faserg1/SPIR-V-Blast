@@ -269,6 +269,15 @@ std::string Preprocessor::parsePreprocessorCommand(std::filesystem::path current
 		return recursiveParse(filepath.parent_path(), defines, std::move(includeText));
 	}
 
+	std::regex entryPointRegex("^#entry\\s+(\\w+)\\s+(\\w+)\\s+(\\w+)$", std::regex_constants::ECMAScript);
+	auto entryPointMatchIter = std::sregex_iterator(text.begin(), text.end(), entryPointRegex);
+	if (entryPointMatchIter != end && !(*entryPointMatchIter).empty())
+	{
+		auto match = *entryPointMatchIter;
+		preprocessedInfo_.addEntryPoint(match[1], match[2], match[3]);
+		return std::string();
+	}
+
 	return std::string();
 }
 

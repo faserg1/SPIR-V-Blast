@@ -6,6 +6,8 @@
 #include <functional>
 #include <filesystem>
 
+#include "shader_preprocessed_info.hpp"
+
 class Preprocessor
 {
 public:
@@ -20,6 +22,7 @@ private /*members*/:
 	std::unordered_map<std::string, std::string> defines_;
 	searchCallback searchCallback_;
 	loadCallback loadCallback_;
+	ShaderPreprocessedInfo preprocessedInfo_;
 
 	struct PreprocessorState;
 private /*functions*/:
