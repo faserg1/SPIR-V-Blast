@@ -53,3 +53,17 @@ Include some files is shader! Reuse your code :)
 #include "localfile.blast"
 #include <globalfile.blast>
 ```
+
+# Shader settings
+
+## Entry point
+
+```
+#entry <entry_id> <function_name> <execution_model>
+```
+
+## Memory model
+
+```
+#memory <addressing_model> <memory_model>
+```

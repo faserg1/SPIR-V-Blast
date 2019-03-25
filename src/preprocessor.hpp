@@ -17,7 +17,7 @@ public:
 	void addDefine(std::string key, std::string value = "");
 	void setSearchFileCallback(searchCallback searchCallback);
 	void setLoadCallback(loadCallback loadCallback);
-	std::string process(std::string file);
+	ShaderPreprocessedInfo process(std::string file);
 private /*members*/:
 	std::unordered_map<std::string, std::string> defines_;
 	searchCallback searchCallback_;

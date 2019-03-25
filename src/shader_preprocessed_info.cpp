@@ -2,6 +2,11 @@
 #include <stdexcept>
 #include <algorithm>
 
+const std::string &ShaderPreprocessedInfo::text() const
+{
+	return text_;
+}
+
 EntryPoint &ShaderPreprocessedInfo::getEntryPoint(const std::string &id)
 {
 	auto iter = std::find_if(entryPoints_.begin(), entryPoints_.end(), [&id](const EntryPoint &entryPoint) -> bool
@@ -52,4 +57,29 @@ EntryPoint &ShaderPreprocessedInfo::addEntryPoint(const std::string &id, const s
 	entryPoints_.push_back({ id, functionId, model });
 
 	return entryPoints_.back();
+}
+
+void ShaderPreprocessedInfo::setMemoryModel(std::string addressingModel, std::string memoryModel)
+{
+	if (addressingModel == "Logical")
+		adressingModel_ = spv::AddressingModel::Logical;
+	else if (addressingModel == "Physical32")
+		adressingModel_ = spv::AddressingModel::Physical32;
+	else if (addressingModel == "Physical64")
+		adressingModel_ = spv::AddressingModel::Physical64;
+	else if (addressingModel == "PhysicalStorageBuffer64EXT")
+		adressingModel_ = spv::AddressingModel::PhysicalStorageBuffer64EXT;
+	else
+		throw std::runtime_error("Unknown addressing model \"" + addressingModel + "\"!");
+
+	if (memoryModel == "Simple")
+		memoryModel_ = spv::MemoryModel::Simple;
+	else if (memoryModel == "GLSL450")
+		memoryModel_ = spv::MemoryModel::GLSL450;
+	else if (memoryModel == "OpenCL")
+		memoryModel_ = spv::MemoryModel::OpenCL;
+	else if (memoryModel == "VulkanKHR")
+		memoryModel_ = spv::MemoryModel::VulkanKHR;
+	else
+		throw std::runtime_error("Unknown memory model \"" + memoryModel + "\"!");
 }

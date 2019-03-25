@@ -25,7 +25,7 @@ void Preprocessor::setLoadCallback(loadCallback loadCallback)
 	loadCallback_ = loadCallback;
 }
 
-std::string Preprocessor::process(std::string file)
+ShaderPreprocessedInfo Preprocessor::process(std::string file)
 {
 	auto currentPath = std::filesystem::current_path() / file;
 	if (!std::filesystem::exists(currentPath) || std::filesystem::is_directory(currentPath) || std::filesystem::is_empty(currentPath))
@@ -34,7 +34,8 @@ std::string Preprocessor::process(std::string file)
 		throw std::runtime_error("Load or search callbacks are invalid!");
 	auto text = loadCallback_(currentPath);
 	auto definesCopy = defines_;
-	return recursiveParse(std::filesystem::current_path(), definesCopy, std::move(text));
+	preprocessedInfo_.text_ = recursiveParse(std::filesystem::current_path(), definesCopy, std::move(text));
+	return preprocessedInfo_;
 }
 
 std::string Preprocessor::recursiveParse(std::filesystem::path currentFolder, std::unordered_map<std::string, std::string> &defines, std::string text)
@@ -93,7 +94,7 @@ std::string Preprocessor::recursiveParse(std::filesystem::path currentFolder, st
 			text += replaceByPreprocessorDefines(row, defines) + "\n";
 	}
 
-	return std::move(text);
+	return removeWhitespaces(std::move(text));
 }
 
 std::string Preprocessor::removeWhitespaces(std::string text)
@@ -269,12 +270,23 @@ std::string Preprocessor::parsePreprocessorCommand(std::filesystem::path current
 		return recursiveParse(filepath.parent_path(), defines, std::move(includeText));
 	}
 
+	// Meta-data
+
 	std::regex entryPointRegex("^#entry\\s+(\\w+)\\s+(\\w+)\\s+(\\w+)$", std::regex_constants::ECMAScript);
 	auto entryPointMatchIter = std::sregex_iterator(text.begin(), text.end(), entryPointRegex);
 	if (entryPointMatchIter != end && !(*entryPointMatchIter).empty())
 	{
 		auto match = *entryPointMatchIter;
 		preprocessedInfo_.addEntryPoint(match[1], match[2], match[3]);
+		return std::string();
+	}
+
+	std::regex memoryModelRegex("^#memory\\s+(\\w+)\\s+(\\w+)$", std::regex_constants::ECMAScript);
+	auto memoryModelMatchIter = std::sregex_iterator(text.begin(), text.end(), memoryModelRegex);
+	if (memoryModelMatchIter != end && !(*memoryModelMatchIter).empty())
+	{
+		auto match = *memoryModelMatchIter;
+		preprocessedInfo_.setMemoryModel(match[1], match[2]);
 		return std::string();
 	}
 

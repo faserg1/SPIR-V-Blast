@@ -37,9 +37,8 @@ int main(int argc, char**argv)
 	preprocessor.setLoadCallback(std::bind(&Reader::read, &reader, std::placeholders::_1));
 	preprocessor.setSearchFileCallback(std::bind(&Reader::search, &reader, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
-	auto processedText = preprocessor.process(parser.getInputFile());
+	auto processedInfo = preprocessor.process(parser.getInputFile());
 	
-
 	return 0;
 }
 

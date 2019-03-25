@@ -16,13 +16,18 @@ class ShaderPreprocessedInfo
 {
 	friend class Preprocessor;
 public:
+	const std::string &text() const;
 private:
+	std::string text_;
+
 	std::vector<EntryPoint> entryPoints_;
 	spv::MemoryModel memoryModel_;
 	spv::AddressingModel adressingModel_;
 private:
 	EntryPoint &getEntryPoint(const std::string &id);
 	EntryPoint &addEntryPoint(const std::string &id, const std::string &functionId, const std::string &executionModel);
+
+	void setMemoryModel(std::string addressingModel, std::string memoryModel);
 };
 
 #endif // SHADER_PREPROCESSED_INFO
