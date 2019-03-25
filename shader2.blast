@@ -2,3 +2,25 @@ int func1()
 {
 	return 1;
 }
+
+#ifdef GOOD
+int funcDef()
+{
+}
+#ifndef GOOD2
+int funcDef2()
+{
+}
+#endif
+#endif
+
+#ifdef GOOD2
+int funcNdef()
+{
+}
+#ifndef GOOD
+int funcNdef2()
+{
+}
+#endif
+#endif

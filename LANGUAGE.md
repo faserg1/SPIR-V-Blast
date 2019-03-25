@@ -30,13 +30,25 @@ by the compiler!
 
 ## defines
 You can use defines in code:
-```#define something
+```
+#define something
 #define something2 yey
-#undef something```
+#undef something
+```
+You can check the defines:
+```
+#ifdef SOME_DEFINE
+a = b + c;
+#endif
 
+#ifndef SOME_NOT_SETTED_DEFINE
+a = b + c;
+#endif
+```
 ## includes
 
 Include some files is shader! Reuse your code :)
+
 ```
 #include "localfile.blast"
 #include <globalfile.blast>

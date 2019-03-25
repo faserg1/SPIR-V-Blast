@@ -3,6 +3,13 @@
 #include <algorithm>
 #include <regex>
 
+struct Preprocessor::PreprocessorState
+{
+	bool ignoreText = false;
+	size_t ignoreTextLevel = 0;
+	size_t ifdefLevel = 0;
+};
+
 void Preprocessor::addDefine(std::string key, std::string value)
 {
 	defines_.insert(std::make_pair(key, value));
@@ -76,11 +83,13 @@ std::string Preprocessor::recursiveParse(std::filesystem::path currentFolder, st
 		rows.push_back(removeWhitespaces(std::move(row)));
 	}
 
+	PreprocessorState state;
+
 	for (auto &row : rows)
 	{
 		if (row[0] == '#')
-			text += parsePreprocessorCommand(currentFolder, row, defines);
-		else
+			text += parsePreprocessorCommand(currentFolder, row, defines, state);
+		else if (!state.ignoreText)
 			text += replaceByPreprocessorDefines(row, defines) + "\n";
 	}
 
@@ -161,9 +170,56 @@ std::string Preprocessor::removeComments(std::string text)
 	return std::move(text);
 }
 
-std::string Preprocessor::parsePreprocessorCommand(std::filesystem::path currentFolder, std::string text, std::unordered_map<std::string, std::string> &defines)
+std::string Preprocessor::parsePreprocessorCommand(std::filesystem::path currentFolder, std::string text,
+	std::unordered_map<std::string, std::string> &defines, PreprocessorState &state)
 {
 	std::sregex_iterator end;
+
+	std::regex endifRegex("^#endif$", std::regex_constants::ECMAScript);
+	auto endifMatchIter = std::sregex_iterator(text.begin(), text.end(), endifRegex);
+	if (endifMatchIter != end && !(*endifMatchIter).empty())
+	{
+		auto match = *endifMatchIter;
+		if (state.ifdefLevel == state.ignoreTextLevel)
+		{
+			state.ignoreText = false;
+		}
+		state.ifdefLevel--;
+		return std::string();
+	}
+
+	std::regex ifdefRegex("^#ifdef\\s+(\\w+)$", std::regex_constants::ECMAScript);
+	auto ifdefMatchIter = std::sregex_iterator(text.begin(), text.end(), ifdefRegex);
+	if (ifdefMatchIter != end && !(*ifdefMatchIter).empty())
+	{
+		auto match = *ifdefMatchIter;
+		std::string key = match[1];
+		state.ifdefLevel++;
+		if (!state.ignoreText && defines.find(key) == defines.end())
+		{
+			state.ignoreTextLevel = state.ifdefLevel;
+			state.ignoreText = true;
+		}
+		return std::string();
+	}
+
+	std::regex ifndefRegex("^#ifndef\\s+(\\w+)$", std::regex_constants::ECMAScript);
+	auto ifndefMatchIter = std::sregex_iterator(text.begin(), text.end(), ifndefRegex);
+	if (ifndefMatchIter != end && !(*ifndefMatchIter).empty())
+	{
+		auto match = *ifndefMatchIter;
+		std::string key = match[1];
+		state.ifdefLevel++;
+		if (!state.ignoreText && defines.find(key) != defines.end())
+		{
+			state.ignoreTextLevel = state.ifdefLevel;
+			state.ignoreText = true;
+		}
+		return std::string();
+	}
+
+	if (state.ignoreText)
+		return std::string();
 
 	std::regex defineRegex("^#define\\s+(\\w+)(\\s+(\\w+|\".*\"|\'.*\'))?$", std::regex_constants::ECMAScript);
 	auto defineMatchIter = std::sregex_iterator(text.begin(), text.end(), defineRegex);
