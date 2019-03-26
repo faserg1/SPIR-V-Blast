@@ -4,20 +4,10 @@
 #include <memory>
 #include <string>
 
-enum class ECompilerNodeType
-{
-	TypeNode,
-	LiteralNode,
-};
+class CompilerNode;
 
-class CompilerNode :
-	public std::enable_shared_from_this<CompilerNode>
-{
-public:
-	
-};
-
-class CompilerParser
+class CompilerParser :
+	public std::enable_shared_from_this<CompilerParser>
 {
 public:
 	virtual ~CompilerParser() = default;
