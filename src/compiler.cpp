@@ -1,4 +1,5 @@
 #include "compiler.hpp"
+#include "compiler_types_parser.hpp"
 #include <algorithm>
 #include <regex>
 
@@ -6,6 +7,44 @@ Shader Compiler::compile(const ShaderPreprocessedInfo &preprocessedInfo)
 {
 	auto literals = splitByLiterals(std::move(preprocessedInfo.text()));
 
+	/*Test start*/
+	CompilerBasicTypeParser simpleTypeParser;
+	CompilerParser *currentParser = nullptr;
+
+	std::vector<std::shared_ptr<CompilerNode>> nodes;
+
+	auto next = [&nodes](CompilerParser *&parser)
+	{
+		if (!parser->next())
+		{
+			nodes.push_back(parser->end());
+			parser = nullptr;
+		}
+	};
+
+	for (auto &expression : literals)
+	{
+		if (currentParser)
+		{
+			if (currentParser->tryVisit(expression))
+			{
+				next(currentParser);
+				continue;
+			}
+			else
+			{
+				nodes.push_back(currentParser->end());
+				currentParser = nullptr;
+			}
+		}
+		if (simpleTypeParser.tryVisit(expression))
+		{
+			currentParser = &simpleTypeParser;
+			next(currentParser);
+		}
+	}
+	/*Test end*/
+	
 	return Shader();
 }
 
@@ -57,12 +96,14 @@ std::vector<std::string> Compiler::splitByLiterals(std::string text)
 	}
 
 	std::string wordsAndLiterals = "(\\\"((\\\\\\\")|[^\"])*\\\")|(\\\'.\\\')|(\\b\\w+\\b)";
-	std::string signs = "(\\<\\=)|(\\>\\=)|(\\=\\=)|(\\!\\=)|(\\=)|(\\!)|(\\+)|(\\-)|(\\*)|(\\\\)";
+	std::string complexSigns = "(\\<\\=)|(\\>\\=)|(\\=\\=)|(\\!\\=)|(\\*\\=)|(\\/\\=)|(\\+\\=)|(\\-\\=)";
+	std::string basicSigns = "(\\=)|(\\!)|(\\+)|(\\-)|(\\*)|(\\/)|(\\<)|(\\>)";
+	std::string signs = complexSigns + "|" + basicSigns;
 	std::string brackets = "(\\{)|(\\})|(\\()|(\\))|(\\[)|(\\])";
-	std::string other = "(;)|(\\?)";
-	std::string expression = wordsAndLiterals + "|" + signs + "|" + brackets + "|" + other;
+	std::string other = "(;)|(\\?)|(\\,)|(\\.)";
+	std::string pattern = wordsAndLiterals + "|" + signs + "|" + brackets + "|" + other;
 
-	std::regex literalRegex(expression, std::regex_constants::ECMAScript | std::regex_constants::optimize);
+	std::regex literalRegex(pattern, std::regex_constants::ECMAScript | std::regex_constants::optimize);
 	std::sregex_iterator end;
 
 	std::vector <std::string> literals;

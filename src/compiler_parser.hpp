@@ -2,6 +2,7 @@
 #define COMPILER_PARSER
 
 #include <memory>
+#include <string>
 
 enum class ECompilerNodeType
 {
@@ -20,6 +21,19 @@ class CompilerParser
 {
 public:
 	virtual ~CompilerParser() = default;
+
+	/*
+	@return true if valid expression, false if invalid or stop (stop after first capture)
+	*/
+	virtual bool tryVisit(std::string expression) = 0;
+	/*
+	@return true if can receive more data, false if stop
+	*/
+	virtual bool next() = 0;
+	/*
+	End capture. Get compiler node
+	*/
+	virtual std::shared_ptr<CompilerNode> end() = 0;
 protected:
 	CompilerParser() = default;
 };
