@@ -18,14 +18,33 @@ std::vector<std::string> Compiler::splitByLiterals(std::string text)
 
 	while (!text.empty())
 	{
+		bool escape = false;
+		bool stringCapture = false;
+		bool literalCapture = false;
 		auto iterSep = std::find_if(text.begin(), text.end(),
-			[](char c) -> bool
+			[&escape, &stringCapture, &literalCapture](char c) -> bool
 		{
+			bool wasEscape = escape;
+			escape = false;
 			switch (c)
 			{
+			case '\\':
+				if (stringCapture || literalCapture)
+					escape = true;
+				return false;
+			case '\"':
+				if (!escape && !literalCapture)
+					stringCapture = !stringCapture;
+				return false;
+			case '\'':
+				if (!escape && !stringCapture)
+					literalCapture = !literalCapture;
+				return false;
 			case ' ':
-			case '\n':
 			case '\t':
+				if (stringCapture || literalCapture)
+					return false;
+			case '\n':
 				return true;
 			default:
 				return false;
@@ -37,8 +56,8 @@ std::vector<std::string> Compiler::splitByLiterals(std::string text)
 		text.erase(0, distance+1);
 	}
 
-	std::string wordsAndLiterals = "(\\\".*\\\")|(\\\'.\\\')|(\\b\\w+\\b)";
-	std::string signs = "(\\<\\=)|(\\>\\=)|(\\=\\=)|(\\!\\=)|(\\=)|(\\!)|(\\+)|(\\-)|(\\*)|(\\\\)|";
+	std::string wordsAndLiterals = "(\\\"((\\\\\\\")|[^\"])*\\\")|(\\\'.\\\')|(\\b\\w+\\b)";
+	std::string signs = "(\\<\\=)|(\\>\\=)|(\\=\\=)|(\\!\\=)|(\\=)|(\\!)|(\\+)|(\\-)|(\\*)|(\\\\)";
 	std::string brackets = "(\\{)|(\\})|(\\()|(\\))|(\\[)|(\\])";
 	std::string other = "(;)|(\\?)";
 	std::string expression = wordsAndLiterals + "|" + signs + "|" + brackets + "|" + other;

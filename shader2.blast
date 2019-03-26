@@ -1,5 +1,6 @@
 int func1()
 {
+	string nice = "dark \"night\"" + "love";
 	return 1;
 }
 
