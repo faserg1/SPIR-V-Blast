@@ -6,7 +6,7 @@
 #include <vector>
 
 
-enum class ShaderOperationArgumentType
+enum class EShaderOperationArgumentType
 {
 	Invalid,
 	Literal,
@@ -20,7 +20,7 @@ struct ShaderOperationArgument
 		std::string literal;
 		std::string stringLiteral;
 	} u;
-	ShaderOperationArgumentType type;
+	EShaderOperationArgumentType type;
 };
 
 struct ShaderOperation
