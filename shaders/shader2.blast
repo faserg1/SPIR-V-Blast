@@ -1,12 +1,5 @@
-bool
-void
-float
-
-float<16>
-
 int<32,1> func1()
 {
-	string nice = "dark \"night\"" + "love";
 	return 1;
 }
 

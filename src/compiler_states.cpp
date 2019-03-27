@@ -25,9 +25,11 @@ std::vector<ECompilerState> CompilerState::getNextAvailableStates() const
 std::vector<CompilerState> generateStates()
 {
 	auto basicTypeParser = std::make_shared<CompilerBasicTypeParser>();
+	auto nameParser = std::make_shared<CompilerNameParser>();
 	return std::vector<CompilerState>
 	{
-		{ECompilerState::GlobalState, {}, {ECompilerState::GlobalTypeState}},
-		{ECompilerState::GlobalTypeState, { basicTypeParser }, {}}
+		{ ECompilerState::GlobalState, {}, {ECompilerState::GlobalTypeState}},
+		{ ECompilerState::GlobalTypeState, { basicTypeParser }, {ECompilerState::GlobalNameState}},
+		{ ECompilerState::GlobalNameState, { nameParser }, {} }
 	};
 }

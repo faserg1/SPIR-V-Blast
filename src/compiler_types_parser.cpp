@@ -1,4 +1,5 @@
 #include "compiler_types_parser.hpp"
+#include "compiler_nodes.hpp"
 #include <stdexcept>
 #include <regex>
 
@@ -90,7 +91,7 @@ std::shared_ptr<CompilerNode> CompilerBasicTypeParser::end()
 		type = std::make_shared<IntegerType>(width, signedness);
 	}
 	data = {};
-	return std::shared_ptr<CompilerNode>();
+	return std::make_shared<CompilerNode>(ECompilerNodeType::Type, type);
 }
 
 bool CompilerBasicTypeParser::isType(std::string expression) const

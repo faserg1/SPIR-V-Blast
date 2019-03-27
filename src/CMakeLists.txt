@@ -10,6 +10,8 @@ set(BlastHeaders
 	${SOURCE_DIR}/compiler_types.hpp
 	${SOURCE_DIR}/compiler_nodes.hpp
 	${SOURCE_DIR}/compiler_states.hpp
+	${SOURCE_DIR}/compiler_symbols.hpp
+	${SOURCE_DIR}/compiler_symbols_parser.hpp
 	${SOURCE_DIR}/compiler_types_parser.hpp
 	${SOURCE_DIR}/compiler_parser.hpp
 	${SOURCE_DIR}/compiler_parsers.hpp
@@ -27,6 +29,8 @@ set(BlastSources
 	${SOURCE_DIR}/compiler_types.cpp
 	${SOURCE_DIR}/compiler_nodes.cpp
 	${SOURCE_DIR}/compiler_states.cpp
+	${SOURCE_DIR}/compiler_symbols.cpp
+	${SOURCE_DIR}/compiler_symbols_parser.cpp
 	${SOURCE_DIR}/compiler_types_parser.cpp
 	${SOURCE_DIR}/compiler_parser.cpp
 	${SOURCE_DIR}/compiler_state_machine.cpp
