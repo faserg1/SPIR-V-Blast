@@ -12,7 +12,7 @@ class CompilerBasicTypeParser :
 public:
 	CompilerBasicTypeParser();
 
-	bool tryVisit(std::string expression) override;
+	bool tryVisit(const std::string &expression) override;
 	bool next() override;
 	std::shared_ptr<CompilerNode> end() override;
 private:

@@ -22,7 +22,6 @@ std::vector<ECompilerState> CompilerState::getNextAvailableStates() const
 	return nextAvailableStates_;
 }
 
-
 std::vector<CompilerState> generateStates()
 {
 	auto basicTypeParser = std::make_shared<CompilerBasicTypeParser>();

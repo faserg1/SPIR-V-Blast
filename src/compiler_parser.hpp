@@ -15,7 +15,7 @@ public:
 	/*
 	@return true if valid expression, false if invalid or stop (stop after first capture)
 	*/
-	virtual bool tryVisit(std::string expression) = 0;
+	virtual bool tryVisit(const std::string &expression) = 0;
 	/*
 	@return true if can receive more data, false if stop
 	*/

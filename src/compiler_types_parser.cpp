@@ -6,7 +6,7 @@ CompilerBasicTypeParser::CompilerBasicTypeParser() : data({})
 {
 }
 
-bool CompilerBasicTypeParser::tryVisit(std::string expression)
+bool CompilerBasicTypeParser::tryVisit(const std::string &expression)
 {
 	if (data.type_.empty() && isType(expression))
 	{

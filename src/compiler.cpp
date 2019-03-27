@@ -1,4 +1,5 @@
 #include "compiler.hpp"
+#include "compiler_state_machine.hpp"
 #include "compiler_types_parser.hpp"
 #include <algorithm>
 #include <regex>
@@ -7,9 +8,7 @@ Shader Compiler::compile(const ShaderPreprocessedInfo &preprocessedInfo)
 {
 	auto literals = splitByLiterals(std::move(preprocessedInfo.text()));
 
-	/*Test start*/
-	
-	/*Test end*/
+	auto nodes = getNodes(literals);
 	
 	return Shader();
 }
@@ -100,41 +99,12 @@ std::vector<std::string> Compiler::splitByLiterals(std::string text)
 
 std::vector<std::shared_ptr<CompilerNode>> Compiler::getNodes(std::vector<std::string> literals)
 {
-	std::vector<std::shared_ptr<CompilerNode>> nodes;
-	CompilerParser *currentParser = nullptr;
-
-	CompilerBasicTypeParser simpleTypeParser;
-
-	auto next = [&nodes](CompilerParser *&parser)
-	{
-		if (!parser->next())
-		{
-			nodes.push_back(parser->end());
-			parser = nullptr;
-		}
-	};
+	CompilerStateMachine stateMachine;
 
 	for (auto &expression : literals)
 	{
-		if (currentParser)
-		{
-			if (currentParser->tryVisit(expression))
-			{
-				next(currentParser);
-				continue;
-			}
-			else
-			{
-				nodes.push_back(currentParser->end());
-				currentParser = nullptr;
-			}
-		}
-		if (simpleTypeParser.tryVisit(expression))
-		{
-			currentParser = &simpleTypeParser;
-			next(currentParser);
-		}
+		stateMachine.feed(expression);
 	}
 
-	return std::move(nodes);
+	return {};
 }
