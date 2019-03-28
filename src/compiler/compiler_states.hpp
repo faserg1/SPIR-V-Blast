@@ -25,7 +25,7 @@ enum class ECompilerState
 {
 	GlobalState,
 	GlobalTypeState,
-	GlobalNameState
+	GlobalNameState,
 };
 
 class CompilerState

@@ -22,7 +22,7 @@ bool CompilerBasicTypeParser::tryVisit(const std::string &expression)
 			{
 				data.parametersRecord_ = false;
 				data.recordEnd_ = true;
-				return false;
+				return true;
 			}
 			else
 			{

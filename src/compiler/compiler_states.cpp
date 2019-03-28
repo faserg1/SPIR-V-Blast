@@ -26,10 +26,11 @@ std::vector<CompilerState> generateStates()
 {
 	auto basicTypeParser = std::make_shared<CompilerBasicTypeParser>();
 	auto nameParser = std::make_shared<CompilerNameParser>();
+	auto expressionEndParser = std::make_shared<CompilerExpressionEndParser>();
 	return std::vector<CompilerState>
 	{
-		{ ECompilerState::GlobalState, {}, {ECompilerState::GlobalTypeState}},
+		{ ECompilerState::GlobalState, { expressionEndParser }, {ECompilerState::GlobalTypeState}},
 		{ ECompilerState::GlobalTypeState, { basicTypeParser }, {ECompilerState::GlobalNameState}},
-		{ ECompilerState::GlobalNameState, { nameParser }, {} }
+		{ ECompilerState::GlobalNameState, { nameParser }, {ECompilerState::GlobalState} },
 	};
 }

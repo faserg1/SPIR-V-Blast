@@ -12,6 +12,8 @@ enum class ECompilerNodeType
 	Name,
 	/// String, symbol or number literal
 	Literal,
+	/// Compiler expression
+	Expression,
 };
 
 class CompilerNode :

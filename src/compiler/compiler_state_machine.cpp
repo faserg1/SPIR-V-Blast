@@ -34,37 +34,34 @@ void CompilerStateMachine::feed(const std::string &expression)
 			currentParser_ = {};
 		}
 	}
-	else
+	auto nextAvailableStates = currentState_->getNextAvailableStates();
+	std::vector<CompilerState> nextStates;
+	std::copy_if(states_.begin(), states_.end(), std::back_inserter(nextStates), [&nextAvailableStates](const CompilerState &compilerState) -> bool
 	{
-		auto nextAvailableStates = currentState_->getNextAvailableStates();
-		std::vector<CompilerState> nextStates;
-		std::copy_if(states_.begin(), states_.end(), std::back_inserter(nextStates), [&nextAvailableStates](const CompilerState &compilerState) -> bool
+		const auto state = compilerState.getState();
+		return std::any_of(nextAvailableStates.begin(), nextAvailableStates.end(), [state](ECompilerState availableState) -> bool {return availableState == state; });
+	});
+	for (auto &state : nextStates)
+	{
+		auto compilers = state.getCompilers();
+		for (auto compiler : compilers)
 		{
-			const auto state = compilerState.getState();
-			return std::any_of(nextAvailableStates.begin(), nextAvailableStates.end(), [state](ECompilerState availableState) -> bool {return availableState == state; });
-		});
-		for (auto &state : nextStates)
-		{
-			auto compilers = state.getCompilers();
-			for (auto compiler : compilers)
+			if (compiler->tryVisit(expression))
 			{
-				if (compiler->tryVisit(expression))
-				{
-					currentParser_ = compiler;
-					break;
-				}
-			}
-			if (currentParser_)
-			{
-				currentState_ = std::make_unique<CompilerState>(state);
+				currentParser_ = compiler;
 				break;
 			}
 		}
-		if (currentParser_ && currentState_)
-			next();
-		else
-			throw std::runtime_error("Unexpected \"" + expression + "\".");
+		if (currentParser_)
+		{
+			currentState_ = std::make_unique<CompilerState>(state);
+			break;
+		}
 	}
+	if (currentParser_ && currentState_)
+		next();
+	else
+		throw std::runtime_error("Unexpected \"" + expression + "\".");
 }
 
 std::vector<std::shared_ptr<CompilerNode>> CompilerStateMachine::end()

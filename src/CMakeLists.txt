@@ -14,6 +14,8 @@ set(BlastCompilerHeaders
 	${SOURCE_COMPILER_DIR}/compiler_parser.hpp
 	${SOURCE_COMPILER_DIR}/compiler_parsers.hpp
 	${SOURCE_COMPILER_DIR}/compiler_state_machine.hpp
+	${SOURCE_COMPILER_DIR}/compiler_expressions.hpp
+	${SOURCE_COMPILER_DIR}/compiler_expressions_parser.hpp
 	${SOURCE_COMPILER_DIR}/compiler.hpp
 )
 
@@ -26,6 +28,8 @@ set(BlastCompilerSources
 	${SOURCE_COMPILER_DIR}/compiler_types_parser.cpp
 	${SOURCE_COMPILER_DIR}/compiler_parser.cpp
 	${SOURCE_COMPILER_DIR}/compiler_state_machine.cpp
+	${SOURCE_COMPILER_DIR}/compiler_expressions.cpp
+	${SOURCE_COMPILER_DIR}/compiler_expressions_parser.cpp
 	${SOURCE_COMPILER_DIR}/compiler.cpp
 )
 

@@ -1,3 +1,10 @@
+bool valid;
+int someNum;
+float<64> duck;
+int<32,0> sick;
+
+
+
 int<32,1> func1()
 {
 	return 1;
