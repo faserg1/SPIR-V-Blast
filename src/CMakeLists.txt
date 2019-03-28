@@ -1,24 +1,42 @@
 cmake_minimum_required (VERSION 3.12)
 
 set(SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}) 
+set(SOURCE_COMPILER_DIR ${SOURCE_DIR}/compiler)
+set(SOURCE_TRANSLATOR_DIR ${SOURCE_DIR}/compiler)
+
+set(BlastCompilerHeaders
+	${SOURCE_COMPILER_DIR}/compiler_types.hpp
+	${SOURCE_COMPILER_DIR}/compiler_nodes.hpp
+	${SOURCE_COMPILER_DIR}/compiler_states.hpp
+	${SOURCE_COMPILER_DIR}/compiler_symbols.hpp
+	${SOURCE_COMPILER_DIR}/compiler_symbols_parser.hpp
+	${SOURCE_COMPILER_DIR}/compiler_types_parser.hpp
+	${SOURCE_COMPILER_DIR}/compiler_parser.hpp
+	${SOURCE_COMPILER_DIR}/compiler_parsers.hpp
+	${SOURCE_COMPILER_DIR}/compiler_state_machine.hpp
+	${SOURCE_COMPILER_DIR}/compiler.hpp
+)
+
+set(BlastCompilerSources
+	${SOURCE_COMPILER_DIR}/compiler_types.cpp
+	${SOURCE_COMPILER_DIR}/compiler_nodes.cpp
+	${SOURCE_COMPILER_DIR}/compiler_states.cpp
+	${SOURCE_COMPILER_DIR}/compiler_symbols.cpp
+	${SOURCE_COMPILER_DIR}/compiler_symbols_parser.cpp
+	${SOURCE_COMPILER_DIR}/compiler_types_parser.cpp
+	${SOURCE_COMPILER_DIR}/compiler_parser.cpp
+	${SOURCE_COMPILER_DIR}/compiler_state_machine.cpp
+	${SOURCE_COMPILER_DIR}/compiler.cpp
+)
 
 set(BlastHeaders
 	${SOURCE_DIR}/args.hpp
 	${SOURCE_DIR}/args_processor.hpp
 	${SOURCE_DIR}/reader.hpp
 	${SOURCE_DIR}/shader.hpp
-	${SOURCE_DIR}/compiler_types.hpp
-	${SOURCE_DIR}/compiler_nodes.hpp
-	${SOURCE_DIR}/compiler_states.hpp
-	${SOURCE_DIR}/compiler_symbols.hpp
-	${SOURCE_DIR}/compiler_symbols_parser.hpp
-	${SOURCE_DIR}/compiler_types_parser.hpp
-	${SOURCE_DIR}/compiler_parser.hpp
-	${SOURCE_DIR}/compiler_parsers.hpp
-	${SOURCE_DIR}/compiler_state_machine.hpp
-	${SOURCE_DIR}/compiler.hpp
 	${SOURCE_DIR}/preprocessor.hpp
 	${SOURCE_DIR}/shader_preprocessed_info.hpp
+	${BlastCompilerHeaders}
 )
 
 set(BlastSources
@@ -26,18 +44,10 @@ set(BlastSources
 	${SOURCE_DIR}/args_processor.cpp
 	${SOURCE_DIR}/reader.cpp
 	${SOURCE_DIR}/shader.cpp
-	${SOURCE_DIR}/compiler_types.cpp
-	${SOURCE_DIR}/compiler_nodes.cpp
-	${SOURCE_DIR}/compiler_states.cpp
-	${SOURCE_DIR}/compiler_symbols.cpp
-	${SOURCE_DIR}/compiler_symbols_parser.cpp
-	${SOURCE_DIR}/compiler_types_parser.cpp
-	${SOURCE_DIR}/compiler_parser.cpp
-	${SOURCE_DIR}/compiler_state_machine.cpp
-	${SOURCE_DIR}/compiler.cpp
 	${SOURCE_DIR}/preprocessor.cpp
 	${SOURCE_DIR}/shader_preprocessed_info.cpp
 	${SOURCE_DIR}/main.cpp
+	${BlastCompilerSources}
 )
 
 add_executable(Blast ${BlastHeaders} ${BlastSources})

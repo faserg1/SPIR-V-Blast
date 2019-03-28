@@ -5,8 +5,8 @@
 #include <string>
 #include <memory>
 
-#include "shader_preprocessed_info.hpp"
-#include "shader.hpp"
+#include "../shader_preprocessed_info.hpp"
+#include "../shader.hpp"
 
 class CompilerNode;
 

@@ -7,7 +7,7 @@
 #include "args_processor.hpp"
 #include "preprocessor.hpp"
 #include "reader.hpp"
-#include "compiler.hpp"
+#include "compiler/compiler.hpp"
 
 void printHelp();
 void printUsage();
