@@ -50,4 +50,7 @@ set(BlastSources
 	${BlastCompilerSources}
 )
 
+source_group("${SOURCE_GROUP_HEADER_START}compiler" FILES ${BlastCompilerHeaders})
+source_group("${SOURCE_GROUP_SOURCE_START}compiler" FILES ${BlastCompilerSources})
+
 add_executable(Blast ${BlastHeaders} ${BlastSources})
