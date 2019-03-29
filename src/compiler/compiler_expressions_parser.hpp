@@ -22,4 +22,37 @@ public:
 	std::shared_ptr<CompilerNode> end() override;
 };
 
+class CompilerFunctionParametersStartParser :
+	public CompilerExpressionParser
+{
+public:
+	CompilerFunctionParametersStartParser() = default;
+
+	bool tryVisit(const std::string &expression) override;
+	bool next() override;
+	std::shared_ptr<CompilerNode> end() override;
+};
+
+class CompilerFunctionParametersSeparatorParser :
+	public CompilerExpressionParser
+{
+public:
+	CompilerFunctionParametersSeparatorParser() = default;
+
+	bool tryVisit(const std::string &expression) override;
+	bool next() override;
+	std::shared_ptr<CompilerNode> end() override;
+};
+
+class CompilerFunctionParametersEndParser :
+	public CompilerExpressionParser
+{
+public:
+	CompilerFunctionParametersEndParser() = default;
+
+	bool tryVisit(const std::string &expression) override;
+	bool next() override;
+	std::shared_ptr<CompilerNode> end() override;
+};
+
 #endif

@@ -3,7 +3,8 @@ int someNum;
 float<64> duck;
 int<32,0> sick;
 
-
+float funcPrototype();
+int funcPrototype2(int niceParameter, bool);
 
 int<32,1> func1()
 {

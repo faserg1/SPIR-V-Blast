@@ -4,6 +4,9 @@
 enum class ECompilerExpressionType
 {
 	End,
+	FunctionParametersStart,
+	FunctionParametersSeparator,
+	FunctionParametersEnd,
 };
 
 class CompilerExpression
@@ -21,6 +24,27 @@ class CompilerExpressionEnd :
 {
 public:
 	CompilerExpressionEnd();
+};
+
+class CompilerFunctionParametersStart :
+	public CompilerExpression
+{
+public:
+	CompilerFunctionParametersStart();
+};
+
+class CompilerFunctionParametersSeparator :
+	public CompilerExpression
+{
+public:
+	CompilerFunctionParametersSeparator();
+};
+
+class CompilerFunctionParametersEnd :
+	public CompilerExpression
+{
+public:
+	CompilerFunctionParametersEnd();
 };
 
 #endif

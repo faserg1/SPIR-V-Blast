@@ -26,6 +26,11 @@ enum class ECompilerState
 	GlobalState,
 	GlobalTypeState,
 	GlobalNameState,
+	GlobalFunctionParametersStart,
+	GlobalFunctionParameterType,
+	GlobalFunctionParameterName,
+	GlobalFunctionParametersSeparator,
+	GlobalFunctionParametersEnd,
 };
 
 class CompilerState
