@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <string>
+#include "compiler_state_enum.hpp"
 
 class CompilerNode;
 
@@ -23,7 +24,7 @@ public:
 	/*
 	End capture. Get compiler node
 	*/
-	virtual std::shared_ptr<CompilerNode> end() = 0;
+	virtual std::shared_ptr<CompilerNode> end(ECompilerState state) = 0;
 protected:
 	CompilerParser() = default;
 };

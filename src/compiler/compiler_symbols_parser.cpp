@@ -19,7 +19,7 @@ bool CompilerNameParser::next()
 	return false;
 }
 
-std::shared_ptr<CompilerNode> CompilerNameParser::end()
+std::shared_ptr<CompilerNode> CompilerNameParser::end(ECompilerState state)
 {
 	auto nameSymbol = std::make_shared<CompilerSymbolName>(name_);
 	return std::make_shared<CompilerNode>(ECompilerNodeType::Name, nameSymbol);

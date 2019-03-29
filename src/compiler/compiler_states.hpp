@@ -21,17 +21,7 @@ local type state
 etc..
 */
 
-enum class ECompilerState
-{
-	GlobalState,
-	GlobalTypeState,
-	GlobalNameState,
-	GlobalFunctionParametersStart,
-	GlobalFunctionParameterType,
-	GlobalFunctionParameterName,
-	GlobalFunctionParametersSeparator,
-	GlobalFunctionParametersEnd,
-};
+#include "compiler_state_enum.hpp"
 
 class CompilerState
 {

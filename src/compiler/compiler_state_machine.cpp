@@ -16,7 +16,7 @@ void CompilerStateMachine::feed(const std::string &expression)
 	{
 		if (!currentParser_->next())
 		{
-			nodes_.push_back(currentParser_->end());
+			nodes_.push_back(currentParser_->end(currentState_->getState()));
 			currentParser_ = {};
 		}
 	};
@@ -30,7 +30,7 @@ void CompilerStateMachine::feed(const std::string &expression)
 		}
 		else
 		{
-			nodes_.push_back(currentParser_->end());
+			nodes_.push_back(currentParser_->end(currentState_->getState()));
 			currentParser_ = {};
 		}
 	}

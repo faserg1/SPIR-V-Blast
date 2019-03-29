@@ -14,7 +14,7 @@ public:
 
 	bool tryVisit(const std::string &expression) override;
 	bool next() override;
-	std::shared_ptr<CompilerNode> end() override;
+	std::shared_ptr<CompilerNode> end(ECompilerState state) override;
 private:
 	struct
 	{

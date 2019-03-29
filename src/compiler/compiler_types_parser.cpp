@@ -66,7 +66,7 @@ bool CompilerBasicTypeParser::next()
 	return true;
 }
 
-std::shared_ptr<CompilerNode> CompilerBasicTypeParser::end()
+std::shared_ptr<CompilerNode> CompilerBasicTypeParser::end(ECompilerState state)
 {
 	std::shared_ptr<BasicType> type;
 	if (data.type_ == "void")

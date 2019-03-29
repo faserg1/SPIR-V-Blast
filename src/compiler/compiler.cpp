@@ -102,9 +102,7 @@ std::vector<std::shared_ptr<CompilerNode>> Compiler::getNodes(std::vector<std::s
 	CompilerStateMachine stateMachine;
 
 	for (auto &expression : literals)
-	{
 		stateMachine.feed(expression);
-	}
 
 	return {};
 }

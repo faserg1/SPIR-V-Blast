@@ -12,7 +12,7 @@ bool CompilerExpressionEndParser::next()
 	return false;
 }
 
-std::shared_ptr<CompilerNode> CompilerExpressionEndParser::end()
+std::shared_ptr<CompilerNode> CompilerExpressionEndParser::end(ECompilerState state)
 {
 	auto expressionEnd = std::make_shared<CompilerExpressionEnd>();
 	return std::make_shared<CompilerNode>(ECompilerNodeType::Expression, expressionEnd);
@@ -28,7 +28,7 @@ bool CompilerFunctionParametersStartParser::next()
 	return false;
 }
 
-std::shared_ptr<CompilerNode> CompilerFunctionParametersStartParser::end()
+std::shared_ptr<CompilerNode> CompilerFunctionParametersStartParser::end(ECompilerState state)
 {
 	auto expressionEnd = std::make_shared<CompilerFunctionParametersStart>();
 	return std::make_shared<CompilerNode>(ECompilerNodeType::Expression, expressionEnd);
@@ -44,7 +44,7 @@ bool CompilerFunctionParametersSeparatorParser::next()
 	return false;
 }
 
-std::shared_ptr<CompilerNode> CompilerFunctionParametersSeparatorParser::end()
+std::shared_ptr<CompilerNode> CompilerFunctionParametersSeparatorParser::end(ECompilerState state)
 {
 	auto expressionEnd = std::make_shared<CompilerFunctionParametersSeparator>();
 	return std::make_shared<CompilerNode>(ECompilerNodeType::Expression, expressionEnd);
@@ -60,7 +60,7 @@ bool CompilerFunctionParametersEndParser::next()
 	return false;
 }
 
-std::shared_ptr<CompilerNode> CompilerFunctionParametersEndParser::end()
+std::shared_ptr<CompilerNode> CompilerFunctionParametersEndParser::end(ECompilerState state)
 {
 	auto expressionEnd = std::make_shared<CompilerFunctionParametersEnd>();
 	return std::make_shared<CompilerNode>(ECompilerNodeType::Expression, expressionEnd);
