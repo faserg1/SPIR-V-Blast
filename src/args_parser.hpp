@@ -1,5 +1,5 @@
-#ifndef ARGS
-#define ARGS
+#ifndef ARGS_PARSER
+#define ARGS_PARSER
 
 #include <vector>
 #include <string>
@@ -10,7 +10,7 @@ struct Option
 	std::vector<std::string> optionArgs;
 };
 
-class Args
+class ArgsParser
 {
 public:
 	void setArgsAndParse(std::vector<std::string> args);

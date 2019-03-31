@@ -36,7 +36,7 @@ set(BlastCompilerSources
 )
 
 set(BlastHeaders
-	${SOURCE_DIR}/args.hpp
+	${SOURCE_DIR}/args_parser.hpp
 	${SOURCE_DIR}/args_processor.hpp
 	${SOURCE_DIR}/reader.hpp
 	${SOURCE_DIR}/shader.hpp
@@ -46,7 +46,7 @@ set(BlastHeaders
 )
 
 set(BlastSources
-	${SOURCE_DIR}/args.cpp
+	${SOURCE_DIR}/args_parser.cpp
 	${SOURCE_DIR}/args_processor.cpp
 	${SOURCE_DIR}/reader.cpp
 	${SOURCE_DIR}/shader.cpp

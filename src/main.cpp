@@ -3,7 +3,7 @@
 #include <string>
 #include <stdexcept>
 
-#include "args.hpp"
+#include "args_parser.hpp"
 #include "args_processor.hpp"
 #include "preprocessor.hpp"
 #include "reader.hpp"
@@ -17,10 +17,10 @@ int main(int argc, char**argv)
 	std::vector<std::string> args(argc);
 	for (int i = 0; i < argc; i++)
 		args[i] = std::string(argv[i]);
-	Args parser;
+	ArgsParser argsParser;
 	try
 	{
-		parser.setArgsAndParse(args);
+		argsParser.setArgsAndParse(args);
 	}
 	catch (std::exception &e)
 	{
@@ -28,7 +28,7 @@ int main(int argc, char**argv)
 		return 1;
 	}
 
-	auto options = parser.getOptions();
+	auto options = argsParser.getOptions();
 
 	Preprocessor preprocessor;
 	Reader reader;
@@ -40,7 +40,7 @@ int main(int argc, char**argv)
 	preprocessor.setLoadCallback(std::bind(&Reader::read, &reader, std::placeholders::_1));
 	preprocessor.setSearchFileCallback(std::bind(&Reader::search, &reader, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
-	auto processedInfo = preprocessor.process(parser.getInputFile());
+	auto processedInfo = preprocessor.process(argsParser.getInputFile());
 	auto shader = compiler.compile(processedInfo);
 
 	return 0;

@@ -1,7 +1,7 @@
-#include "args.hpp"
+#include "args_parser.hpp"
 #include <stdexcept>
 
-void Args::setArgsAndParse(std::vector<std::string> args)
+void ArgsParser::setArgsAndParse(std::vector<std::string> args)
 {
 	args_ = std::move(args);
 	// remove first element - the name of executable
@@ -10,17 +10,17 @@ void Args::setArgsAndParse(std::vector<std::string> args)
 	validateOptions();
 }
 
-std::string Args::getInputFile()
+std::string ArgsParser::getInputFile()
 {
 	return inputFile_;
 }
 
-std::vector<Option> Args::getOptions()
+std::vector<Option> ArgsParser::getOptions()
 {
 	return options_;
 }
 
-void Args::parse()
+void ArgsParser::parse()
 {
 	options_.clear();
 	inputFile_ = {};
@@ -61,7 +61,7 @@ void Args::parse()
 	inputFile_ = generalArguments[0];
 }
 
-void Args::validateOptions()
+void ArgsParser::validateOptions()
 {
 	for (auto &option : options_)
 	{
@@ -70,7 +70,7 @@ void Args::validateOptions()
 	}
 }
 
-bool Args::validateOption(const std::string &arg)
+bool ArgsParser::validateOption(const std::string &arg)
 {
 	if (arg == "-o" || arg == "--output")
 		return true;
@@ -79,7 +79,7 @@ bool Args::validateOption(const std::string &arg)
 	return false;
 }
 
-int Args::getOptionArgsCount(const std::string &option)
+int ArgsParser::getOptionArgsCount(const std::string &option)
 {
 	if (option == "-o" || option == "--output")
 		return 1;
