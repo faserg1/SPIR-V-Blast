@@ -1,6 +1,6 @@
 #include "compiler_symbols_parser.hpp"
 #include "compiler_symbols.hpp"
-#include "compiler_nodes.hpp"
+#include "../compiler/compiler_nodes.hpp"
 #include <regex>
 
 bool BlastNameParser::tryVisit(const std::string &expression)

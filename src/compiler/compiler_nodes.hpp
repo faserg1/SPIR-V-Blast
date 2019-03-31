@@ -5,7 +5,7 @@
 #include <any>
 
 #include "compiler_node_type_enum.hpp"
-#include "compiler_state_enum.hpp"
+#include "../parser/compiler_state_enum.hpp"
 
 class CompilerNode :
 	public std::enable_shared_from_this<CompilerNode>

@@ -1,6 +1,6 @@
 #include "compiler_expressions_parser.hpp"
 #include "compiler_expressions.hpp"
-#include "compiler_nodes.hpp"
+#include "../compiler/compiler_nodes.hpp"
 
 bool BlastExpressionEndParser::tryVisit(const std::string &expression)
 {

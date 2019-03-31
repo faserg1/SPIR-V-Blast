@@ -5,7 +5,7 @@
 #include <string>
 
 #include "compiler_states.hpp"
-#include "compiler_nodes.hpp"
+#include "../compiler/compiler_nodes.hpp"
 
 class CommonParser;
 

@@ -1,5 +1,5 @@
 #include "compiler_types_parser.hpp"
-#include "compiler_nodes.hpp"
+#include "../compiler/compiler_nodes.hpp"
 #include <stdexcept>
 #include <regex>
 
