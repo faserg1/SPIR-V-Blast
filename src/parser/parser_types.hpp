@@ -1,5 +1,5 @@
-#ifndef COMPILER_TYPES
-#define COMPILER_TYPES
+#ifndef PARSER_TYPES
+#define PARSER_TYPES
 
 #include <cstdint>
 #include <memory>

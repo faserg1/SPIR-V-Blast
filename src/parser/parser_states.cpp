@@ -1,5 +1,5 @@
-#include "compiler_states.hpp"
-#include "compiler_parsers.hpp"
+#include "parser_states.hpp"
+#include "parsers.hpp"
 
 ParserState::ParserState(EParserState state, std::vector<std::shared_ptr<CommonParser>> compilers, std::vector<EParserState> nextStates) :
 	state_(state), compilers_(compilers), nextAvailableStates_(nextStates)

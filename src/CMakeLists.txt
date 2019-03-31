@@ -6,32 +6,31 @@ set(SOURCE_COMPILER_DIR ${SOURCE_DIR}/compiler)
 set(SOURCE_TRANSLATOR_DIR ${SOURCE_DIR}/translator)
 
 set(BlastParserHeaders
-	${SOURCE_PARSER_DIR}/compiler_types.hpp
-
-	${SOURCE_PARSER_DIR}/compiler_state_enum.hpp
-	${SOURCE_PARSER_DIR}/compiler_states.hpp
-	${SOURCE_PARSER_DIR}/compiler_symbols.hpp
-	${SOURCE_PARSER_DIR}/compiler_symbols_parser.hpp
-	${SOURCE_PARSER_DIR}/compiler_types_parser.hpp
-	${SOURCE_PARSER_DIR}/compiler_parser.hpp
-	${SOURCE_PARSER_DIR}/compiler_parsers.hpp
-	${SOURCE_PARSER_DIR}/compiler_state_machine.hpp
-	${SOURCE_PARSER_DIR}/compiler_expressions.hpp
-	${SOURCE_PARSER_DIR}/compiler_expressions_parser.hpp
-	${SOURCE_PARSER_DIR}/compiler.hpp
+	${SOURCE_PARSER_DIR}/parser_types.hpp
+	${SOURCE_PARSER_DIR}/parser_state_enum.hpp
+	${SOURCE_PARSER_DIR}/parser_states.hpp
+	${SOURCE_PARSER_DIR}/parser_symbols.hpp
+	${SOURCE_PARSER_DIR}/parser_symbols_parser.hpp
+	${SOURCE_PARSER_DIR}/parser_types_parser.hpp
+	${SOURCE_PARSER_DIR}/common_parser.hpp
+	${SOURCE_PARSER_DIR}/parsers.hpp
+	${SOURCE_PARSER_DIR}/parser_state_machine.hpp
+	${SOURCE_PARSER_DIR}/parser_expressions.hpp
+	${SOURCE_PARSER_DIR}/parser_expressions_parser.hpp
+	${SOURCE_PARSER_DIR}/parser.hpp
 )
 
 set(BlastParserSources
-	${SOURCE_PARSER_DIR}/compiler_types.cpp
-	${SOURCE_PARSER_DIR}/compiler_states.cpp
-	${SOURCE_PARSER_DIR}/compiler_symbols.cpp
-	${SOURCE_PARSER_DIR}/compiler_symbols_parser.cpp
-	${SOURCE_PARSER_DIR}/compiler_types_parser.cpp
-	${SOURCE_PARSER_DIR}/compiler_parser.cpp
-	${SOURCE_PARSER_DIR}/compiler_state_machine.cpp
-	${SOURCE_PARSER_DIR}/compiler_expressions.cpp
-	${SOURCE_PARSER_DIR}/compiler_expressions_parser.cpp
-	${SOURCE_PARSER_DIR}/compiler.cpp
+	${SOURCE_PARSER_DIR}/parser_types.cpp
+	${SOURCE_PARSER_DIR}/parser_states.cpp
+	${SOURCE_PARSER_DIR}/parser_symbols.cpp
+	${SOURCE_PARSER_DIR}/parser_symbols_parser.cpp
+	${SOURCE_PARSER_DIR}/parser_types_parser.cpp
+	${SOURCE_PARSER_DIR}/common_parser.cpp
+	${SOURCE_PARSER_DIR}/parser_state_machine.cpp
+	${SOURCE_PARSER_DIR}/parser_expressions.cpp
+	${SOURCE_PARSER_DIR}/parser_expressions_parser.cpp
+	${SOURCE_PARSER_DIR}/parser.cpp
 )
 
 set(BlastCompilerHeaders

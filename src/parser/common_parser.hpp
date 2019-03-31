@@ -1,9 +1,9 @@
-#ifndef COMPILER_PARSER
-#define COMPILER_PARSER
+#ifndef COMMON_PARSER
+#define COMMON_PARSER
 
 #include <memory>
 #include <string>
-#include "compiler_state_enum.hpp"
+#include "parser_state_enum.hpp"
 
 class CompilerNode;
 

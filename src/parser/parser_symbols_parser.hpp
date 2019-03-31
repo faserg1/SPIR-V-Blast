@@ -1,8 +1,8 @@
-#ifndef COMPILER_SYMBOLS_PARSER
-#define COMPILER_SYMBOLS_PARSER
+#ifndef PARSER_SYMBOLS_PARSER
+#define PARSER_SYMBOLS_PARSER
 
-#include "compiler_parser.hpp"
-#include "compiler_symbols.hpp"
+#include "common_parser.hpp"
+#include "parser_symbols.hpp"
 
 class BlastSymbolsParser :
 	public CommonParser

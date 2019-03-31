@@ -1,10 +1,10 @@
-#ifndef COMPILER_STATE_MACHINE
-#define COMPILER_STATE_MACHINE
+#ifndef PARSER_STATE_MACHINE
+#define PARSER_STATE_MACHINE
 
 #include <memory>
 #include <string>
 
-#include "compiler_states.hpp"
+#include "parser_states.hpp"
 #include "../compiler/compiler_nodes.hpp"
 
 class CommonParser;

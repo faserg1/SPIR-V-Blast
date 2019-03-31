@@ -1,5 +1,5 @@
-#ifndef COMPILER_EXPRESSIONS
-#define COMPILER_EXPRESSIONS
+#ifndef PARSER_EXPRESSIONS
+#define PARSER_EXPRESSIONS
 
 enum class EBlastExpressionType
 {

@@ -1,4 +1,4 @@
-#include "compiler_symbols.hpp"
+#include "parser_symbols.hpp"
 
 BlastSymbol::BlastSymbol(EBlastSymbolType type) :
 	type_(type)

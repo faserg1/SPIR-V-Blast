@@ -1,8 +1,8 @@
-#ifndef COMPILER_EXPRESSIONS_PARSER
-#define COMPILER_EXPRESSIONS_PARSER
+#ifndef PARSER_EXPRESSIONS_PARSER
+#define PARSER_EXPRESSIONS_PARSER
 
-#include "compiler_parser.hpp"
-#include "compiler_expressions.hpp"
+#include "common_parser.hpp"
+#include "parser_expressions.hpp"
 
 class BlastExpressionParser :
 	public CommonParser

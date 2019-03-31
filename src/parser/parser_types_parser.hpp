@@ -1,10 +1,10 @@
-#ifndef COMPILER_TYPES_PARSER
-#define COMPILER_TYPES_PARSER
+#ifndef PARSER_TYPES_PARSER
+#define PARSER_TYPES_PARSER
 
 #include <string>
 #include <vector>
-#include "compiler_parser.hpp"
-#include "compiler_types.hpp"
+#include "common_parser.hpp"
+#include "parser_types.hpp"
 
 class BasicBlastTypeParser :
 	public CommonParser

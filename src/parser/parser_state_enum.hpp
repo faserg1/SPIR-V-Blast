@@ -1,5 +1,5 @@
-#ifndef COMPILER_STATE_ENUM
-#define COMPILER_STATE_ENUM
+#ifndef PARSER_STATE_ENUM
+#define PARSER_STATE_ENUM
 
 enum class EParserState
 {

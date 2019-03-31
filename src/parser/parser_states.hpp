@@ -1,5 +1,5 @@
-#ifndef COMPILER_STATES
-#define COMPILER_STATES
+#ifndef PARSER_STATES
+#define PARSER_STATES
 
 #include <memory>
 #include <vector>
@@ -21,7 +21,7 @@ local type state
 etc..
 */
 
-#include "compiler_state_enum.hpp"
+#include "parser_state_enum.hpp"
 
 class ParserState
 {

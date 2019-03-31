@@ -1,5 +1,5 @@
-#ifndef COMPILER_SYMBOLS
-#define COMPILER_SYMBOLS
+#ifndef PARSER_SYMBOLS
+#define PARSER_SYMBOLS
 
 #include <string>
 #include <variant>

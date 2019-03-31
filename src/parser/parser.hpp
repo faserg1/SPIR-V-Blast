@@ -1,5 +1,5 @@
-#ifndef COMPILER
-#define COMPILER
+#ifndef PARSER
+#define PARSER
 
 #include <vector>
 #include <string>
@@ -19,4 +19,4 @@ private:
 	std::vector<std::shared_ptr<CompilerNode>> getNodes(std::vector<std::string> literals);
 };
 
-#endif // COMPILER
+#endif // PARSER

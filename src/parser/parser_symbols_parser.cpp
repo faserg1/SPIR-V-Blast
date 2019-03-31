@@ -1,5 +1,5 @@
-#include "compiler_symbols_parser.hpp"
-#include "compiler_symbols.hpp"
+#include "parser_symbols_parser.hpp"
+#include "parser_symbols.hpp"
 #include "../compiler/compiler_nodes.hpp"
 #include <regex>
 
