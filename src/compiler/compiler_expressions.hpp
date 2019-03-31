@@ -1,7 +1,7 @@
 #ifndef COMPILER_EXPRESSIONS
 #define COMPILER_EXPRESSIONS
 
-enum class ECompilerExpressionType
+enum class EBlastExpressionType
 {
 	End,
 	FunctionParametersStart,
@@ -9,42 +9,42 @@ enum class ECompilerExpressionType
 	FunctionParametersEnd,
 };
 
-class CompilerExpression
+class BlastExpression
 {
 protected:
-	CompilerExpression(ECompilerExpressionType type);
+	BlastExpression(EBlastExpressionType type);
 
-	ECompilerExpressionType getType() const;
+	EBlastExpressionType getType() const;
 private:
-	const ECompilerExpressionType type_;
+	const EBlastExpressionType type_;
 };
 
-class CompilerExpressionEnd :
-	public CompilerExpression
+class BlastExpressionEnd :
+	public BlastExpression
 {
 public:
-	CompilerExpressionEnd();
+	BlastExpressionEnd();
 };
 
-class CompilerFunctionParametersStart :
-	public CompilerExpression
+class BlastFunctionParametersStart :
+	public BlastExpression
 {
 public:
-	CompilerFunctionParametersStart();
+	BlastFunctionParametersStart();
 };
 
-class CompilerFunctionParametersSeparator :
-	public CompilerExpression
+class BlastFunctionParametersSeparator :
+	public BlastExpression
 {
 public:
-	CompilerFunctionParametersSeparator();
+	BlastFunctionParametersSeparator();
 };
 
-class CompilerFunctionParametersEnd :
-	public CompilerExpression
+class BlastFunctionParametersEnd :
+	public BlastExpression
 {
 public:
-	CompilerFunctionParametersEnd();
+	BlastFunctionParametersEnd();
 };
 
 #endif

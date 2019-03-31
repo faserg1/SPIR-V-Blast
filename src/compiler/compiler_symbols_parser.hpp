@@ -4,23 +4,23 @@
 #include "compiler_parser.hpp"
 #include "compiler_symbols.hpp"
 
-class CompilerSymbolsParser :
-	public CompilerParser
+class BlastSymbolsParser :
+	public CommonParser
 {
 public:
 	
 protected:
-	CompilerSymbolsParser() = default;
+	BlastSymbolsParser() = default;
 private:
 };
 
-class CompilerNameParser :
-	public CompilerSymbolsParser
+class BlastNameParser :
+	public BlastSymbolsParser
 {
 public:
 	bool tryVisit(const std::string &expression) override;
 	bool next() override;
-	std::shared_ptr<CompilerNode> end(ECompilerState state) override;
+	std::shared_ptr<CompilerNode> end(EParserState state) override;
 private:
 	std::string name_;
 };

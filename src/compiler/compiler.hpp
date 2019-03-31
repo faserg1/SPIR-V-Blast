@@ -10,7 +10,7 @@
 
 class CompilerNode;
 
-class Compiler
+class Parser
 {
 public:
 	Shader compile(const ShaderPreprocessedInfo &preprocessedInfo);

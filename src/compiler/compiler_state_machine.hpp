@@ -7,18 +7,18 @@
 #include "compiler_states.hpp"
 #include "compiler_nodes.hpp"
 
-class CompilerParser;
+class CommonParser;
 
-class CompilerStateMachine
+class ParserStateMachine
 {
 public:
-	CompilerStateMachine();
+	ParserStateMachine();
 	void feed(const std::string &expression);
 	std::vector<std::shared_ptr<CompilerNode>> end();
 private:
-	const std::vector<CompilerState> states_;
-	std::unique_ptr<CompilerState> currentState_;
-	std::shared_ptr<CompilerParser> currentParser_;
+	const std::vector<ParserState> states_;
+	std::unique_ptr<ParserState> currentState_;
+	std::shared_ptr<CommonParser> currentParser_;
 
 	std::vector<std::shared_ptr<CompilerNode>> nodes_;
 };

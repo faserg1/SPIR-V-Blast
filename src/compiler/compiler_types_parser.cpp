@@ -3,11 +3,11 @@
 #include <stdexcept>
 #include <regex>
 
-CompilerBasicTypeParser::CompilerBasicTypeParser() : data({})
+BasicBlastTypeParser::BasicBlastTypeParser() : data({})
 {
 }
 
-bool CompilerBasicTypeParser::tryVisit(const std::string &expression)
+bool BasicBlastTypeParser::tryVisit(const std::string &expression)
 {
 	if (data.type_.empty() && isType(expression))
 	{
@@ -56,7 +56,7 @@ bool CompilerBasicTypeParser::tryVisit(const std::string &expression)
 	return false;
 }
 
-bool CompilerBasicTypeParser::next()
+bool BasicBlastTypeParser::next()
 {
 	if (data.type_ == "void" ||
 		data.type_ == "bool")
@@ -66,19 +66,19 @@ bool CompilerBasicTypeParser::next()
 	return true;
 }
 
-std::shared_ptr<CompilerNode> CompilerBasicTypeParser::end(ECompilerState state)
+std::shared_ptr<CompilerNode> BasicBlastTypeParser::end(EParserState state)
 {
-	std::shared_ptr<BasicType> type;
+	std::shared_ptr<BasicBlastType> type;
 	if (data.type_ == "void")
-		type = std::make_shared<VoidType>();
+		type = std::make_shared<VoidBlastType>();
 	else if (data.type_ == "bool")
-		type = std::make_shared<BooleanType>();
+		type = std::make_shared<BooleanBlastType>();
 	else if (data.type_ == "float")
 	{
 		int16_t width = 32;
 		if (data.parameters_.size() > 0)
 			width = static_cast<int16_t>(std::stoi(data.parameters_[0]));
-		type = std::make_shared<FloatType>(width);
+		type = std::make_shared<FloatBlastType>(width);
 	}
 	else if (data.type_ == "int")
 	{
@@ -88,13 +88,13 @@ std::shared_ptr<CompilerNode> CompilerBasicTypeParser::end(ECompilerState state)
 			width = static_cast<int16_t>(std::stoi(data.parameters_[0]));
 		if (data.parameters_.size() > 1)
 			signedness = static_cast<int16_t>(std::stoi(data.parameters_[1]));
-		type = std::make_shared<IntegerType>(width, signedness);
+		type = std::make_shared<IntegerBlastType>(width, signedness);
 	}
 	data = {};
 	return std::make_shared<CompilerNode>(ECompilerNodeType::Type, type, state);
 }
 
-bool CompilerBasicTypeParser::isType(std::string expression) const
+bool BasicBlastTypeParser::isType(std::string expression) const
 {
 	// Base type
 	if (expression == "void" ||

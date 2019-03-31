@@ -4,7 +4,7 @@
 #include <memory>
 #include <vector>
 
-class CompilerParser;
+class CommonParser;
 
 /*
 TODO: [OOKAMI] States
@@ -23,20 +23,20 @@ etc..
 
 #include "compiler_state_enum.hpp"
 
-class CompilerState
+class ParserState
 {
 public:
-	CompilerState(ECompilerState state, std::vector<std::shared_ptr<CompilerParser>> compilers, std::vector<ECompilerState> nextStates);
+	ParserState(EParserState state, std::vector<std::shared_ptr<CommonParser>> compilers, std::vector<EParserState> nextStates);
 
-	ECompilerState getState() const;
-	std::vector<std::shared_ptr<CompilerParser>> getCompilers() const;
-	std::vector<ECompilerState> getNextAvailableStates() const;
+	EParserState getState() const;
+	std::vector<std::shared_ptr<CommonParser>> getCompilers() const;
+	std::vector<EParserState> getNextAvailableStates() const;
 private:
-	const ECompilerState state_;
-	const std::vector<std::shared_ptr<CompilerParser>> compilers_;
-	const std::vector<ECompilerState> nextAvailableStates_;
+	const EParserState state_;
+	const std::vector<std::shared_ptr<CommonParser>> compilers_;
+	const std::vector<EParserState> nextAvailableStates_;
 };
 
-std::vector<CompilerState> generateStates();
+std::vector<ParserState> generateStates();
 
 #endif

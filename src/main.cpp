@@ -32,7 +32,7 @@ int main(int argc, char**argv)
 
 	Preprocessor preprocessor;
 	Reader reader;
-	Compiler compiler;
+	Parser compiler;
 
 	processPreprocessorFlags(preprocessor, options);
 	processReaderFlags(reader, options);

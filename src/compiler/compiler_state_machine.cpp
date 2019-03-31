@@ -3,14 +3,14 @@
 #include <algorithm>
 #include <stdexcept>
 
-static const CompilerState &findGlobalState(const std::vector<CompilerState> &states);
+static const ParserState &findGlobalState(const std::vector<ParserState> &states);
 
-CompilerStateMachine::CompilerStateMachine() :
-	states_(generateStates()), currentState_(std::make_unique<CompilerState>(findGlobalState(states_)))
+ParserStateMachine::ParserStateMachine() :
+	states_(generateStates()), currentState_(std::make_unique<ParserState>(findGlobalState(states_)))
 {
 }
 
-void CompilerStateMachine::feed(const std::string &expression)
+void ParserStateMachine::feed(const std::string &expression)
 {
 	auto next = [this]()
 	{
@@ -35,11 +35,11 @@ void CompilerStateMachine::feed(const std::string &expression)
 		}
 	}
 	auto nextAvailableStates = currentState_->getNextAvailableStates();
-	std::vector<CompilerState> nextStates;
-	std::copy_if(states_.begin(), states_.end(), std::back_inserter(nextStates), [&nextAvailableStates](const CompilerState &compilerState) -> bool
+	std::vector<ParserState> nextStates;
+	std::copy_if(states_.begin(), states_.end(), std::back_inserter(nextStates), [&nextAvailableStates](const ParserState &compilerState) -> bool
 	{
 		const auto state = compilerState.getState();
-		return std::any_of(nextAvailableStates.begin(), nextAvailableStates.end(), [state](ECompilerState availableState) -> bool {return availableState == state; });
+		return std::any_of(nextAvailableStates.begin(), nextAvailableStates.end(), [state](EParserState availableState) -> bool {return availableState == state; });
 	});
 	for (auto &state : nextStates)
 	{
@@ -54,7 +54,7 @@ void CompilerStateMachine::feed(const std::string &expression)
 		}
 		if (currentParser_)
 		{
-			currentState_ = std::make_unique<CompilerState>(state);
+			currentState_ = std::make_unique<ParserState>(state);
 			break;
 		}
 	}
@@ -64,17 +64,17 @@ void CompilerStateMachine::feed(const std::string &expression)
 		throw std::runtime_error("Unexpected \"" + expression + "\".");
 }
 
-std::vector<std::shared_ptr<CompilerNode>> CompilerStateMachine::end()
+std::vector<std::shared_ptr<CompilerNode>> ParserStateMachine::end()
 {
-	if (currentState_->getState() != ECompilerState::GlobalState)
+	if (currentState_->getState() != EParserState::GlobalState)
 		throw std::runtime_error("Unexpected end of shader!");
 	return nodes_;
 }
 
-const CompilerState &findGlobalState(const std::vector<CompilerState> &states)
+const ParserState &findGlobalState(const std::vector<ParserState> &states)
 {
-	return *std::find_if(states.begin(), states.end(), [](const CompilerState &state) -> bool
+	return *std::find_if(states.begin(), states.end(), [](const ParserState &state) -> bool
 	{
-		return state.getState() == ECompilerState::GlobalState;
+		return state.getState() == EParserState::GlobalState;
 	});
 }

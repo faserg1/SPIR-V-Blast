@@ -1,31 +1,31 @@
 #include "compiler_expressions.hpp"
 
-CompilerExpression::CompilerExpression(ECompilerExpressionType type) :
+BlastExpression::BlastExpression(EBlastExpressionType type) :
 	type_(type)
 {
 }
 
-ECompilerExpressionType CompilerExpression::getType() const
+EBlastExpressionType BlastExpression::getType() const
 {
 	return type_;
 }
 
-CompilerExpressionEnd::CompilerExpressionEnd() :
-	CompilerExpression(ECompilerExpressionType::End)
+BlastExpressionEnd::BlastExpressionEnd() :
+	BlastExpression(EBlastExpressionType::End)
 {
 }
 
-CompilerFunctionParametersStart::CompilerFunctionParametersStart() :
-	CompilerExpression(ECompilerExpressionType::FunctionParametersStart)
+BlastFunctionParametersStart::BlastFunctionParametersStart() :
+	BlastExpression(EBlastExpressionType::FunctionParametersStart)
 {
 }
 
-CompilerFunctionParametersSeparator::CompilerFunctionParametersSeparator() :
-	CompilerExpression(ECompilerExpressionType::FunctionParametersSeparator)
+BlastFunctionParametersSeparator::BlastFunctionParametersSeparator() :
+	BlastExpression(EBlastExpressionType::FunctionParametersSeparator)
 {
 }
 
-CompilerFunctionParametersEnd::CompilerFunctionParametersEnd() :
-	CompilerExpression(ECompilerExpressionType::FunctionParametersEnd)
+BlastFunctionParametersEnd::BlastFunctionParametersEnd() :
+	BlastExpression(EBlastExpressionType::FunctionParametersEnd)
 {
 }

@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <regex>
 
-Shader Compiler::compile(const ShaderPreprocessedInfo &preprocessedInfo)
+Shader Parser::compile(const ShaderPreprocessedInfo &preprocessedInfo)
 {
 	auto literals = splitByLiterals(std::move(preprocessedInfo.text()));
 
@@ -13,7 +13,7 @@ Shader Compiler::compile(const ShaderPreprocessedInfo &preprocessedInfo)
 	return Shader();
 }
 
-std::vector<std::string> Compiler::splitByLiterals(std::string text)
+std::vector<std::string> Parser::splitByLiterals(std::string text)
 {
 	auto separatorsCount = std::count_if(text.begin(), text.end(),
 		[](char c) -> bool {return c == ' ' || c == '\t' || c == '\n'; });
@@ -97,9 +97,9 @@ std::vector<std::string> Compiler::splitByLiterals(std::string text)
 	return literals;
 }
 
-std::vector<std::shared_ptr<CompilerNode>> Compiler::getNodes(std::vector<std::string> literals)
+std::vector<std::shared_ptr<CompilerNode>> Parser::getNodes(std::vector<std::string> literals)
 {
-	CompilerStateMachine stateMachine;
+	ParserStateMachine stateMachine;
 
 	for (auto &expression : literals)
 		stateMachine.feed(expression);

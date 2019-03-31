@@ -6,15 +6,15 @@
 #include "compiler_parser.hpp"
 #include "compiler_types.hpp"
 
-class CompilerBasicTypeParser :
-	public CompilerParser
+class BasicBlastTypeParser :
+	public CommonParser
 {
 public:
-	CompilerBasicTypeParser();
+	BasicBlastTypeParser();
 
 	bool tryVisit(const std::string &expression) override;
 	bool next() override;
-	std::shared_ptr<CompilerNode> end(ECompilerState state) override;
+	std::shared_ptr<CompilerNode> end(EParserState state) override;
 private:
 	struct
 	{

@@ -1,7 +1,7 @@
 #ifndef COMPILER_STATE_ENUM
 #define COMPILER_STATE_ENUM
 
-enum class ECompilerState
+enum class EParserState
 {
 	GlobalState,
 	GlobalTypeState,

@@ -4,55 +4,55 @@
 #include "compiler_parser.hpp"
 #include "compiler_expressions.hpp"
 
-class CompilerExpressionParser :
-	public CompilerParser
+class BlastExpressionParser :
+	public CommonParser
 {
 protected:
-	CompilerExpressionParser() = default;
+	BlastExpressionParser() = default;
 };
 
-class CompilerExpressionEndParser :
-	public CompilerExpressionParser
+class BlastExpressionEndParser :
+	public BlastExpressionParser
 {
 public:
-	CompilerExpressionEndParser() = default;
+	BlastExpressionEndParser() = default;
 
 	bool tryVisit(const std::string &expression) override;
 	bool next() override;
-	std::shared_ptr<CompilerNode> end(ECompilerState state) override;
+	std::shared_ptr<CompilerNode> end(EParserState state) override;
 };
 
-class CompilerFunctionParametersStartParser :
-	public CompilerExpressionParser
+class BlastFunctionParametersStartParser :
+	public BlastExpressionParser
 {
 public:
-	CompilerFunctionParametersStartParser() = default;
+	BlastFunctionParametersStartParser() = default;
 
 	bool tryVisit(const std::string &expression) override;
 	bool next() override;
-	std::shared_ptr<CompilerNode> end(ECompilerState state) override;
+	std::shared_ptr<CompilerNode> end(EParserState state) override;
 };
 
-class CompilerFunctionParametersSeparatorParser :
-	public CompilerExpressionParser
+class BlastFunctionParametersSeparatorParser :
+	public BlastExpressionParser
 {
 public:
-	CompilerFunctionParametersSeparatorParser() = default;
+	BlastFunctionParametersSeparatorParser() = default;
 
 	bool tryVisit(const std::string &expression) override;
 	bool next() override;
-	std::shared_ptr<CompilerNode> end(ECompilerState state) override;
+	std::shared_ptr<CompilerNode> end(EParserState state) override;
 };
 
-class CompilerFunctionParametersEndParser :
-	public CompilerExpressionParser
+class BlastFunctionParametersEndParser :
+	public BlastExpressionParser
 {
 public:
-	CompilerFunctionParametersEndParser() = default;
+	BlastFunctionParametersEndParser() = default;
 
 	bool tryVisit(const std::string &expression) override;
 	bool next() override;
-	std::shared_ptr<CompilerNode> end(ECompilerState state) override;
+	std::shared_ptr<CompilerNode> end(EParserState state) override;
 };
 
 #endif

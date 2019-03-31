@@ -3,7 +3,7 @@
 #include "compiler_nodes.hpp"
 #include <regex>
 
-bool CompilerNameParser::tryVisit(const std::string &expression)
+bool BlastNameParser::tryVisit(const std::string &expression)
 {
 	std::regex literalRegex("^(?![0-9])\\w+$", std::regex_constants::ECMAScript);
 	std::sregex_iterator end;
@@ -14,13 +14,13 @@ bool CompilerNameParser::tryVisit(const std::string &expression)
 	return true;
 }
 
-bool CompilerNameParser::next()
+bool BlastNameParser::next()
 {
 	return false;
 }
 
-std::shared_ptr<CompilerNode> CompilerNameParser::end(ECompilerState state)
+std::shared_ptr<CompilerNode> BlastNameParser::end(EParserState state)
 {
-	auto nameSymbol = std::make_shared<CompilerSymbolName>(name_);
+	auto nameSymbol = std::make_shared<BlastSymbolName>(name_);
 	return std::make_shared<CompilerNode>(ECompilerNodeType::Name, nameSymbol, state);
 }

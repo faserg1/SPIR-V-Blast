@@ -11,17 +11,17 @@ class CompilerNode :
 	public std::enable_shared_from_this<CompilerNode>
 {
 public:
-	CompilerNode(ECompilerNodeType type, std::any value, ECompilerState state);
+	CompilerNode(ECompilerNodeType type, std::any value, EParserState state);
 	template <class T>
 	T getValue() const
 	{
 		return std::any_cast<T>(value_);
 	}
-	ECompilerState getCompilerState() const;
+	EParserState getCompilerState() const;
 private:
 	const ECompilerNodeType nodeType_;
 	const std::any value_;
-	const ECompilerState state_;
+	const EParserState state_;
 };
 
 #endif // COMPILER_NODES

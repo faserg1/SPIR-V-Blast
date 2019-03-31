@@ -1,87 +1,87 @@
 #include "compiler_types.hpp"
 #include <stdexcept>
 
-ECompilerType CompilerType::type() const
+EBlastType BlastType::type() const
 {
 	return type_;
 }
 
-bool CompilerType::operator==(const CompilerType &otherType) const
+bool BlastType::operator==(const BlastType &otherType) const
 {
 	if (type() != otherType.type())
 		return false;
 	return isEqual(otherType);
 }
 
-CompilerType::CompilerType(ECompilerType type) :
+BlastType::BlastType(EBlastType type) :
 	type_(type)
 {
 }
 
-BasicType::BasicType(ECompilerType type)
-	: CompilerType(type)
+BasicBlastType::BasicBlastType(EBlastType type)
+	: BlastType(type)
 {
 }
 
-IntegerType::IntegerType(int16_t width, int16_t signedness) :
-	BasicType(ECompilerType::Integer), width_(width), signedness_(signedness)
+IntegerBlastType::IntegerBlastType(int16_t width, int16_t signedness) :
+	BasicBlastType(EBlastType::Integer), width_(width), signedness_(signedness)
 {
 }
 
-VoidType::VoidType() :
-	BasicType(ECompilerType::Void)
+VoidBlastType::VoidBlastType() :
+	BasicBlastType(EBlastType::Void)
 {
 
 }
 
-bool VoidType::isEqual(const CompilerType &otherType) const
+bool VoidBlastType::isEqual(const BlastType &otherType) const
 {
-	if (otherType.type() != ECompilerType::Void)
+	if (otherType.type() != EBlastType::Void)
 		throw std::runtime_error("VoidType::isEqual: other type cannot be non void!");
 	return true;
 }
 
-BooleanType::BooleanType() :
-	BasicType(ECompilerType::Boolean)
+BooleanBlastType::BooleanBlastType() :
+	BasicBlastType(EBlastType::Boolean)
 {
 
 }
 
-bool BooleanType::isEqual(const CompilerType &otherType) const
+bool BooleanBlastType::isEqual(const BlastType &otherType) const
 {
-	if (otherType.type() != ECompilerType::Boolean)
+	if (otherType.type() != EBlastType::Boolean)
 		throw std::runtime_error("VoidType::isEqual: other type cannot be non void!");
 	return true;
 }
 
-int16_t IntegerType::width() const
+int16_t IntegerBlastType::width() const
 {
 	return width_;
 }
 
-int16_t IntegerType::signedness() const
+int16_t IntegerBlastType::signedness() const
 {
 	return signedness_;
 }
 
-bool IntegerType::isEqual(const CompilerType &otherType) const
+bool IntegerBlastType::isEqual(const BlastType &otherType) const
 {
-	auto pOtherType = dynamic_cast<const IntegerType*>(&otherType);
+	auto pOtherType = dynamic_cast<const IntegerBlastType*>(&otherType);
 	return width() == pOtherType->width() && signedness() == pOtherType->signedness();
 }
 
-FloatType::FloatType(int16_t width) :
-	BasicType(ECompilerType::Float), width_(width)
+FloatBlastType::FloatBlastType(int16_t width) :
+	BasicBlastType(EBlastType::Float), width_(width)
 {
 }
 
-int16_t FloatType::width() const
+int16_t FloatBlastType::width() const
 {
 	return width_;
 }
 
-bool FloatType::isEqual(const CompilerType &otherType) const
+bool FloatBlastType::isEqual(const BlastType &otherType) const
 {
-	auto pOtherType = dynamic_cast<const FloatType*>(&otherType);
+	auto pOtherType = dynamic_cast<const FloatBlastType*>(&otherType);
 	return width() == pOtherType->width();
 }

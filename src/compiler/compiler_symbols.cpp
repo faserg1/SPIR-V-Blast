@@ -1,52 +1,52 @@
 #include "compiler_symbols.hpp"
 
-CompilerSymbol::CompilerSymbol(ECompilerSymbolType type) :
+BlastSymbol::BlastSymbol(EBlastSymbolType type) :
 	type_(type)
 {
 	
 }
 
-ECompilerSymbolType CompilerSymbol::getType() const
+EBlastSymbolType BlastSymbol::getType() const
 {
 	return type_;
 }
 
-CompilerSymbolName::CompilerSymbolName(std::string name) :
-	CompilerSymbol(ECompilerSymbolType::Name), name_(name)
+BlastSymbolName::BlastSymbolName(std::string name) :
+	BlastSymbol(EBlastSymbolType::Name), name_(name)
 {
 }
 
-std::string CompilerSymbolName::getName() const
+std::string BlastSymbolName::getName() const
 {
 	return name_;
 }
 
-CompilerSymbolString::CompilerSymbolString(std::string string) :
-	CompilerSymbol(ECompilerSymbolType::StringLiteral), string_(string)
+BlastSymbolString::BlastSymbolString(std::string string) :
+	BlastSymbol(EBlastSymbolType::StringLiteral), string_(string)
 {
 }
 
-std::string CompilerSymbolString::getString() const
+std::string BlastSymbolString::getString() const
 {
 	return string_;
 }
 
-CompilerSymbolCharacter::CompilerSymbolCharacter(char character) :
-	CompilerSymbol(ECompilerSymbolType::CharacterLiteral), character_(character)
+BlastSymbolCharacter::BlastSymbolCharacter(char character) :
+	BlastSymbol(EBlastSymbolType::CharacterLiteral), character_(character)
 {
 }
 
-char CompilerSymbolCharacter::getCharacter() const
+char BlastSymbolCharacter::getCharacter() const
 {
 	return character_;
 }
 
-CompilerSymbolNumber::CompilerSymbolNumber(number_t number) :
-	CompilerSymbol(ECompilerSymbolType::NumberLiteral), number_(number)
+BlastSymbolNumber::BlastSymbolNumber(number_t number) :
+	BlastSymbol(EBlastSymbolType::NumberLiteral), number_(number)
 {
 }
 
-CompilerSymbolNumber::number_t CompilerSymbolNumber::getNumber() const
+BlastSymbolNumber::number_t BlastSymbolNumber::getNumber() const
 {
 	return number_;
 }

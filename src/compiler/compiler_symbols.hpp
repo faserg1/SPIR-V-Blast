@@ -5,7 +5,7 @@
 #include <variant>
 #include <memory>
 
-enum class ECompilerSymbolType
+enum class EBlastSymbolType
 {
 	Name,
 	StringLiteral,
@@ -13,56 +13,56 @@ enum class ECompilerSymbolType
 	NumberLiteral,
 };
 
-class CompilerSymbol :
-	public std::enable_shared_from_this<CompilerSymbol>
+class BlastSymbol :
+	public std::enable_shared_from_this<BlastSymbol>
 {
 protected:
-	CompilerSymbol(ECompilerSymbolType type);
+	BlastSymbol(EBlastSymbolType type);
 
-	ECompilerSymbolType getType() const;
+	EBlastSymbolType getType() const;
 private:
-	const ECompilerSymbolType type_;
+	const EBlastSymbolType type_;
 };
 
-class CompilerSymbolName :
-	public CompilerSymbol
+class BlastSymbolName :
+	public BlastSymbol
 {
 public:
-	CompilerSymbolName(std::string name);
+	BlastSymbolName(std::string name);
 
 	std::string getName() const;
 private:
 	const std::string name_;
 };
 
-class CompilerSymbolString :
-	public CompilerSymbol
+class BlastSymbolString :
+	public BlastSymbol
 {
 public:
-	CompilerSymbolString(std::string string);
+	BlastSymbolString(std::string string);
 
 	std::string getString() const;
 private:
 	const std::string string_;
 };
 
-class CompilerSymbolCharacter :
-	public CompilerSymbol
+class BlastSymbolCharacter :
+	public BlastSymbol
 {
 public:
-	CompilerSymbolCharacter(char character);
+	BlastSymbolCharacter(char character);
 
 	char getCharacter() const;
 private:
 	char character_;
 };
 
-class CompilerSymbolNumber :
-	public CompilerSymbol
+class BlastSymbolNumber :
+	public BlastSymbol
 {
 public:
 	using number_t = std::variant<unsigned long, long, double>;
-	CompilerSymbolNumber(number_t number);
+	BlastSymbolNumber(number_t number);
 
 	number_t getNumber() const;
 private:

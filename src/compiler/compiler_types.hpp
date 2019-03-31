@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <memory>
 
-enum class ECompilerType
+enum class EBlastType
 {
 	Void,
 	Boolean,
@@ -35,81 +35,81 @@ enum class ECompilerType
 	OpTypeCooperativeMatrixNV,
 };
 
-class CompilerType :
-	std::enable_shared_from_this<CompilerType>
+class BlastType :
+	std::enable_shared_from_this<BlastType>
 {
 public:
-	virtual ~CompilerType() = default;
-	ECompilerType type() const;
-	bool operator==(const CompilerType &otherType) const;
+	virtual ~BlastType() = default;
+	EBlastType type() const;
+	bool operator==(const BlastType &otherType) const;
 protected:
-	CompilerType(ECompilerType type);
-	virtual bool isEqual(const CompilerType &otherType) const = 0;
+	BlastType(EBlastType type);
+	virtual bool isEqual(const BlastType &otherType) const = 0;
 private:
-	const ECompilerType type_;
+	const EBlastType type_;
 };
 
-class BasicType :
-	public CompilerType
+class BasicBlastType :
+	public BlastType
 {
 public:
-	virtual ~BasicType() = default;
+	virtual ~BasicBlastType() = default;
 protected:
-	BasicType(ECompilerType type);
+	BasicBlastType(EBlastType type);
 };
 
-class VoidType :
-	public BasicType
+class VoidBlastType :
+	public BasicBlastType
 {
 public:
-	VoidType();
+	VoidBlastType();
 protected:
-	bool isEqual(const CompilerType &otherType) const override;
+	bool isEqual(const BlastType &otherType) const override;
 };
 
-class BooleanType :
-	public BasicType
+class BooleanBlastType :
+	public BasicBlastType
 {
 public:
-	BooleanType();
+	BooleanBlastType();
 protected:
-	bool isEqual(const CompilerType &otherType) const override;
+	bool isEqual(const BlastType &otherType) const override;
 };
 
 
-class IntegerType :
-	public BasicType
+class IntegerBlastType :
+	public BasicBlastType
 {
 public:
 	/** 
 	@param width number of bits
-	@param signedness 0 — unsigned or no signedness semantic, 1 — signed
+	@param signedness 0 â€” unsigned or no signedness semantic, 1 â€” signed
 	**/
-	IntegerType(int16_t width, int16_t signedness);
+	IntegerBlastType(int16_t width, int16_t signedness);
 
 	/* Number of bits */
 	int16_t width() const;
-	/* 0 — unsigned or no signedness semantic, 1 — signed */
+	/* 0 â€” unsigned or no signedness semantic, 1 â€” signed */
 	int16_t signedness() const;
 protected:
-	bool isEqual(const CompilerType &otherType) const override;
+	bool isEqual(const BlastType &otherType) const override;
 private:
 	const int16_t width_;
 	const int16_t signedness_;
 };
 
-class FloatType :
-	public BasicType
+class FloatBlastType :
+	public BasicBlastType
 {
 public:
 	/**
 	@param width number of bits
 	**/
-	FloatType(int16_t width);
+	FloatBlastType(int16_t width);
 
 	int16_t width() const;
 protected:
-	bool isEqual(const CompilerType &otherType) const override;
+	bool isEqual(const BlastType &otherType) const override;
 private:
 	const int16_t width_;
 };

@@ -7,11 +7,11 @@
 
 class CompilerNode;
 
-class CompilerParser :
-	public std::enable_shared_from_this<CompilerParser>
+class CommonParser :
+	public std::enable_shared_from_this<CommonParser>
 {
 public:
-	virtual ~CompilerParser() = default;
+	virtual ~CommonParser() = default;
 
 	/*
 	@return true if valid expression, false if invalid or stop (stop after first capture)
@@ -24,9 +24,9 @@ public:
 	/*
 	End capture. Get compiler node
 	*/
-	virtual std::shared_ptr<CompilerNode> end(ECompilerState state) = 0;
+	virtual std::shared_ptr<CompilerNode> end(EParserState state) = 0;
 protected:
-	CompilerParser() = default;
+	CommonParser() = default;
 };
 
 #endif

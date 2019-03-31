@@ -2,66 +2,66 @@
 #include "compiler_expressions.hpp"
 #include "compiler_nodes.hpp"
 
-bool CompilerExpressionEndParser::tryVisit(const std::string &expression)
+bool BlastExpressionEndParser::tryVisit(const std::string &expression)
 {
 	return expression == ";";
 }
 
-bool CompilerExpressionEndParser::next()
+bool BlastExpressionEndParser::next()
 {
 	return false;
 }
 
-std::shared_ptr<CompilerNode> CompilerExpressionEndParser::end(ECompilerState state)
+std::shared_ptr<CompilerNode> BlastExpressionEndParser::end(EParserState state)
 {
-	auto expressionEnd = std::make_shared<CompilerExpressionEnd>();
+	auto expressionEnd = std::make_shared<BlastExpressionEnd>();
 	return std::make_shared<CompilerNode>(ECompilerNodeType::Expression, expressionEnd, state);
 }
 
-bool CompilerFunctionParametersStartParser::tryVisit(const std::string &expression)
+bool BlastFunctionParametersStartParser::tryVisit(const std::string &expression)
 {
 	return expression == "(";
 }
 
-bool CompilerFunctionParametersStartParser::next()
+bool BlastFunctionParametersStartParser::next()
 {
 	return false;
 }
 
-std::shared_ptr<CompilerNode> CompilerFunctionParametersStartParser::end(ECompilerState state)
+std::shared_ptr<CompilerNode> BlastFunctionParametersStartParser::end(EParserState state)
 {
-	auto expressionEnd = std::make_shared<CompilerFunctionParametersStart>();
+	auto expressionEnd = std::make_shared<BlastFunctionParametersStart>();
 	return std::make_shared<CompilerNode>(ECompilerNodeType::Expression, expressionEnd, state);
 }
 
-bool CompilerFunctionParametersSeparatorParser::tryVisit(const std::string &expression)
+bool BlastFunctionParametersSeparatorParser::tryVisit(const std::string &expression)
 {
 	return expression == ",";
 }
 
-bool CompilerFunctionParametersSeparatorParser::next()
+bool BlastFunctionParametersSeparatorParser::next()
 {
 	return false;
 }
 
-std::shared_ptr<CompilerNode> CompilerFunctionParametersSeparatorParser::end(ECompilerState state)
+std::shared_ptr<CompilerNode> BlastFunctionParametersSeparatorParser::end(EParserState state)
 {
-	auto expressionEnd = std::make_shared<CompilerFunctionParametersSeparator>();
+	auto expressionEnd = std::make_shared<BlastFunctionParametersSeparator>();
 	return std::make_shared<CompilerNode>(ECompilerNodeType::Expression, expressionEnd, state);
 }
 
-bool CompilerFunctionParametersEndParser::tryVisit(const std::string &expression)
+bool BlastFunctionParametersEndParser::tryVisit(const std::string &expression)
 {
 	return expression == ")";
 }
 
-bool CompilerFunctionParametersEndParser::next()
+bool BlastFunctionParametersEndParser::next()
 {
 	return false;
 }
 
-std::shared_ptr<CompilerNode> CompilerFunctionParametersEndParser::end(ECompilerState state)
+std::shared_ptr<CompilerNode> BlastFunctionParametersEndParser::end(EParserState state)
 {
-	auto expressionEnd = std::make_shared<CompilerFunctionParametersEnd>();
+	auto expressionEnd = std::make_shared<BlastFunctionParametersEnd>();
 	return std::make_shared<CompilerNode>(ECompilerNodeType::Expression, expressionEnd, state);
 }
