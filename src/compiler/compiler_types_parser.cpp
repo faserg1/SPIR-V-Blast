@@ -91,7 +91,7 @@ std::shared_ptr<CompilerNode> CompilerBasicTypeParser::end(ECompilerState state)
 		type = std::make_shared<IntegerType>(width, signedness);
 	}
 	data = {};
-	return std::make_shared<CompilerNode>(ECompilerNodeType::Type, type);
+	return std::make_shared<CompilerNode>(ECompilerNodeType::Type, type, state);
 }
 
 bool CompilerBasicTypeParser::isType(std::string expression) const

@@ -6,6 +6,7 @@ set(SOURCE_TRANSLATOR_DIR ${SOURCE_DIR}/compiler)
 
 set(BlastCompilerHeaders
 	${SOURCE_COMPILER_DIR}/compiler_types.hpp
+	${SOURCE_COMPILER_DIR}/compiler_node_type_enum.hpp
 	${SOURCE_COMPILER_DIR}/compiler_nodes.hpp
 	${SOURCE_COMPILER_DIR}/compiler_state_enum.hpp
 	${SOURCE_COMPILER_DIR}/compiler_states.hpp

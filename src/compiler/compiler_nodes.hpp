@@ -4,31 +4,24 @@
 #include <memory>
 #include <any>
 
-enum class ECompilerNodeType
-{
-	/// Type node
-	Type,
-	/// Name of function or variable
-	Name,
-	/// String, symbol or number literal
-	Literal,
-	/// Compiler expression
-	Expression,
-};
+#include "compiler_node_type_enum.hpp"
+#include "compiler_state_enum.hpp"
 
 class CompilerNode :
 	public std::enable_shared_from_this<CompilerNode>
 {
 public:
-	CompilerNode(ECompilerNodeType type, std::any value);
+	CompilerNode(ECompilerNodeType type, std::any value, ECompilerState state);
 	template <class T>
-	T getValue()
+	T getValue() const
 	{
 		return std::any_cast<T>(value_);
 	}
+	ECompilerState getCompilerState() const;
 private:
 	const ECompilerNodeType nodeType_;
 	const std::any value_;
+	const ECompilerState state_;
 };
 
 #endif // COMPILER_NODES
