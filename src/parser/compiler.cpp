@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <regex>
 
-Shader Parser::compile(const ShaderPreprocessedInfo &preprocessedInfo)
+Shader Parser::parse(const ShaderPreprocessedInfo &preprocessedInfo)
 {
 	auto literals = splitByLiterals(std::move(preprocessedInfo.text()));
 

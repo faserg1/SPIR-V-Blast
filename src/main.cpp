@@ -7,7 +7,7 @@
 #include "args_processor.hpp"
 #include "preprocessor.hpp"
 #include "reader.hpp"
-#include "compiler/compiler.hpp"
+#include "parser/compiler.hpp"
 
 void printHelp();
 void printUsage();
@@ -32,7 +32,7 @@ int main(int argc, char**argv)
 
 	Preprocessor preprocessor;
 	Reader reader;
-	Parser compiler;
+	Parser parser;
 
 	processPreprocessorFlags(preprocessor, options);
 	processReaderFlags(reader, options);
@@ -41,7 +41,7 @@ int main(int argc, char**argv)
 	preprocessor.setSearchFileCallback(std::bind(&Reader::search, &reader, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
 	auto processedInfo = preprocessor.process(argsParser.getInputFile());
-	auto shader = compiler.compile(processedInfo);
+	auto shader = parser.parse(processedInfo);
 
 	return 0;
 }

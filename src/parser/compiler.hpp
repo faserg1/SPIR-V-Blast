@@ -13,7 +13,7 @@ class CompilerNode;
 class Parser
 {
 public:
-	Shader compile(const ShaderPreprocessedInfo &preprocessedInfo);
+	Shader parse(const ShaderPreprocessedInfo &preprocessedInfo);
 private:
 	std::vector<std::string> splitByLiterals(std::string text);
 	std::vector<std::shared_ptr<CompilerNode>> getNodes(std::vector<std::string> literals);
