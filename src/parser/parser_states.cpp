@@ -23,6 +23,11 @@ std::vector<std::shared_ptr<CommonParser>> SimpleParserState::getParsers() const
 	return parsers_;
 }
 
+std::optional<EParserState> SimpleParserState::getNextJumpState() const
+{
+	return {};
+}
+
 std::vector<EParserState> SimpleParserState::getNextAvailableStates() const
 {
 	return nextAvailableStates_;
@@ -45,14 +50,14 @@ std::vector<std::shared_ptr<IParserState>> generateStates()
 
 	auto simpleStates = std::move(std::vector<SimpleParserState>
 	{
-		{ EParserState::GlobalState, { expressionEndParser },
-			{ EParserState::GlobalTypeState }
+		{ EParserState::Global, { expressionEndParser },
+			{ EParserState::GlobalType }
 		},
-		{ EParserState::GlobalTypeState, { basicTypeParser },
-			{EParserState::GlobalNameState}
+		{ EParserState::GlobalType, { basicTypeParser },
+			{EParserState::GlobalName}
 		},
-		{ EParserState::GlobalNameState, { nameParser },
-			{EParserState::GlobalState, EParserState::FunctionParametersStart}
+		{ EParserState::GlobalName, { nameParser },
+			{EParserState::Global, EParserState::FunctionParametersStart}
 		},
 		{ EParserState::FunctionParametersStart, {functionParamtersStart},
 			{ EParserState::FunctionParameterType, EParserState::FunctionParametersEnd}
@@ -67,13 +72,13 @@ std::vector<std::shared_ptr<IParserState>> generateStates()
 			{EParserState::FunctionParameterType}
 		},
 		{ EParserState::FunctionParametersEnd, {functionParamtersEnd},
-			{ EParserState::GlobalState, EParserState::FunctionBodyStart }
+			{ EParserState::Global, EParserState::FunctionBodyStart }
 		},
 		{ EParserState::FunctionBodyStart, {expressionBodyStart},
 			{EParserState::FunctionBodyEnd}
 		},
 		{ EParserState::FunctionBodyEnd, {expressionBodyEnd},
-			{EParserState::GlobalState}
+			{EParserState::Global}
 		}
 	});
 

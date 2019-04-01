@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <vector>
+#include <optional>
 
 class CommonParser;
 
@@ -31,6 +32,7 @@ public:
 	virtual void activate() = 0;
 	virtual EParserState getState() const = 0;
 	virtual std::vector<std::shared_ptr<CommonParser>> getParsers() const = 0;
+	virtual std::optional<EParserState> getNextJumpState() const = 0;
 	virtual std::vector<EParserState> getNextAvailableStates() const = 0;
 protected:
 	IParserState() = default;
@@ -45,6 +47,7 @@ public:
 	void activate() override;
 	EParserState getState() const override;
 	std::vector<std::shared_ptr<CommonParser>> getParsers() const override;
+	std::optional<EParserState> getNextJumpState() const override;
 	std::vector<EParserState> getNextAvailableStates() const override;
 private:
 	const EParserState state_;

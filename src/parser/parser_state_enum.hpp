@@ -3,9 +3,9 @@
 
 enum class EParserState
 {
-	GlobalState,
-	GlobalTypeState,
-	GlobalNameState,
+	Global,
+	GlobalType,
+	GlobalName,
 	FunctionParametersStart,
 	FunctionParameterType,
 	FunctionParameterName,
@@ -13,6 +13,7 @@ enum class EParserState
 	FunctionParametersEnd,
 	FunctionBodyStart,
 	FunctionBodyEnd,
+	FunctionLocal,
 };
 
 #endif

@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <stdexcept>
 
+static std::shared_ptr<IParserState> findState(const std::vector<std::shared_ptr<IParserState>> &states, EParserState state);
 static std::shared_ptr<IParserState> findGlobalState(const std::vector<std::shared_ptr<IParserState>> &states);
 
 ParserStateMachine::ParserStateMachine() :
@@ -33,6 +34,12 @@ void ParserStateMachine::feed(const std::string &expression)
 			nodes_.push_back(currentParser_->end(currentState_->getState()));
 			currentParser_ = {};
 		}
+	}
+	auto nextJumpState = currentState_->getNextJumpState();
+	if (nextJumpState)
+	{
+		currentState_ = findState(states_, *nextJumpState);
+		return;
 	}
 	auto nextAvailableStates = currentState_->getNextAvailableStates();
 	std::vector<std::shared_ptr<IParserState>> nextStates;
@@ -67,15 +74,20 @@ void ParserStateMachine::feed(const std::string &expression)
 
 std::vector<std::shared_ptr<ParserNode>> ParserStateMachine::end()
 {
-	if (currentState_->getState() != EParserState::GlobalState)
+	if (currentState_->getState() != EParserState::Global)
 		throw std::runtime_error("Unexpected end of shader!");
 	return nodes_;
 }
 
+std::shared_ptr<IParserState> findState(const std::vector<std::shared_ptr<IParserState>> &states, EParserState state)
+{
+	return *std::find_if(states.begin(), states.end(), [state](std::shared_ptr<IParserState> stateObject) -> bool
+	{
+		return stateObject->getState() == state;
+	});
+}
+
 std::shared_ptr<IParserState> findGlobalState(const std::vector<std::shared_ptr<IParserState>> &states)
 {
-	return *std::find_if(states.begin(), states.end(), [](std::shared_ptr<IParserState> state) -> bool
-	{
-		return state->getState() == EParserState::GlobalState;
-	});
+	return findState(states, EParserState::Global);
 }
