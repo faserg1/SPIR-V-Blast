@@ -4,13 +4,11 @@
 #include <algorithm>
 #include <regex>
 
-Shader Parser::parse(const ShaderPreprocessedInfo &preprocessedInfo)
+std::vector<std::shared_ptr<ParserNode>> Parser::parse(const ShaderPreprocessedInfo &preprocessedInfo)
 {
 	auto literals = splitByLiterals(std::move(preprocessedInfo.text()));
 
-	auto nodes = getNodes(literals);
-	
-	return Shader();
+	return std::move(getNodes(literals));
 }
 
 std::vector<std::string> Parser::splitByLiterals(std::string text)
@@ -104,5 +102,5 @@ std::vector<std::shared_ptr<ParserNode>> Parser::getNodes(std::vector<std::strin
 	for (auto &expression : literals)
 		stateMachine.feed(expression);
 
-	return {};
+	return std::move(stateMachine.end());
 }

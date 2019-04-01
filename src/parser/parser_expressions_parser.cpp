@@ -65,3 +65,35 @@ std::shared_ptr<ParserNode> BlastFunctionParametersEndParser::end(EParserState s
 	auto expressionEnd = std::make_shared<BlastFunctionParametersEnd>();
 	return std::make_shared<ParserNode>(EParserNodeType::Expression, expressionEnd, state);
 }
+
+bool BlastExpressionBodyStartParser::tryVisit(const std::string &expression)
+{
+	return expression == "{";
+}
+
+bool BlastExpressionBodyStartParser::next()
+{
+	return false;
+}
+
+std::shared_ptr<ParserNode> BlastExpressionBodyStartParser::end(EParserState state)
+{
+	auto expressionBodyStart = std::make_shared<BlastExpressionBodyStart>();
+	return std::make_shared<ParserNode>(EParserNodeType::Expression, expressionBodyStart, state);
+}
+
+bool BlastExpressionBodyEndParser::tryVisit(const std::string &expression)
+{
+	return expression == "}";
+}
+
+bool BlastExpressionBodyEndParser::next()
+{
+	return false;
+}
+
+std::shared_ptr<ParserNode> BlastExpressionBodyEndParser::end(EParserState state)
+{
+	auto expressionBodyEnd = std::make_shared<BlastExpressionBodyEnd>();
+	return std::make_shared<ParserNode>(EParserNodeType::Expression, expressionBodyEnd, state);
+}

@@ -27,28 +27,45 @@ std::vector<ParserState> generateStates()
 	auto basicTypeParser = std::make_shared<BasicBlastTypeParser>();
 	auto nameParser = std::make_shared<BlastNameParser>();
 	auto expressionEndParser = std::make_shared<BlastExpressionEndParser>();
+
 	auto functionParamtersStart = std::make_shared<BlastFunctionParametersStartParser>();
 	auto functionParamtersSeparator = std::make_shared<BlastFunctionParametersSeparatorParser>();
 	auto functionParamtersEnd = std::make_shared<BlastFunctionParametersEndParser>();
+
+	auto expressionBodyStart = std::make_shared<BlastExpressionBodyStartParser>();
+	auto expressionBodyEnd = std::make_shared<BlastExpressionBodyEndParser>();
+
 	return std::move(std::vector<ParserState>
 	{
-		{ EParserState::GlobalState, { expressionEndParser }, { EParserState::GlobalTypeState }},
-		{ EParserState::GlobalTypeState, { basicTypeParser }, {EParserState::GlobalNameState} },
+		{ EParserState::GlobalState, { expressionEndParser },
+			{ EParserState::GlobalTypeState }
+		},
+		{ EParserState::GlobalTypeState, { basicTypeParser },
+			{EParserState::GlobalNameState}
+		},
 		{ EParserState::GlobalNameState, { nameParser },
-			{EParserState::GlobalState, EParserState::GlobalFunctionParametersStart}
+			{EParserState::GlobalState, EParserState::FunctionParametersStart}
 		},
-		{ EParserState::GlobalFunctionParametersStart, {functionParamtersStart},
-			{ EParserState::GlobalFunctionParameterType, EParserState::GlobalFunctionParametersEnd}
+		{ EParserState::FunctionParametersStart, {functionParamtersStart},
+			{ EParserState::FunctionParameterType, EParserState::FunctionParametersEnd}
 		},
-		{ EParserState::GlobalFunctionParameterType, { basicTypeParser },
-			{ EParserState::GlobalFunctionParameterName, EParserState::GlobalFunctionParametersSeparator, EParserState::GlobalFunctionParametersEnd }
+		{ EParserState::FunctionParameterType, { basicTypeParser },
+			{ EParserState::FunctionParameterName, EParserState::FunctionParametersSeparator, EParserState::FunctionParametersEnd }
 		},
-		{ EParserState::GlobalFunctionParameterName, {nameParser}, 
-			{ EParserState::GlobalFunctionParametersSeparator, EParserState::GlobalFunctionParametersEnd }
+		{ EParserState::FunctionParameterName, {nameParser}, 
+			{ EParserState::FunctionParametersSeparator, EParserState::FunctionParametersEnd }
 		},
-		{ EParserState::GlobalFunctionParametersSeparator, {functionParamtersSeparator}, {EParserState::GlobalFunctionParameterType} },
-		{ EParserState::GlobalFunctionParametersEnd, {functionParamtersEnd},
-			{ EParserState::GlobalState }
+		{ EParserState::FunctionParametersSeparator, {functionParamtersSeparator},
+			{EParserState::FunctionParameterType}
 		},
+		{ EParserState::FunctionParametersEnd, {functionParamtersEnd},
+			{ EParserState::GlobalState, EParserState::FunctionBodyStart }
+		},
+		{ EParserState::FunctionBodyStart, {expressionBodyStart},
+			{EParserState::FunctionBodyEnd}
+		},
+		{ EParserState::FunctionBodyEnd, {expressionBodyEnd},
+			{EParserState::GlobalState}
+		}
 	});
 }

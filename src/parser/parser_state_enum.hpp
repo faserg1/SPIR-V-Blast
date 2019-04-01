@@ -6,11 +6,13 @@ enum class EParserState
 	GlobalState,
 	GlobalTypeState,
 	GlobalNameState,
-	GlobalFunctionParametersStart,
-	GlobalFunctionParameterType,
-	GlobalFunctionParameterName,
-	GlobalFunctionParametersSeparator,
-	GlobalFunctionParametersEnd,
+	FunctionParametersStart,
+	FunctionParameterType,
+	FunctionParameterName,
+	FunctionParametersSeparator,
+	FunctionParametersEnd,
+	FunctionBodyStart,
+	FunctionBodyEnd,
 };
 
 #endif

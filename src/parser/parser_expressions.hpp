@@ -7,6 +7,8 @@ enum class EBlastExpressionType
 	FunctionParametersStart,
 	FunctionParametersSeparator,
 	FunctionParametersEnd,
+	ExpressionBodyStart,
+	ExpressionBodyEnd,
 };
 
 class BlastExpression
@@ -45,6 +47,20 @@ class BlastFunctionParametersEnd :
 {
 public:
 	BlastFunctionParametersEnd();
+};
+
+class BlastExpressionBodyStart :
+	public BlastExpression
+{
+public:
+	BlastExpressionBodyStart();
+};
+
+class BlastExpressionBodyEnd :
+	public BlastExpression
+{
+public:
+	BlastExpressionBodyEnd();
 };
 
 #endif

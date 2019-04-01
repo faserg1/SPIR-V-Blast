@@ -29,3 +29,13 @@ BlastFunctionParametersEnd::BlastFunctionParametersEnd() :
 	BlastExpression(EBlastExpressionType::FunctionParametersEnd)
 {
 }
+
+BlastExpressionBodyStart::BlastExpressionBodyStart() :
+	BlastExpression(EBlastExpressionType::ExpressionBodyStart)
+{
+}
+
+BlastExpressionBodyEnd::BlastExpressionBodyEnd() :
+	BlastExpression(EBlastExpressionType::ExpressionBodyEnd)
+{
+}

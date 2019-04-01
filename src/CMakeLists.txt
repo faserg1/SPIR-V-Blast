@@ -37,11 +37,11 @@ set(BlastParserSources
 )
 
 set(BlastCompilerHeaders
-	
+	${SOURCE_COMPILER_DIR}/compiler.hpp
 )
 
 set(BlastCompilerSources
-	
+	${SOURCE_COMPILER_DIR}/compiler.cpp
 )
 
 set(BlastHeaders

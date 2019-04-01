@@ -19,13 +19,13 @@ Multi line comment!!!
 	#define CODE "   "
 	#define LOOK ' '
 	
-#include "shader2.blast"
-#include "test/shader3.blast"
+//#include "shader2.blast"
+//#include "test/shader3.blast"
 
 void main()
 {
-	int MY_SUPER_DEFINE = 3;
-	int NICE = 0;
+	//int MY_SUPER_DEFINE = 3;
+	//int NICE = 0;
 }
 
 #undef NICE  

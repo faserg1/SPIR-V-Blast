@@ -55,4 +55,26 @@ public:
 	std::shared_ptr<ParserNode> end(EParserState state) override;
 };
 
+class BlastExpressionBodyStartParser :
+	public BlastExpressionParser
+{
+public:
+	BlastExpressionBodyStartParser() = default;
+
+	bool tryVisit(const std::string &expression) override;
+	bool next() override;
+	std::shared_ptr<ParserNode> end(EParserState state) override;
+};
+
+class BlastExpressionBodyEndParser :
+	public BlastExpressionParser
+{
+public:
+	BlastExpressionBodyEndParser() = default;
+
+	bool tryVisit(const std::string &expression) override;
+	bool next() override;
+	std::shared_ptr<ParserNode> end(EParserState state) override;
+};
+
 #endif
