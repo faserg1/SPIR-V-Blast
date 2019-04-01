@@ -26,14 +26,14 @@ etc..
 class ParserState
 {
 public:
-	ParserState(EParserState state, std::vector<std::shared_ptr<CommonParser>> compilers, std::vector<EParserState> nextStates);
+	ParserState(EParserState state, std::vector<std::shared_ptr<CommonParser>> parsers, std::vector<EParserState> nextStates);
 
 	EParserState getState() const;
-	std::vector<std::shared_ptr<CommonParser>> getCompilers() const;
+	std::vector<std::shared_ptr<CommonParser>> getParsers() const;
 	std::vector<EParserState> getNextAvailableStates() const;
 private:
 	const EParserState state_;
-	const std::vector<std::shared_ptr<CommonParser>> compilers_;
+	const std::vector<std::shared_ptr<CommonParser>> parsers_;
 	const std::vector<EParserState> nextAvailableStates_;
 };
 

@@ -97,7 +97,7 @@ std::vector<std::string> Parser::splitByLiterals(std::string text)
 	return literals;
 }
 
-std::vector<std::shared_ptr<CompilerNode>> Parser::getNodes(std::vector<std::string> literals)
+std::vector<std::shared_ptr<ParserNode>> Parser::getNodes(std::vector<std::string> literals)
 {
 	ParserStateMachine stateMachine;
 

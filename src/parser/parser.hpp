@@ -8,7 +8,7 @@
 #include "../shader_preprocessed_info.hpp"
 #include "../shader.hpp"
 
-class CompilerNode;
+class ParserNode;
 
 class Parser
 {
@@ -16,7 +16,7 @@ public:
 	Shader parse(const ShaderPreprocessedInfo &preprocessedInfo);
 private:
 	std::vector<std::string> splitByLiterals(std::string text);
-	std::vector<std::shared_ptr<CompilerNode>> getNodes(std::vector<std::string> literals);
+	std::vector<std::shared_ptr<ParserNode>> getNodes(std::vector<std::string> literals);
 };
 
 #endif // PARSER

@@ -19,7 +19,7 @@ public:
 
 	bool tryVisit(const std::string &expression) override;
 	bool next() override;
-	std::shared_ptr<CompilerNode> end(EParserState state) override;
+	std::shared_ptr<ParserNode> end(EParserState state) override;
 };
 
 class BlastFunctionParametersStartParser :
@@ -30,7 +30,7 @@ public:
 
 	bool tryVisit(const std::string &expression) override;
 	bool next() override;
-	std::shared_ptr<CompilerNode> end(EParserState state) override;
+	std::shared_ptr<ParserNode> end(EParserState state) override;
 };
 
 class BlastFunctionParametersSeparatorParser :
@@ -41,7 +41,7 @@ public:
 
 	bool tryVisit(const std::string &expression) override;
 	bool next() override;
-	std::shared_ptr<CompilerNode> end(EParserState state) override;
+	std::shared_ptr<ParserNode> end(EParserState state) override;
 };
 
 class BlastFunctionParametersEndParser :
@@ -52,7 +52,7 @@ public:
 
 	bool tryVisit(const std::string &expression) override;
 	bool next() override;
-	std::shared_ptr<CompilerNode> end(EParserState state) override;
+	std::shared_ptr<ParserNode> end(EParserState state) override;
 };
 
 #endif

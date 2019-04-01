@@ -1,5 +1,5 @@
 #include "parser_types_parser.hpp"
-#include "../compiler/compiler_nodes.hpp"
+#include "parser_nodes.hpp"
 #include <stdexcept>
 #include <regex>
 
@@ -66,7 +66,7 @@ bool BasicBlastTypeParser::next()
 	return true;
 }
 
-std::shared_ptr<CompilerNode> BasicBlastTypeParser::end(EParserState state)
+std::shared_ptr<ParserNode> BasicBlastTypeParser::end(EParserState state)
 {
 	std::shared_ptr<BasicBlastType> type;
 	if (data.type_ == "void")
@@ -91,7 +91,7 @@ std::shared_ptr<CompilerNode> BasicBlastTypeParser::end(EParserState state)
 		type = std::make_shared<IntegerBlastType>(width, signedness);
 	}
 	data = {};
-	return std::make_shared<CompilerNode>(ECompilerNodeType::Type, type, state);
+	return std::make_shared<ParserNode>(EParserNodeType::Type, type, state);
 }
 
 bool BasicBlastTypeParser::isType(std::string expression) const

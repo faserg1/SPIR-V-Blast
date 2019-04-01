@@ -1,6 +1,6 @@
 #include "parser_symbols_parser.hpp"
 #include "parser_symbols.hpp"
-#include "../compiler/compiler_nodes.hpp"
+#include "parser_nodes.hpp"
 #include <regex>
 
 bool BlastNameParser::tryVisit(const std::string &expression)
@@ -19,8 +19,8 @@ bool BlastNameParser::next()
 	return false;
 }
 
-std::shared_ptr<CompilerNode> BlastNameParser::end(EParserState state)
+std::shared_ptr<ParserNode> BlastNameParser::end(EParserState state)
 {
 	auto nameSymbol = std::make_shared<BlastSymbolName>(name_);
-	return std::make_shared<CompilerNode>(ECompilerNodeType::Name, nameSymbol, state);
+	return std::make_shared<ParserNode>(EParserNodeType::Name, nameSymbol, state);
 }

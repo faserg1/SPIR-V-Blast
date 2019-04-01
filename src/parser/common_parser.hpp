@@ -5,7 +5,7 @@
 #include <string>
 #include "parser_state_enum.hpp"
 
-class CompilerNode;
+class ParserNode;
 
 class CommonParser :
 	public std::enable_shared_from_this<CommonParser>
@@ -24,7 +24,7 @@ public:
 	/*
 	End capture. Get compiler node
 	*/
-	virtual std::shared_ptr<CompilerNode> end(EParserState state) = 0;
+	virtual std::shared_ptr<ParserNode> end(EParserState state) = 0;
 protected:
 	CommonParser() = default;
 };

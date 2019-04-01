@@ -20,7 +20,7 @@ class BlastNameParser :
 public:
 	bool tryVisit(const std::string &expression) override;
 	bool next() override;
-	std::shared_ptr<CompilerNode> end(EParserState state) override;
+	std::shared_ptr<ParserNode> end(EParserState state) override;
 private:
 	std::string name_;
 };

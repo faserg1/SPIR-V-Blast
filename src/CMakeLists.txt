@@ -6,6 +6,8 @@ set(SOURCE_COMPILER_DIR ${SOURCE_DIR}/compiler)
 set(SOURCE_TRANSLATOR_DIR ${SOURCE_DIR}/translator)
 
 set(BlastParserHeaders
+	${SOURCE_PARSER_DIR}/parser_node_type_enum.hpp
+	${SOURCE_PARSER_DIR}/parser_nodes.hpp
 	${SOURCE_PARSER_DIR}/parser_types.hpp
 	${SOURCE_PARSER_DIR}/parser_state_enum.hpp
 	${SOURCE_PARSER_DIR}/parser_states.hpp
@@ -21,6 +23,7 @@ set(BlastParserHeaders
 )
 
 set(BlastParserSources
+	${SOURCE_PARSER_DIR}/parser_nodes.cpp
 	${SOURCE_PARSER_DIR}/parser_types.cpp
 	${SOURCE_PARSER_DIR}/parser_states.cpp
 	${SOURCE_PARSER_DIR}/parser_symbols.cpp
@@ -34,12 +37,11 @@ set(BlastParserSources
 )
 
 set(BlastCompilerHeaders
-	${SOURCE_COMPILER_DIR}/compiler_node_type_enum.hpp
-	${SOURCE_COMPILER_DIR}/compiler_nodes.hpp
+	
 )
 
 set(BlastCompilerSources
-	${SOURCE_COMPILER_DIR}/compiler_nodes.cpp
+	
 )
 
 set(BlastHeaders
