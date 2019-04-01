@@ -1,29 +1,37 @@
 #include "parser_states.hpp"
 #include "parsers.hpp"
+#include <functional>
+#include <algorithm>
 
-ParserState::ParserState(EParserState state, std::vector<std::shared_ptr<CommonParser>> parsers, std::vector<EParserState> nextStates) :
+SimpleParserState::SimpleParserState(EParserState state, std::vector<std::shared_ptr<CommonParser>> parsers, std::vector<EParserState> nextStates) :
 	state_(state), parsers_(parsers), nextAvailableStates_(nextStates)
 {
 
 }
 
-EParserState ParserState::getState() const
+void SimpleParserState::activate()
+{
+}
+
+EParserState SimpleParserState::getState() const
 {
 	return state_;
 }
 
-std::vector<std::shared_ptr<CommonParser>> ParserState::getParsers() const
+std::vector<std::shared_ptr<CommonParser>> SimpleParserState::getParsers() const
 {
 	return parsers_;
 }
 
-std::vector<EParserState> ParserState::getNextAvailableStates() const
+std::vector<EParserState> SimpleParserState::getNextAvailableStates() const
 {
 	return nextAvailableStates_;
 }
 
-std::vector<ParserState> generateStates()
+std::vector<std::shared_ptr<IParserState>> generateStates()
 {
+	std::vector<std::shared_ptr<IParserState>> states;
+
 	auto basicTypeParser = std::make_shared<BasicBlastTypeParser>();
 	auto nameParser = std::make_shared<BlastNameParser>();
 	auto expressionEndParser = std::make_shared<BlastExpressionEndParser>();
@@ -35,7 +43,7 @@ std::vector<ParserState> generateStates()
 	auto expressionBodyStart = std::make_shared<BlastExpressionBodyStartParser>();
 	auto expressionBodyEnd = std::make_shared<BlastExpressionBodyEndParser>();
 
-	return std::move(std::vector<ParserState>
+	auto simpleStates = std::move(std::vector<SimpleParserState>
 	{
 		{ EParserState::GlobalState, { expressionEndParser },
 			{ EParserState::GlobalTypeState }
@@ -68,4 +76,11 @@ std::vector<ParserState> generateStates()
 			{EParserState::GlobalState}
 		}
 	});
+
+	std::transform(simpleStates.begin(), simpleStates.end(), std::back_inserter(states), [](SimpleParserState &simpleState) -> std::shared_ptr<IParserState>
+	{
+		return std::make_shared<SimpleParserState>(simpleState);
+	});
+
+	return std::move(states);
 }

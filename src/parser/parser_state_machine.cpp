@@ -3,10 +3,10 @@
 #include <algorithm>
 #include <stdexcept>
 
-static const ParserState &findGlobalState(const std::vector<ParserState> &states);
+static std::shared_ptr<IParserState> findGlobalState(const std::vector<std::shared_ptr<IParserState>> &states);
 
 ParserStateMachine::ParserStateMachine() :
-	states_(generateStates()), currentState_(std::make_unique<ParserState>(findGlobalState(states_)))
+	states_(generateStates()), currentState_(findGlobalState(states_))
 {
 }
 
@@ -35,15 +35,15 @@ void ParserStateMachine::feed(const std::string &expression)
 		}
 	}
 	auto nextAvailableStates = currentState_->getNextAvailableStates();
-	std::vector<ParserState> nextStates;
-	std::copy_if(states_.begin(), states_.end(), std::back_inserter(nextStates), [&nextAvailableStates](const ParserState &parserState) -> bool
+	std::vector<std::shared_ptr<IParserState>> nextStates;
+	std::copy_if(states_.begin(), states_.end(), std::back_inserter(nextStates), [&nextAvailableStates](std::shared_ptr<IParserState> parserState) -> bool
 	{
-		const auto state = parserState.getState();
+		const auto state = parserState->getState();
 		return std::any_of(nextAvailableStates.begin(), nextAvailableStates.end(), [state](EParserState availableState) -> bool {return availableState == state; });
 	});
 	for (auto &state : nextStates)
 	{
-		auto parsers = state.getParsers();
+		auto parsers = state->getParsers();
 		for (auto parser : parsers)
 		{
 			if (parser->tryVisit(expression))
@@ -54,7 +54,8 @@ void ParserStateMachine::feed(const std::string &expression)
 		}
 		if (currentParser_)
 		{
-			currentState_ = std::make_unique<ParserState>(state);
+			currentState_ = state;
+			currentState_->activate();
 			break;
 		}
 	}
@@ -71,10 +72,10 @@ std::vector<std::shared_ptr<ParserNode>> ParserStateMachine::end()
 	return nodes_;
 }
 
-const ParserState &findGlobalState(const std::vector<ParserState> &states)
+std::shared_ptr<IParserState> findGlobalState(const std::vector<std::shared_ptr<IParserState>> &states)
 {
-	return *std::find_if(states.begin(), states.end(), [](const ParserState &state) -> bool
+	return *std::find_if(states.begin(), states.end(), [](std::shared_ptr<IParserState> state) -> bool
 	{
-		return state.getState() == EParserState::GlobalState;
+		return state->getState() == EParserState::GlobalState;
 	});
 }

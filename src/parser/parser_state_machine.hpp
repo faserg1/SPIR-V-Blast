@@ -16,8 +16,8 @@ public:
 	void feed(const std::string &expression);
 	std::vector<std::shared_ptr<ParserNode>> end();
 private:
-	const std::vector<ParserState> states_;
-	std::unique_ptr<ParserState> currentState_;
+	const std::vector<std::shared_ptr<IParserState>> states_;
+	std::shared_ptr<IParserState> currentState_;
 	std::shared_ptr<CommonParser> currentParser_;
 
 	std::vector<std::shared_ptr<ParserNode>> nodes_;

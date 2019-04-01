@@ -23,20 +23,35 @@ etc..
 
 #include "parser_state_enum.hpp"
 
-class ParserState
+class IParserState
 {
 public:
-	ParserState(EParserState state, std::vector<std::shared_ptr<CommonParser>> parsers, std::vector<EParserState> nextStates);
+	virtual ~IParserState() = default;
 
-	EParserState getState() const;
-	std::vector<std::shared_ptr<CommonParser>> getParsers() const;
-	std::vector<EParserState> getNextAvailableStates() const;
+	virtual void activate() = 0;
+	virtual EParserState getState() const = 0;
+	virtual std::vector<std::shared_ptr<CommonParser>> getParsers() const = 0;
+	virtual std::vector<EParserState> getNextAvailableStates() const = 0;
+protected:
+	IParserState() = default;
+};
+
+class SimpleParserState :
+	public virtual IParserState
+{
+public:
+	SimpleParserState(EParserState state, std::vector<std::shared_ptr<CommonParser>> parsers, std::vector<EParserState> nextStates);
+
+	void activate() override;
+	EParserState getState() const override;
+	std::vector<std::shared_ptr<CommonParser>> getParsers() const override;
+	std::vector<EParserState> getNextAvailableStates() const override;
 private:
 	const EParserState state_;
 	const std::vector<std::shared_ptr<CommonParser>> parsers_;
 	const std::vector<EParserState> nextAvailableStates_;
 };
 
-std::vector<ParserState> generateStates();
+std::vector<std::shared_ptr<IParserState>> generateStates();
 
 #endif
