@@ -4,10 +4,107 @@
 
 #include <functional>
 #include <algorithm>
+#include <cstdint>
+
+enum class EExpressionLevelType
+{
+	Global,
+	Class,
+	Function,
+	Local,
+};
+
+//TODO: [OOKAMI] Refactor with new enum
+
+class BodyExpressionLevel :
+	public std::enable_shared_from_this<BodyExpressionLevel>
+{
+public:
+	uint64_t current() const
+	{
+		return level_;
+	}
+	void operator++()
+	{
+		level_++;
+	}
+	void operator--()
+	{
+		level_--;
+	}
+private:
+	uint64_t level_ = 0;
+};
+
+class FunctionBodyBorderState :
+	public ConditionalParserState
+{
+public:
+	enum class EBorderType
+	{
+		Open,
+		Close
+	};
+public:
+	FunctionBodyBorderState(
+		EBorderType borderType, std::shared_ptr<BodyExpressionLevel> bodyExpressionLevel,
+		std::shared_ptr<uint64_t> levelOpen, std::shared_ptr<CommonParser> parser) :
+			ConditionalParserState(borderType == EBorderType::Close ? EParserState::FunctionBodyStart : EParserState::FunctionBodyEnd),
+			borderType_(borderType),
+			bodyExpressionLevel_(bodyExpressionLevel),
+			levelOpen_(levelOpen),
+			parser_(parser)
+	{
+
+	}
+	bool canActivate() const override
+	{
+		if (borderType_ == EBorderType::Open)
+			return true;
+		if (*levelOpen_ == bodyExpressionLevel_->current())
+			return true;
+		return false;
+	}
+	void activate() override
+	{
+		switch (borderType_)
+		{
+		case EBorderType::Open:
+			(*bodyExpressionLevel_)++;
+			*levelOpen_ = bodyExpressionLevel_->current();
+			break;
+		case EBorderType::Close:
+			*levelOpen_ = 0;
+			(*bodyExpressionLevel_)--;
+			break;
+		}
+	}
+	std::vector<std::shared_ptr<CommonParser>> getParsers() const override
+	{
+		return {parser_};
+	}
+	std::optional<EParserState> getNextJumpState() const override
+	{
+		if (borderType_ == EBorderType::Close)
+			return EParserState::Global;
+	}
+	std::vector<EParserState> getNextAvailableStates() const override
+	{
+
+	}
+private:
+	const EBorderType borderType_;
+	const std::shared_ptr<BodyExpressionLevel> bodyExpressionLevel_;
+	const std::shared_ptr<uint64_t> levelOpen_;
+	const std::shared_ptr<CommonParser> parser_;
+};
 
 std::vector<std::shared_ptr<IParserState>> generateStates()
 {
 	std::vector<std::shared_ptr<IParserState>> states;
+
+	auto bodyExpressionLevel = std::make_shared<BodyExpressionLevel>();
+	auto functionBodyLevel = std::make_shared<uint64_t>(0);
 
 	auto basicTypeParser = std::make_shared<BasicBlastTypeParser>();
 	auto nameParser = std::make_shared<BlastNameParser>();
