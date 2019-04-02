@@ -1,5 +1,6 @@
 #include "parser_state_machine.hpp"
 #include "common_parser.hpp"
+#include "parser_states_generator.hpp"
 #include <algorithm>
 #include <stdexcept>
 
@@ -45,6 +46,8 @@ void ParserStateMachine::feed(const std::string &expression)
 	std::vector<std::shared_ptr<IParserState>> nextStates;
 	std::copy_if(states_.begin(), states_.end(), std::back_inserter(nextStates), [&nextAvailableStates](std::shared_ptr<IParserState> parserState) -> bool
 	{
+		if (!parserState->canActivate())
+			return false;
 		const auto state = parserState->getState();
 		return std::any_of(nextAvailableStates.begin(), nextAvailableStates.end(), [state](EParserState availableState) -> bool {return availableState == state; });
 	});

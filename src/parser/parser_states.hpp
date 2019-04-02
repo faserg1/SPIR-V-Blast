@@ -1,42 +1,7 @@
 #ifndef PARSER_STATES
 #define PARSER_STATES
 
-#include <memory>
-#include <vector>
-#include <optional>
-
-class CommonParser;
-
-/*
-TODO: [OOKAMI] States
-
-state enum
-
-state class = name, states available next, compiler parser
-
-global state
-global type state
-global name state
-func body state
-local type state
-etc..
-*/
-
-#include "parser_state_enum.hpp"
-
-class IParserState
-{
-public:
-	virtual ~IParserState() = default;
-
-	virtual void activate() = 0;
-	virtual EParserState getState() const = 0;
-	virtual std::vector<std::shared_ptr<CommonParser>> getParsers() const = 0;
-	virtual std::optional<EParserState> getNextJumpState() const = 0;
-	virtual std::vector<EParserState> getNextAvailableStates() const = 0;
-protected:
-	IParserState() = default;
-};
+#include "parser_state.hpp"
 
 class SimpleParserState :
 	public virtual IParserState
@@ -44,6 +9,7 @@ class SimpleParserState :
 public:
 	SimpleParserState(EParserState state, std::vector<std::shared_ptr<CommonParser>> parsers, std::vector<EParserState> nextStates);
 
+	bool canActivate() const override;
 	void activate() override;
 	EParserState getState() const override;
 	std::vector<std::shared_ptr<CommonParser>> getParsers() const override;
@@ -55,6 +21,15 @@ private:
 	const std::vector<EParserState> nextAvailableStates_;
 };
 
-std::vector<std::shared_ptr<IParserState>> generateStates();
+class ConditionalParserState :
+	public virtual IParserState
+{
+public:
+	ConditionalParserState(EParserState state);
+
+	EParserState getState() const override;
+private:
+	const EParserState state_;
+};
 
 #endif

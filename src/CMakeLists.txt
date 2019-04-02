@@ -10,7 +10,9 @@ set(BlastParserHeaders
 	${SOURCE_PARSER_DIR}/parser_nodes.hpp
 	${SOURCE_PARSER_DIR}/parser_types.hpp
 	${SOURCE_PARSER_DIR}/parser_state_enum.hpp
+	${SOURCE_PARSER_DIR}/parser_state.hpp
 	${SOURCE_PARSER_DIR}/parser_states.hpp
+	${SOURCE_PARSER_DIR}/parser_states_generator.hpp
 	${SOURCE_PARSER_DIR}/parser_symbols.hpp
 	${SOURCE_PARSER_DIR}/parser_symbols_parser.hpp
 	${SOURCE_PARSER_DIR}/parser_types_parser.hpp
@@ -25,7 +27,9 @@ set(BlastParserHeaders
 set(BlastParserSources
 	${SOURCE_PARSER_DIR}/parser_nodes.cpp
 	${SOURCE_PARSER_DIR}/parser_types.cpp
+	${SOURCE_PARSER_DIR}/parser_state.cpp
 	${SOURCE_PARSER_DIR}/parser_states.cpp
+	${SOURCE_PARSER_DIR}/parser_states_generator.cpp
 	${SOURCE_PARSER_DIR}/parser_symbols.cpp
 	${SOURCE_PARSER_DIR}/parser_symbols_parser.cpp
 	${SOURCE_PARSER_DIR}/parser_types_parser.cpp
