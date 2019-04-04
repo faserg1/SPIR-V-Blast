@@ -4,7 +4,10 @@
 
 #include <functional>
 #include <algorithm>
+#include <stack>
+#include <stdexcept>
 #include <cstdint>
+
 
 enum class EExpressionLevelType
 {
@@ -12,6 +15,37 @@ enum class EExpressionLevelType
 	Class,
 	Function,
 	Local,
+};
+
+class ExpressionStack :
+	public std::enable_shared_from_this<ExpressionStack>
+{
+public:
+	bool canOpen(EExpressionLevelType type) const
+	{
+
+	}
+	size_t open(EExpressionLevelType type)
+	{
+		if (!canOpen(type))
+			throw std::runtime_error("Cannot open expression!");
+		stack_.push(type);
+		return stack_.size() - 1;
+	}
+	bool canClose(EExpressionLevelType type, size_t num)
+	{
+		if (stack_.top() == type && num == stack_.size() - 1)
+			return true;
+		return false;
+	}
+	void close(EExpressionLevelType type, size_t num)
+	{
+		if (!canClose(type, num))
+			throw std::runtime_error("Cannot close expression!");
+		stack_.pop();
+	}
+private:
+	std::stack<EExpressionLevelType> stack_;
 };
 
 //TODO: [OOKAMI] Refactor with new enum
