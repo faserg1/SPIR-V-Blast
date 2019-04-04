@@ -21,6 +21,8 @@ private:
 	std::shared_ptr<CommonParser> currentParser_;
 
 	std::vector<std::shared_ptr<ParserNode>> nodes_;
+private:
+	bool jumpState();
 };
 
 #endif

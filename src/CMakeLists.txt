@@ -21,6 +21,9 @@ set(BlastParserHeaders
 	${SOURCE_PARSER_DIR}/parser_state_machine.hpp
 	${SOURCE_PARSER_DIR}/parser_expressions.hpp
 	${SOURCE_PARSER_DIR}/parser_expressions_parser.hpp
+	${SOURCE_PARSER_DIR}/parser_expression_level_enum.hpp
+	${SOURCE_PARSER_DIR}/parser_expression_stack.hpp
+	${SOURCE_PARSER_DIR}/parser_expression_border_state.hpp
 	${SOURCE_PARSER_DIR}/parser.hpp
 )
 
@@ -37,6 +40,8 @@ set(BlastParserSources
 	${SOURCE_PARSER_DIR}/parser_state_machine.cpp
 	${SOURCE_PARSER_DIR}/parser_expressions.cpp
 	${SOURCE_PARSER_DIR}/parser_expressions_parser.cpp
+	${SOURCE_PARSER_DIR}/parser_expression_stack.cpp
+	${SOURCE_PARSER_DIR}/parser_expression_border_state.cpp
 	${SOURCE_PARSER_DIR}/parser.cpp
 )
 

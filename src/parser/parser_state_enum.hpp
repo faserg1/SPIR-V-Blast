@@ -13,7 +13,7 @@ enum class EParserState
 	FunctionParametersEnd,
 	FunctionBodyStart,
 	FunctionBodyEnd,
-	FunctionLocal,
+	FunctionLocal, //? Forgot about this. Mb use as jump state? or just delete it
 };
 
 #endif

@@ -36,20 +36,19 @@ void ParserStateMachine::feed(const std::string &expression)
 			currentParser_ = {};
 		}
 	}
-	auto nextJumpState = currentState_->getNextJumpState();
-	if (nextJumpState)
-	{
-		currentState_ = findState(states_, *nextJumpState);
+	if (jumpState())
 		return;
-	}
 	auto nextAvailableStates = currentState_->getNextAvailableStates();
 	std::vector<std::shared_ptr<IParserState>> nextStates;
 	std::copy_if(states_.begin(), states_.end(), std::back_inserter(nextStates), [&nextAvailableStates](std::shared_ptr<IParserState> parserState) -> bool
 	{
+		const auto state = parserState->getState();
+		const auto validState = std::any_of(nextAvailableStates.begin(), nextAvailableStates.end(), [state](EParserState availableState) -> bool {return availableState == state; });
+		if (!validState)
+			return false;
 		if (!parserState->canActivate())
 			return false;
-		const auto state = parserState->getState();
-		return std::any_of(nextAvailableStates.begin(), nextAvailableStates.end(), [state](EParserState availableState) -> bool {return availableState == state; });
+		return true;
 	});
 	for (auto &state : nextStates)
 	{
@@ -77,9 +76,21 @@ void ParserStateMachine::feed(const std::string &expression)
 
 std::vector<std::shared_ptr<ParserNode>> ParserStateMachine::end()
 {
+	jumpState();
 	if (currentState_->getState() != EParserState::Global)
 		throw std::runtime_error("Unexpected end of shader!");
 	return nodes_;
+}
+
+bool ParserStateMachine::jumpState()
+{
+	auto nextJumpState = currentState_->getNextJumpState();
+	if (nextJumpState)
+	{
+		currentState_ = findState(states_, *nextJumpState);
+		return true;
+	}
+	return false;
 }
 
 std::shared_ptr<IParserState> findState(const std::vector<std::shared_ptr<IParserState>> &states, EParserState state)
