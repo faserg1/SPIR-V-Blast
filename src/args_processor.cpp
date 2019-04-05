@@ -5,6 +5,7 @@
 
 #include "preprocessor.hpp"
 #include "reader.hpp"
+#include "translator/translator.hpp"
 
 void processPreprocessorFlags(Preprocessor &preprocessor, const std::vector<Option> &options)
 {
@@ -49,5 +50,16 @@ void processReaderFlags(Reader &reader, const std::vector<Option> &options)
 			throw std::runtime_error("Wrong include directory! " + arg);
 		else
 			reader.addSearchPath(arg);
+	}
+}
+
+void processTranslatorFlags(Translator &translator, const std::vector<Option> &options)
+{
+	for (auto &opt : options)
+	{
+		if (opt.name == "-h" || opt.name == "--human-readable")
+			translator.setHumanReadable();
+		if (opt.name == "-b" || opt.name == "--binary")
+			translator.setHumanReadable(false);
 	}
 }

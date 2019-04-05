@@ -9,6 +9,8 @@
 #include "reader.hpp"
 #include "parser/parser.hpp"
 #include "compiler/compiler.hpp"
+#include "translator/translator.hpp"
+#include "writer.hpp"
 
 void printHelp();
 void printUsage();
@@ -35,6 +37,8 @@ int main(int argc, char**argv)
 	Reader reader;
 	Parser parser;
 	Compiler compiler;
+	Translator translator;
+	Writer writer;
 
 	processPreprocessorFlags(preprocessor, options);
 	processReaderFlags(reader, options);

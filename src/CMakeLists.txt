@@ -53,6 +53,14 @@ set(BlastCompilerSources
 	${SOURCE_COMPILER_DIR}/compiler.cpp
 )
 
+set(BlastTranslatorHeaders
+	${SOURCE_TRANSLATOR_DIR}/translator.hpp
+)
+
+set(BlastTranslatorSources
+	${SOURCE_TRANSLATOR_DIR}/translator.cpp
+)
+
 set(BlastHeaders
 	${SOURCE_DIR}/args_parser.hpp
 	${SOURCE_DIR}/args_processor.hpp
@@ -60,8 +68,10 @@ set(BlastHeaders
 	${SOURCE_DIR}/shader.hpp
 	${SOURCE_DIR}/preprocessor.hpp
 	${SOURCE_DIR}/shader_preprocessed_info.hpp
+	${SOURCE_DIR}/writer.hpp
 	${BlastParserHeaders}
 	${BlastCompilerHeaders}
+	${BlastTranslatorHeaders}
 )
 
 set(BlastSources
@@ -71,9 +81,11 @@ set(BlastSources
 	${SOURCE_DIR}/shader.cpp
 	${SOURCE_DIR}/preprocessor.cpp
 	${SOURCE_DIR}/shader_preprocessed_info.cpp
+	${SOURCE_DIR}/writer.cpp
 	${SOURCE_DIR}/main.cpp
 	${BlastParserSources}
 	${BlastCompilerSources}
+	${BlastTranslatorSources}
 )
 
 source_group("${SOURCE_GROUP_HEADER_START}parser" FILES ${BlastParserHeaders})
@@ -81,5 +93,8 @@ source_group("${SOURCE_GROUP_SOURCE_START}parser" FILES ${BlastParserSources})
 
 source_group("${SOURCE_GROUP_HEADER_START}compiler" FILES ${BlastCompilerHeaders})
 source_group("${SOURCE_GROUP_SOURCE_START}compiler" FILES ${BlastCompilerSources})
+
+source_group("${SOURCE_GROUP_HEADER_START}translator" FILES ${BlastTranslatorHeaders})
+source_group("${SOURCE_GROUP_SOURCE_START}translator" FILES ${BlastTranslatorSources})
 
 add_executable(Blast ${BlastHeaders} ${BlastSources})
