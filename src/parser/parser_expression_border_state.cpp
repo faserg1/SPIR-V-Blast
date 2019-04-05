@@ -51,19 +51,21 @@ std::optional<EParserState> ExpressionBorderState::getNextJumpState() const
 		}
 		throw std::runtime_error("Cannot determinate the next jump state");
 	}
+	else if (expressionBorderType_ == EExpressionBorderType::Open)
+	{
+		switch (expressionLevelType_)
+		{
+		case EExpressionLevelType::Function:
+			return EParserState::FunctionLocal;
+		}
+		throw std::runtime_error("Cannot determinate the next jump state");
+	}
 		
 	return {};
 }
 
 std::vector<EParserState> ExpressionBorderState::getNextAvailableStates() const
 {
-	if (expressionBorderType_ == EExpressionBorderType::Close)
-		return {};
-	switch (expressionLevelType_)
-	{
-	case EExpressionLevelType::Function:
-		return {EParserState::FunctionBodyEnd};
-	}
 	return {};
 }
 

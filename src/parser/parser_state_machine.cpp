@@ -37,7 +37,9 @@ void ParserStateMachine::feed(const std::string &expression)
 		}
 	}
 	if (jumpState())
-		return;
+	{
+		while (jumpState());
+	}
 	auto nextAvailableStates = currentState_->getNextAvailableStates();
 	std::vector<std::shared_ptr<IParserState>> nextStates;
 	std::copy_if(states_.begin(), states_.end(), std::back_inserter(nextStates), [&nextAvailableStates](std::shared_ptr<IParserState> parserState) -> bool

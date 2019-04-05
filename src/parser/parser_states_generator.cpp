@@ -52,6 +52,9 @@ std::vector<std::shared_ptr<IParserState>> generateStates()
 		{ EParserState::FunctionParametersEnd, {functionParamtersEnd},
 			{ EParserState::Global, EParserState::FunctionBodyStart }
 		},
+		{ EParserState::FunctionLocal, {},
+			{EParserState::FunctionBodyEnd}
+		}
 	});
 
 	std::transform(simpleStates.begin(), simpleStates.end(), std::back_inserter(states), [](SimpleParserState &simpleState) -> std::shared_ptr<IParserState>
