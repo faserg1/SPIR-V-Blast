@@ -32,9 +32,9 @@ std::vector<std::shared_ptr<IParserState>> generateStates()
 		{ EParserState::GlobalType }
 		},
 		{ EParserState::GlobalType, { basicTypeParser },
-			{EParserState::GlobalName}
+			{EParserState::GlobalNameDeclaration}
 		},
-		{ EParserState::GlobalName, { nameParser },
+		{ EParserState::GlobalNameDeclaration, { nameParser },
 			{EParserState::Global, EParserState::FunctionParametersStart}
 		},
 		{ EParserState::FunctionParametersStart, {functionParamtersStart},

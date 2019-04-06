@@ -48,6 +48,7 @@ int main(int argc, char**argv)
 
 	auto processedInfo = preprocessor.process(argsParser.getInputFile());
 	auto nodes = parser.parse(processedInfo);
+	compiler.compile(processedInfo, nodes);
 
 	return 0;
 }

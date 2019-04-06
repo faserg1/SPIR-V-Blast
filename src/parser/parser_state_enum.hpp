@@ -5,7 +5,7 @@ enum class EParserState
 {
 	Global,
 	GlobalType,
-	GlobalName,
+	GlobalNameDeclaration,
 	FunctionParametersStart,
 	FunctionParameterType,
 	FunctionParameterName,

@@ -4,36 +4,7 @@
 #include <cstdint>
 #include <memory>
 
-enum class EBlastType
-{
-	Void,
-	Boolean,
-	Integer,
-	Float,
-	Vector,
-	Matrix,
-	Image,
-	Sampler,
-	SampledImage,
-	Array,
-	RuntimeArray,
-	Struct,
-	Opaque,
-	Pointer,
-	Function,
-
-	Event,
-	DeviceEvent,
-	ReserveId,
-	Queue,
-	Pipe,
-	ForwardPointer,
-	PipeStorage,
-	NamedBarrier,
-
-	AccelerationStructureNV,
-	OpTypeCooperativeMatrixNV,
-};
+#include "../blast/blast_types.hpp"
 
 class BlastType :
 	std::enable_shared_from_this<BlastType>

@@ -17,6 +17,7 @@ public:
 	{
 		return std::any_cast<T>(value_);
 	}
+	EParserNodeType getNodeType() const;
 	EParserState getParserState() const;
 private:
 	const EParserNodeType nodeType_;

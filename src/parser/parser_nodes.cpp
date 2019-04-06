@@ -5,6 +5,11 @@ ParserNode::ParserNode(EParserNodeType type, std::any value, EParserState state)
 {
 }
 
+EParserNodeType ParserNode::getNodeType() const
+{
+	return nodeType_;
+}
+
 EParserState ParserNode::getParserState() const
 {
 	return state_;
