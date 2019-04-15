@@ -11,7 +11,7 @@
 #include <stdexcept>
 #include <cstdint>
 
-std::vector<std::shared_ptr<IParserState>> generateStates()
+std::vector<std::shared_ptr<IParserState>> generateParserStates()
 {
 	std::vector<std::shared_ptr<IParserState>> states;
 

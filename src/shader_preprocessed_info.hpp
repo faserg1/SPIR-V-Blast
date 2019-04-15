@@ -12,6 +12,12 @@ struct EntryPoint
 	spv::ExecutionModel executionModel;
 };
 
+struct DebugRowInfo
+{
+	size_t sourceFileId;
+	size_t sourceRowNumber;
+};
+
 class ShaderPreprocessedInfo
 {
 	friend class Preprocessor;
@@ -23,6 +29,8 @@ public:
 	spv::AddressingModel addressingModel() const;
 private:
 	std::string text_;
+	std::vector<std::string> sourceFiles_;
+	std::vector<DebugRowInfo> debugRowsInfo_;
 
 	std::set<spv::Capability> capabilities_;
 	std::vector<EntryPoint> entryPoints_;

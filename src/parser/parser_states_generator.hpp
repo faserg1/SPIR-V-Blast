@@ -6,6 +6,6 @@
 
 class IParserState;
 
-std::vector<std::shared_ptr<IParserState>> generateStates();
+std::vector<std::shared_ptr<IParserState>> generateParserStates();
 
 #endif

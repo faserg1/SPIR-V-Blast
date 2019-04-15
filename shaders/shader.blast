@@ -1,35 +1,15 @@
-#define GOOD MIKU // God damn miku!
 #entry main Vertex
 #memory Logical Simple
 
 #capability Shader
 #capability Int64
 
+//nice
+
 /*
-
-// HAHA
-
-Multi line comment!!!
+oh yeah!
 */
-
-     #define NICE    \   
-	 \
-	 \
-	GOOD
-	#define CODE "   "
-	#define LOOK ' '
-	
-//#include "shader2.blast"
-//#include "test/shader3.blast"
 
 void main()
 {
-	//int MY_SUPER_DEFINE = 3;
-	//int NICE = 0;
 }
-
-#undef NICE  
-
-// I join the LOPATA
-
-#define LUCK \

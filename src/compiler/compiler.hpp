@@ -8,14 +8,13 @@
 #include "../parser/parser_nodes.hpp"
 
 class CompilerNode;
-class CompilerNodeFunction;
 
 class Compiler
 {
 public:
 	void compile(ShaderPreprocessedInfo preprocessedInfo, std::vector<std::shared_ptr<ParserNode>> nodes);
 private:
-	std::shared_ptr<CompilerNodeFunction> functions_;
+	std::vector<std::shared_ptr<CompilerNode>> nodes_;
 };
 
 #endif

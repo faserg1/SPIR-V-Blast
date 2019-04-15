@@ -1,73 +1,23 @@
 #include "compiler_state_generator.hpp"
-#include "compiler_state.hpp"
-#include "../parser/parser_nodes.hpp"
-#include <stdexcept>
+#include "compiler_states.hpp"
+#include <type_traits>
 
-class CompilerStateNone :
-	public CompilerState
+template <class ...TCompilerStates>
+std::vector<std::shared_ptr<CompilerState>> generateShared()
 {
-public:
-	CompilerStateNone() :
-		CompilerState(ECompilerState::None)
+	static_assert((std::is_base_of_v<CompilerState, TCompilerStates> && ...), "Some classes are not base of CompilerState!");
+	return
 	{
+		std::make_shared<TCompilerStates>()...
+	};
+}
 
-	}
-	ECompilerState getNextState(std::shared_ptr<ParserNode> node) const override
-	{
-		switch (node->getNodeType())
-		{
-		case EParserNodeType::Type:
-			return ECompilerState::TypeDeclaration;
-		}
-		CompilerState::getNextState(node);
-	}
-};
-
-class CompilerStateTypeDelaration :
-	public CompilerState
+std::vector<std::shared_ptr<CompilerState>> generateCompilerStates()
 {
-public:
-	CompilerStateTypeDelaration() :
-		CompilerState(ECompilerState::TypeDeclaration)
-	{
-
-	}
-	ECompilerState getNextState(std::shared_ptr<ParserNode> node) const override
-	{
-		switch (node->getNodeType())
-		{
-		case EParserNodeType::Name:
-			return ECompilerState::NameDeclaration;
-		}
-		CompilerState::getNextState(node);
-	}
-};
-
-class CompilerStateNameDelaration :
-	public CompilerState
-{
-public:
-	CompilerStateNameDelaration() :
-		CompilerState(ECompilerState::TypeDeclaration)
-	{
-
-	}
-	ECompilerState getNextState(std::shared_ptr<ParserNode> node) const override
-	{
-		switch (node->getNodeType())
-		{
-		case EParserNodeType::Expression:
-			switch (node->getParserState())
-			{
-			case EParserState::FunctionParametersStart:
-				return ECompilerState::FunctionDeclaration;
-			}
-		}
-		CompilerState::getNextState(node);
-	}
-};
-
-std::vector<std::shared_ptr<CompilerState>> CompilerStateGenerator::generateStates()
-{
-	return std::vector<std::shared_ptr<CompilerState>>();
+	return generateShared<
+		CompilerStateNone,
+		CompilerStateTypeDelaration,
+		CompilerStateNameDelaration,
+		CompilerStateFunctionDelaration
+	>();
 }

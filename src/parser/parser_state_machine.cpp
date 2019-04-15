@@ -8,7 +8,7 @@ static std::shared_ptr<IParserState> findState(const std::vector<std::shared_ptr
 static std::shared_ptr<IParserState> findGlobalState(const std::vector<std::shared_ptr<IParserState>> &states);
 
 ParserStateMachine::ParserStateMachine() :
-	states_(generateStates()), currentState_(findGlobalState(states_))
+	states_(generateParserStates()), currentState_(findGlobalState(states_))
 {
 }
 

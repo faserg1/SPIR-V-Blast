@@ -6,11 +6,6 @@
 
 class CompilerState;
 
-class CompilerStateGenerator
-{
-public:
-	CompilerStateGenerator() = default;
-	std::vector<std::shared_ptr<CompilerState>> generateStates();
-};
+std::vector<std::shared_ptr<CompilerState>> generateCompilerStates();
 
 #endif

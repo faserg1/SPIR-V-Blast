@@ -58,6 +58,7 @@ set(BlastCompilerHeaders
 	${SOURCE_COMPILER_DIR}/compiler_node_variable.hpp
 	${SOURCE_COMPILER_DIR}/compiler_state_machine.hpp
 	${SOURCE_COMPILER_DIR}/compiler_state.hpp
+	${SOURCE_COMPILER_DIR}/compiler_states.hpp
 	${SOURCE_COMPILER_DIR}/compiler_state_enum.hpp
 	${SOURCE_COMPILER_DIR}/compiler_state_generator.hpp
 )
@@ -73,6 +74,7 @@ set(BlastCompilerSources
 	${SOURCE_COMPILER_DIR}/compiler_node_variable.cpp
 	${SOURCE_COMPILER_DIR}/compiler_state_machine.cpp
 	${SOURCE_COMPILER_DIR}/compiler_state.cpp
+	${SOURCE_COMPILER_DIR}/compiler_states.cpp
 	${SOURCE_COMPILER_DIR}/compiler_state_generator.cpp
 )
 
