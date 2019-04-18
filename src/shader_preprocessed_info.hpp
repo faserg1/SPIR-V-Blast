@@ -23,6 +23,9 @@ class ShaderPreprocessedInfo
 	friend class Preprocessor;
 public:
 	const std::string &text() const;
+	std::vector<DebugRowInfo> debugRowsInfo() const;
+	std::vector<std::string> sourceFiles() const;
+
 	std::set<spv::Capability> capabilities() const;
 	std::vector<EntryPoint> entryPoints() const;
 	spv::MemoryModel memoryModel() const;

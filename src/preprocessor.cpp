@@ -35,6 +35,7 @@ ShaderPreprocessedInfo Preprocessor::process(std::string file)
 	auto text = loadCallback_(currentPath);
 	auto definesCopy = defines_;
 	preprocessedInfo_.text_ = recursiveParse(std::filesystem::current_path(), definesCopy, std::move(text), currentPath.string(), preprocessedInfo_.debugRowsInfo_);
+	preprocessedInfo_.sourceFiles_ = std::move(sourceFiles_);
 	return preprocessedInfo_;
 }
 

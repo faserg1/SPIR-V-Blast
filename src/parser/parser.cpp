@@ -6,16 +6,16 @@
 
 std::vector<std::shared_ptr<ParserNode>> Parser::parse(const ShaderPreprocessedInfo &preprocessedInfo)
 {
-	auto literals = splitByLiterals(std::move(preprocessedInfo.text()));
+	auto literals = splitByLiterals(std::move(preprocessedInfo.text()), preprocessedInfo.debugRowsInfo());
 
 	return std::move(getNodes(literals));
 }
 
-std::vector<std::string> Parser::splitByLiterals(std::string text)
+std::vector<LiteralDebugInfo> Parser::splitByLiterals(std::string text, std::vector<DebugRowInfo> debugRowsInfo)
 {
 	auto separatorsCount = std::count_if(text.begin(), text.end(),
 		[](char c) -> bool {return c == ' ' || c == '\t' || c == '\n'; });
-	std::vector<std::string> preliterals;
+	std::vector<LiteralDebugInfo> preliterals;
 	preliterals.reserve(separatorsCount + 1);
 
 	while (!text.empty())
@@ -23,8 +23,10 @@ std::vector<std::string> Parser::splitByLiterals(std::string text)
 		bool escape = false;
 		bool stringCapture = false;
 		bool literalCapture = false;
+		size_t line = 0;
+		bool newLineReached = false;
 		auto iterSep = std::find_if(text.begin(), text.end(),
-			[&escape, &stringCapture, &literalCapture](char c) -> bool
+			[&escape, &stringCapture, &literalCapture, &newLineReached](char c) -> bool
 		{
 			bool wasEscape = escape;
 			escape = false;
@@ -47,6 +49,7 @@ std::vector<std::string> Parser::splitByLiterals(std::string text)
 				if (stringCapture || literalCapture)
 					return false;
 			case '\n':
+				newLineReached = true;
 				return true;
 			default:
 				return false;
@@ -54,7 +57,13 @@ std::vector<std::string> Parser::splitByLiterals(std::string text)
 		});
 		auto distance = std::distance(text.begin(), iterSep);
 		auto substr = text.substr(0, distance);
-		preliterals.push_back(substr);
+		LiteralDebugInfo preliteral = { substr, debugRowsInfo[line] };
+		preliterals.push_back(preliteral);
+		if (newLineReached)
+		{
+			line++;
+			newLineReached = false;
+		}
 		text.erase(0, distance+1);
 	}
 
@@ -69,12 +78,14 @@ std::vector<std::string> Parser::splitByLiterals(std::string text)
 	std::regex literalRegex(pattern, std::regex_constants::ECMAScript | std::regex_constants::optimize);
 	std::sregex_iterator end;
 
-	std::vector <std::string> literals;
+	std::vector <LiteralDebugInfo> literals;
 	literals.reserve(preliterals.size() * 2);
 
 	for (auto iter = preliterals.begin(); iter != preliterals.end(); iter++)
 	{
-		auto txt = *iter;
+		const auto &liternalDebugInfo = *iter;
+		const auto &txt = liternalDebugInfo.literal;
+		const auto &debugRowInfo = liternalDebugInfo.rowInfo;
 		auto literalMatchIter = std::sregex_iterator(txt.begin(), txt.end(), literalRegex);
 		if (literalMatchIter == end)
 			throw std::runtime_error("Unknown literal!");
@@ -86,7 +97,8 @@ std::vector<std::string> Parser::splitByLiterals(std::string text)
 				if (!matchIter->matched)
 					continue;
 				auto value = *matchIter;
-				literals.push_back(value);
+				LiteralDebugInfo literal = { value, debugRowInfo };
+				literals.push_back(literal);
 				break;
 			}
 		}
@@ -95,12 +107,16 @@ std::vector<std::string> Parser::splitByLiterals(std::string text)
 	return literals;
 }
 
-std::vector<std::shared_ptr<ParserNode>> Parser::getNodes(std::vector<std::string> literals)
+std::vector<std::shared_ptr<ParserNode>> Parser::getNodes(std::vector<LiteralDebugInfo> literals)
 {
 	ParserStateMachine stateMachine;
 
-	for (auto &expression : literals)
-		stateMachine.feed(expression);
+	for (auto &literal : literals)
+	{
+		// TODO: Try/catch. Message with literal, line and filename
+		stateMachine.feed(literal.literal);
+	}
+		
 
 	return std::move(stateMachine.end());
 }

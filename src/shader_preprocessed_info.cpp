@@ -7,6 +7,16 @@ const std::string &ShaderPreprocessedInfo::text() const
 	return text_;
 }
 
+std::vector<DebugRowInfo> ShaderPreprocessedInfo::debugRowsInfo() const
+{
+	return debugRowsInfo_;
+}
+
+std::vector<std::string> ShaderPreprocessedInfo::sourceFiles() const
+{
+	return sourceFiles_;
+}
+
 std::set<spv::Capability> ShaderPreprocessedInfo::capabilities() const
 {
 	return capabilities_;
