@@ -7,6 +7,11 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 #prepare config
 include (Arch.cmake)
 include (include.cmake)
+include (thirdparty.cmake)
+
+#dirs
+set(BLAST_LANG_DIR ${CMAKE_CURRENT_LIST_DIR}/lang)
+set(BLAST_GEN_DIR ${CMAKE_CURRENT_LIST_DIR}/src/gen)
 
 set(BLAST_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR}/built/${TARGET_ARCH})
 set(BIN_BUILD_OUTPUT_DIRECTORY ${BLAST_ROOT_DIR}/bin)
@@ -16,6 +21,7 @@ set(EXECUTABLE_OUTPUT_PATH ${BUILD_OUTPUT_DIRECTORY})
 set(LIBRARY_OUTPUT_PATH  ${BUILD_OUTPUT_DIRECTORY})
 set(RUNTIME_OUTPUT_DIRECTORY  ${BUILD_OUTPUT_DIRECTORY})
 
+#sources
 add_subdirectory (src)
 
 #special
