@@ -1,3 +1,4 @@
+%skeleton "lalr1.cc"
 %define api.parser.class {BlastParser}
 
 %code requires
@@ -8,14 +9,121 @@
 #include <string>
 #include <iostream>
 #include <algorithm>
+
+enum class IdentifierType
+{
+	Undefined,
+	Structure,
+	Function,
+	Parameter,
+	Variable
+};
+
+enum class LiteralType
+{
+	String,
+	UNumber,
+	INumber,
+	DNumber
+};
+
+enum class ExpressionType
+{
+	None,
+	/*Basic*/
+	Literal,
+	Identifier,
+	/*Ariphmetic*/
+	Add,
+	Negate,
+	Multiply,
+	Divide,
+	Modulo,
+	Increment,
+	Decrement,
+	/*Logical*/
+	Equal,
+	NonEqual,
+	And,
+	Or,
+	Less,
+	More,
+	LessOrEqual,
+	MoreOrEqual,
+	/*Control Switch - condition and loops */
+	If,
+	For,
+	While,
+	DoWhile,
+	Switch,
+	/*Control Switch - switch cases*/
+	SwitchCase,
+	SwitchDefault,
+	/*Control Switch - common*/
+	FunctionCall,
+	Return,
+	Break,
+	Continue,
+	/*References*/
+	Reference, Dereference,
+	/*Misc*/
+	Comma,
+};
+
+struct Identifier
+{
+	IdentifierType type;
+	std::string name;
+};
+
+struct Function
+{
+	std::string name;
+	struct Expression body;
+};
+
+struct Literal
+{
+	LiteralType type;
+	union
+	{
+		uint64_t unum;
+		int64_t inum;
+		double dnum; 
+		std::string string;
+	} literal;
+};
+
+typedef  std::list<struct Expression> ExpressionParams;
+
+struct Expression
+{
+	ExpressionType type;
+	Identifier ident {};
+	Literal literal {};
+	ExpressionParams params;
+};
+
+struct lexcontext;
+
 } //%code requires
 
+%param { lexcontext &ctx }
+
+%code
+{
+	struct lexcontext
+	{
+	};
+} //%code
+
 %token END 0
-%token RETURN "return" DO "do" WHILE "while" IF "if" SWITCH "switch" FOR "for"
+%token DO "do" WHILE "while" IF "if" SWITCH "switch" FOR "for"
 %token DEFAULT "default" CASE "case"
-%token BREAK "break" CONTINUE "continue"
+%token RETURN "return" BREAK "break" CONTINUE "continue"
 %token CONST "const" NOVAR "novar"
 %token INT "int" FLOAT "float" BOOL "bool"
+%token STRUCT "struct"
 %token IDENTIFIER NUMLITERAL STRINGLITERAL
 %token OR "||" AND "&&" EQ "==" NE "!="
 %token LESS '<' MORE '>' LESS_EQ "<=" MORE_EQ ">="
@@ -28,24 +136,29 @@
 %left '|'
 %left '^'
 %left '&'
-%left "==" "!="
-%left '>' '<' ">=" "<="
+%left EQ NE
+%left LESS MORE LESS_EQ MORE_EQ
 %left '+' '-'
 %left '*' '/' '%'
-%right "++" "--" '!' '~' UMINUS UPLUS PTR_DR ADDR
+%right INC DEC '!' '~' UMINUS UPLUS PTR_DR ADDR
 %left '(' '[' "." "->" POST_INC POST_DEC
 
 %%
 
-shader: functions
+shader: shader_unit_rec;
+
+shader_unit_rec: shader_unit_rec shader_unit
 | %empty;
+
+shader_unit: function
+| function_prototype
+| struct ;
 
 /* FUNCTIONS */
 
-functions: function_decl function_body functions // recursion
-| function_decl function_body // function
-| function_decl ';'  // function prototype
-;
+function: function_decl function_body ;
+
+function_prototype: function_decl ';' ;
 
 function_decl: type IDENTIFIER function_parameters
 
@@ -121,14 +234,27 @@ switch_default_case: DEFAULT ':' case_body ;
 
 case_body: statement_nb_rec;
 
+/* Structs */
+
+struct: STRUCT '{' struct_body '}' ;
+
+struct_body: struct_members_continious ;
+
+struct_members_continious: struct_members_continious struct_member
+| struct_member;
+
+struct_member: type struct_member_continious ';' ;
+
+struct_member_continious: struct_member_continious ',' IDENTIFIER
+| IDENTIFIER;
+
 /* EXPRESSIONS */
 
 comma_expression: expression
 | comma_expression ',' expression;
 
 expression: IDENTIFIER
-| NUMLITERAL
-| STRINGLITERAL
+| literal
 | '(' comma_expression ')'
 | expression '(' ')'
 | expression '(' comma_expression ')'
@@ -147,15 +273,24 @@ expression: IDENTIFIER
 | expression AND expression
 | expression EQ expression
 | expression NE expression
+| expression LESS expression
+| expression MORE expression
+| expression LESS_EQ expression
+| expression MORE_EQ expression
 | '-' expression %prec UMINUS
 | '+' expression %prec UPLUS
 | '*' expression %prec PTR_DR
 | '&' expression %prec ADDR
-| "++" expression
-| "--" expression
-| expression "++" %prec POST_INC
-| expression "--" %prec POST_DEC
+| INC expression
+| DEC expression
+| expression INC %prec POST_INC
+| expression DEC %prec POST_DEC
 | expression '?' expression ':' expression;
+
+/* Literals */
+
+literal: NUMLITERAL
+| STRINGLITERAL;
 
 /* VARIABLE DECLARATION */
 
@@ -185,4 +320,10 @@ int_type: INT;
 float_type: FLOAT;
 bool_type: BOOL;
 
+/* Attributes */
+// TODO: [OOKAMI] attributes
+/*
+attribute: "[[" attribute_body "]]" ;
+attribute_body: %empty;
+*/
 %%
