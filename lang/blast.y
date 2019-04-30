@@ -1,9 +1,12 @@
 %skeleton "lalr1.cc"
 %define api.parser.class {BlastParser}
+%define api.namespace {gen}
+%locations
 
 %code requires
 {
 #include <map>
+#include <any>
 #include <list>
 #include <vector>
 #include <string>
@@ -13,6 +16,7 @@
 enum class IdentifierType
 {
 	Undefined,
+	Attribute,
 	Structure,
 	Function,
 	Parameter,
@@ -25,6 +29,13 @@ enum class LiteralType
 	UNumber,
 	INumber,
 	DNumber
+};
+
+enum class AttributeParamType
+{
+	None,
+	Identifier,
+	Literal,
 };
 
 enum class ExpressionType
@@ -76,10 +87,23 @@ struct Identifier
 	std::string name;
 };
 
+struct Attribute
+{
+	Identifier ident {};
+	AttributeParamType type;
+	Identifier paramIdent {};
+	Literal paramLiteral {};
+};
+
 struct Function
 {
 	std::string name;
 	struct Expression body;
+};
+
+struct Struct
+{
+	
 };
 
 struct Literal
@@ -114,6 +138,26 @@ struct lexcontext;
 {
 	struct lexcontext
 	{
+		std::vector<Attribute> tempAttributes;
+	public:
+	private:
+		void addTempAttribute(const std::string &name, AttributeParamType type, std::any param)
+		{
+			Attribute attr;
+			attr.ident = { IdentifierType::Attribute, name };
+			attr.type = type;
+			switch (type)
+			{
+			case AttributeParamType::Identifier:
+				attr.paramIdent = std::any_cast<Identifier>(param);
+				attr.paramIdent.type = IdentifierType::Variable;
+				break;
+			case AttributeParamType::Literal:
+				attr.paramLiteral = std::any_cast<Literal>(param);
+				break;
+			}
+			tempAttributes.push_back(attr);
+		}
 	};
 } //%code
 
@@ -121,10 +165,12 @@ struct lexcontext;
 %token DO "do" WHILE "while" IF "if" SWITCH "switch" FOR "for"
 %token DEFAULT "default" CASE "case"
 %token RETURN "return" BREAK "break" CONTINUE "continue"
-%token CONST "const" NOVAR "novar"
-%token INT "int" FLOAT "float" BOOL "bool"
+%token CONST "const" NOVAR "novar" RUNTIME "runtime"
+%token VOID "void" INT "int" FLOAT "float" BOOL "bool"
+%token MATRIX "mat" VECTOR "vec"
+%token IMAGE "img" SAMPLER "smpl" SAMPLED_IMAGE "simg"
 %token STRUCT "struct"
-%token IDENTIFIER NUMLITERAL STRINGLITERAL
+%token IDENTIFIER USER_DEFINED_TYPE NUMLITERAL STRINGLITERAL
 %token OR "||" AND "&&" EQ "==" NE "!="
 %token LESS '<' MORE '>' LESS_EQ "<=" MORE_EQ ">="
 %token INC "++" DEC "--" PL_EQ "+=" MI_EQ "-="
@@ -160,7 +206,7 @@ function: function_decl function_body ;
 
 function_prototype: function_decl ';' ;
 
-function_decl: type IDENTIFIER function_parameters
+function_decl: attribute_rec type IDENTIFIER function_parameters
 
 function_parameters: '(' function_parameter_list ')' 
 | '(' ')';
@@ -236,14 +282,14 @@ case_body: statement_nb_rec;
 
 /* Structs */
 
-struct: STRUCT '{' struct_body '}' ;
+struct: attribute_rec STRUCT '{' struct_body '}' ;
 
 struct_body: struct_members_continious ;
 
 struct_members_continious: struct_members_continious struct_member
 | struct_member;
 
-struct_member: type struct_member_continious ';' ;
+struct_member: attribute_rec type struct_member_continious ';' ;
 
 struct_member_continious: struct_member_continious ',' IDENTIFIER
 | IDENTIFIER;
@@ -294,7 +340,7 @@ literal: NUMLITERAL
 
 /* VARIABLE DECLARATION */
 
-var_def: type var_def_continious;
+var_def: attribute_rec type var_def_continious;
 
 var_def_continious: var_def_continious ',' IDENTIFIER
 | var_def_continious ',' IDENTIFIER '=' expression
@@ -303,27 +349,59 @@ var_def_continious: var_def_continious ',' IDENTIFIER
 
 /* TYPES */
 
-type: type_mod simple_type type_ptr_suffix ;
+type: type_mod type_variant type_suffix ;
 
-type_ptr_suffix: type_ptr_suffix '*'
+type_suffix: type_suffix type_suffix_variant
 | %empty ;
+
+type_suffix_variant: '*'
+| "[]";
 
 type_mod: CONST
 | NOVAR
+| RUNTIME
 | %empty;
 
-simple_type: int_type
+type_variant: simple_type
+| custom_type
+| complex_type_variant;
+
+custom_type: USER_DEFINED_TYPE;
+
+simple_type: void_type
+| int_type
 | float_type
 | bool_type ;
 
+complex_type_variant: matrix_type
+| vector_type
+| image_type
+| sampler_type
+| sampled_image_type;
+
+void_type: VOID;
 int_type: INT;
 float_type: FLOAT;
 bool_type: BOOL;
 
+vector_type: VECTOR '<' simple_type ',' NUMLITERAL '>';
+matrix_type: MATRIX '<' simple_type ',' NUMLITERAL ',' NUMLITERAL '>';
+image_type: IMAGE;
+sampler_type: SAMPLER;
+sampled_image_type: SAMPLED_IMAGE;
+
 /* Attributes */
-// TODO: [OOKAMI] attributes
-/*
+attribute_rec: attribute_rec attribute
+| %empty;
+
 attribute: "[[" attribute_body "]]" ;
-attribute_body: %empty;
-*/
+
+attribute_body: IDENTIFIER
+| IDENTIFIER ':' NUMLITERAL
+| IDENTIFIER ':' STRINGLITERAL
+| IDENTIFIER ':' IDENTIFIER;
+
 %%
+
+// TODO: [OOKAMI] Use re2c and use context to determine whenether the token is ident or user defined type.
+// TODO: [OOKAMI] Maybe I should use function name as like user defined types? user defined functions xD
