@@ -8,75 +8,19 @@ set(SOURCE_TRANSLATOR_DIR ${SOURCE_DIR}/translator)
 set(SOURCE_BLAST_DIR ${SOURCE_DIR}/blast)
 
 set(BlastParserHeaders
-	${SOURCE_PARSER_DIR}/parser_node_type_enum.hpp
-	${SOURCE_PARSER_DIR}/parser_nodes.hpp
-	${SOURCE_PARSER_DIR}/parser_types.hpp
-	${SOURCE_PARSER_DIR}/parser_state_enum.hpp
-	${SOURCE_PARSER_DIR}/parser_state.hpp
-	${SOURCE_PARSER_DIR}/parser_states.hpp
-	${SOURCE_PARSER_DIR}/parser_states_generator.hpp
-	${SOURCE_PARSER_DIR}/parser_symbols.hpp
-	${SOURCE_PARSER_DIR}/parser_symbols_parser.hpp
-	${SOURCE_PARSER_DIR}/parser_types_parser.hpp
-	${SOURCE_PARSER_DIR}/common_parser.hpp
-	${SOURCE_PARSER_DIR}/parsers.hpp
-	${SOURCE_PARSER_DIR}/parser_state_machine.hpp
-	${SOURCE_PARSER_DIR}/parser_expressions.hpp
-	${SOURCE_PARSER_DIR}/parser_expressions_parser.hpp
-	${SOURCE_PARSER_DIR}/parser_expression_level_enum.hpp
-	${SOURCE_PARSER_DIR}/parser_expression_stack.hpp
-	${SOURCE_PARSER_DIR}/parser_expression_border_state.hpp
-	${SOURCE_PARSER_DIR}/parser.hpp
+
 )
 
 set(BlastParserSources
-	${SOURCE_PARSER_DIR}/parser_nodes.cpp
-	${SOURCE_PARSER_DIR}/parser_types.cpp
-	${SOURCE_PARSER_DIR}/parser_state.cpp
-	${SOURCE_PARSER_DIR}/parser_states.cpp
-	${SOURCE_PARSER_DIR}/parser_states_generator.cpp
-	${SOURCE_PARSER_DIR}/parser_symbols.cpp
-	${SOURCE_PARSER_DIR}/parser_symbols_parser.cpp
-	${SOURCE_PARSER_DIR}/parser_types_parser.cpp
-	${SOURCE_PARSER_DIR}/common_parser.cpp
-	${SOURCE_PARSER_DIR}/parser_state_machine.cpp
-	${SOURCE_PARSER_DIR}/parser_expressions.cpp
-	${SOURCE_PARSER_DIR}/parser_expressions_parser.cpp
-	${SOURCE_PARSER_DIR}/parser_expression_stack.cpp
-	${SOURCE_PARSER_DIR}/parser_expression_border_state.cpp
-	${SOURCE_PARSER_DIR}/parser.cpp
+
 )
 
 set(BlastCompilerHeaders
-	${SOURCE_COMPILER_DIR}/compiler.hpp
-	${SOURCE_COMPILER_DIR}/compiler_node.hpp
-	${SOURCE_COMPILER_DIR}/compiler_node_expression.hpp
-	${SOURCE_COMPILER_DIR}/compiler_node_function.hpp
-	${SOURCE_COMPILER_DIR}/compiler_node_function_body.hpp
-	${SOURCE_COMPILER_DIR}/compiler_node_function_parameter.hpp
-	${SOURCE_COMPILER_DIR}/compiler_node_type.hpp
-	${SOURCE_COMPILER_DIR}/compiler_node_type_enum.hpp
-	${SOURCE_COMPILER_DIR}/compiler_node_variable.hpp
-	${SOURCE_COMPILER_DIR}/compiler_state_machine.hpp
-	${SOURCE_COMPILER_DIR}/compiler_state.hpp
-	${SOURCE_COMPILER_DIR}/compiler_states.hpp
-	${SOURCE_COMPILER_DIR}/compiler_state_enum.hpp
-	${SOURCE_COMPILER_DIR}/compiler_state_generator.hpp
+
 )
 
 set(BlastCompilerSources
-	${SOURCE_COMPILER_DIR}/compiler.cpp
-	${SOURCE_COMPILER_DIR}/compiler_node.cpp
-	${SOURCE_COMPILER_DIR}/compiler_node_expression.cpp
-	${SOURCE_COMPILER_DIR}/compiler_node_function.cpp
-	${SOURCE_COMPILER_DIR}/compiler_node_function_body.cpp
-	${SOURCE_COMPILER_DIR}/compiler_node_function_parameter.cpp
-	${SOURCE_COMPILER_DIR}/compiler_node_type.cpp
-	${SOURCE_COMPILER_DIR}/compiler_node_variable.cpp
-	${SOURCE_COMPILER_DIR}/compiler_state_machine.cpp
-	${SOURCE_COMPILER_DIR}/compiler_state.cpp
-	${SOURCE_COMPILER_DIR}/compiler_states.cpp
-	${SOURCE_COMPILER_DIR}/compiler_state_generator.cpp
+
 )
 
 set(BlastTranslatorHeaders

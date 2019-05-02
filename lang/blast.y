@@ -6,11 +6,12 @@
 %code requires
 {
 #include <map>
+#include <unordered_map>
 #include <any>
 #include <list>
 #include <vector>
 #include <string>
-#include <iostream>
+#include <memory>
 #include <algorithm>
 
 enum class IdentifierType
@@ -50,8 +51,10 @@ enum class ExpressionType
 	Multiply,
 	Divide,
 	Modulo,
-	Increment,
-	Decrement,
+	PreIncrement,
+	PostIncrement,
+	PreDecrement,
+	PostDecrement,
 	/*Logical*/
 	Equal,
 	NonEqual,
@@ -85,7 +88,14 @@ struct Identifier
 {
 	IdentifierType type;
 	std::string name;
+	std::size_t id;
 };
+
+struct BaseVariable
+{
+	struct Type type;
+	Identifier ident;
+}
 
 struct Attribute
 {
@@ -95,15 +105,30 @@ struct Attribute
 	Literal paramLiteral {};
 };
 
-struct Function
+struct Attributable
+{
+	std::vector<Attribute> attributes;
+}
+
+struct Function : Attributable
 {
 	std::string name;
 	struct Expression body;
 };
 
-struct Struct
+struct FunctionParameter : BaseVariable
 {
-	
+	std::size_t position; //position in parameters list
+};
+
+struct Struct : Attributable
+{
+	std::vector<struct StructMember> members;
+};
+
+struct StructMember : Attributable, BaseVariable
+{
+	std::size_t position; //member position in struct
 };
 
 struct Literal
@@ -113,7 +138,7 @@ struct Literal
 	{
 		uint64_t unum;
 		int64_t inum;
-		double dnum; 
+		double dnum;
 		std::string string;
 	} literal;
 };
@@ -136,41 +161,36 @@ struct lexcontext;
 
 %code
 {
-	struct lexcontext
-	{
-		std::vector<Attribute> tempAttributes;
-	public:
-	private:
-		void addTempAttribute(const std::string &name, AttributeParamType type, std::any param)
-		{
-			Attribute attr;
-			attr.ident = { IdentifierType::Attribute, name };
-			attr.type = type;
-			switch (type)
-			{
-			case AttributeParamType::Identifier:
-				attr.paramIdent = std::any_cast<Identifier>(param);
-				attr.paramIdent.type = IdentifierType::Variable;
-				break;
-			case AttributeParamType::Literal:
-				attr.paramLiteral = std::any_cast<Literal>(param);
-				break;
-			}
-			tempAttributes.push_back(attr);
-		}
-	};
+
+struct scope
+{
+	std::unordered_map<std::string, Identifier> identifiers;
+};
+
+struct lexcontext
+{
+	std::vector<Attribute> tempAttributes;
+	std::vector<scope> scopes;
+public:
+private:
+	void addTempAttribute(const std::string &name, AttributeParamType type, std::any param);
+	void operator++();
+	void operator--();
+};
+
 } //%code
 
 %token END 0
 %token DO "do" WHILE "while" IF "if" SWITCH "switch" FOR "for"
 %token DEFAULT "default" CASE "case"
 %token RETURN "return" BREAK "break" CONTINUE "continue"
-%token CONST "const" NOVAR "novar" RUNTIME "runtime"
+%token CONST "const" SPECCONST "specconst" NOVAR "novar" RUNTIME "runtime"
 %token VOID "void" INT "int" FLOAT "float" BOOL "bool"
 %token MATRIX "mat" VECTOR "vec"
 %token IMAGE "img" SAMPLER "smpl" SAMPLED_IMAGE "simg"
 %token STRUCT "struct"
-%token IDENTIFIER USER_DEFINED_TYPE NUMLITERAL STRINGLITERAL
+%token IDENTIFIER USER_DEFINED_TYPE
+%token NUMLITERAL STRINGLITERAL
 %token OR "||" AND "&&" EQ "==" NE "!="
 %token LESS '<' MORE '>' LESS_EQ "<=" MORE_EQ ">="
 %token INC "++" DEC "--" PL_EQ "+=" MI_EQ "-="
@@ -208,7 +228,7 @@ function_prototype: function_decl ';' ;
 
 function_decl: attribute_rec type IDENTIFIER function_parameters
 
-function_parameters: '(' function_parameter_list ')' 
+function_parameters: '(' function_parameter_list ')'
 | '(' ')';
 
 function_parameter_list: function_parameter
@@ -217,9 +237,11 @@ function_parameter_list: function_parameter
 function_parameter: type IDENTIFIER
 | type;
 
-function_body: '{' body '}';
+function_body: braced_body;
 
 /* BODY AND STATEMENTS */
+
+braced_body: '{' body '}';
 
 body: statement_rec
 | %empty;
@@ -228,11 +250,11 @@ statement_rec: statement_rec statement
 | statement;
 
 statement: statement_nb
-| '{' body '}'
+| braced_body
 | var_def ';' ;
 
 statement_nb_rec: statement_nb_rec statement_nb
-| '{' body '}'
+| braced_body
 | statement_nb;
 
 statement_nb: if_statement
@@ -305,6 +327,8 @@ expression: IDENTIFIER
 | expression '(' ')'
 | expression '(' comma_expression ')'
 | expression '[' expression ']'
+| expression "->" expression
+| expression "." expression
 | expression '=' expression
 | expression '+' expression
 | expression '-' expression
@@ -315,6 +339,13 @@ expression: IDENTIFIER
 | expression "-=" expression
 | expression "*=" expression
 | expression "/=" expression
+| expression "%=" expression
+| expression "&=" expression
+| expression "|=" expression
+| expression "^=" expression
+| expression '^' expression
+| expression '|' expression
+| expression '&' expression
 | expression OR expression
 | expression AND expression
 | expression EQ expression
@@ -327,6 +358,8 @@ expression: IDENTIFIER
 | '+' expression %prec UPLUS
 | '*' expression %prec PTR_DR
 | '&' expression %prec ADDR
+| '!' expression
+| '~' expression
 | INC expression
 | DEC expression
 | expression INC %prec POST_INC
@@ -358,6 +391,7 @@ type_suffix_variant: '*'
 | "[]";
 
 type_mod: CONST
+| SPECCONST
 | NOVAR
 | RUNTIME
 | %empty;
@@ -402,6 +436,35 @@ attribute_body: IDENTIFIER
 | IDENTIFIER ':' IDENTIFIER;
 
 %%
+
+// Realization of context
+void lexcontext::addTempAttribute(const std::string &name, AttributeParamType type, std::any param)
+{
+	Attribute attr;
+	attr.ident = { IdentifierType::Attribute, name };
+	attr.type = type;
+	switch (type)
+	{
+	case AttributeParamType::Identifier:
+		attr.paramIdent = std::any_cast<Identifier>(param);
+		attr.paramIdent.type = IdentifierType::Variable;
+		break;
+	case AttributeParamType::Literal:
+		attr.paramLiteral = std::any_cast<Literal>(param);
+		break;
+	}
+	tempAttributes.push_back(attr);
+}
+
+void lexcontext::operator++()
+{
+	scopes.emplace_back();
+}
+
+void lexcontext::operator--()
+{
+	scopes.pop_back();
+}
 
 // TODO: [OOKAMI] Use re2c and use context to determine whenether the token is ident or user defined type.
 // TODO: [OOKAMI] Maybe I should use function name as like user defined types? user defined functions xD

@@ -7,8 +7,8 @@
 #include "args_processor.hpp"
 #include "preprocessor.hpp"
 #include "reader.hpp"
-#include "parser/parser.hpp"
-#include "compiler/compiler.hpp"
+//#include "parser/parser.hpp"
+//#include "compiler/compiler.hpp"
 #include "translator/translator.hpp"
 #include "writer.hpp"
 
@@ -47,8 +47,6 @@ int main(int argc, char**argv)
 	preprocessor.setSearchFileCallback(std::bind(&Reader::search, &reader, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
 	auto processedInfo = preprocessor.process(argsParser.getInputFile());
-	auto nodes = parser.parse(processedInfo);
-	compiler.compile(processedInfo, nodes);
 
 	return 0;
 }
