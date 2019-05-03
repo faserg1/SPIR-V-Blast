@@ -95,7 +95,7 @@ struct BaseVariable
 {
 	struct Type type;
 	Identifier ident;
-}
+};
 
 struct Attribute
 {
@@ -108,7 +108,13 @@ struct Attribute
 struct Attributable
 {
 	std::vector<Attribute> attributes;
-}
+};
+
+struct FunctionDeclaration
+{
+	std::string name;
+	std::vector<FunctionParameter> parameters;
+};
 
 struct Function : Attributable
 {
@@ -134,13 +140,10 @@ struct StructMember : Attributable, BaseVariable
 struct Literal
 {
 	LiteralType type;
-	union
-	{
-		uint64_t unum;
-		int64_t inum;
-		double dnum;
-		std::string string;
-	} literal;
+	uint64_t unum;
+	int64_t inum;
+	double dnum;
+	std::string string;
 };
 
 typedef  std::list<struct Expression> ExpressionParams;
@@ -151,6 +154,11 @@ struct Expression
 	Identifier ident {};
 	Literal literal {};
 	ExpressionParams params;
+};
+
+struct Type
+{
+
 };
 
 struct lexcontext;
@@ -169,9 +177,11 @@ struct scope
 
 struct lexcontext
 {
+public:
+	char *cursor = nullptr;
+private:
 	std::vector<Attribute> tempAttributes;
 	std::vector<scope> scopes;
-public:
 private:
 	void addTempAttribute(const std::string &name, AttributeParamType type, std::any param);
 	void operator++();
@@ -209,6 +219,9 @@ private:
 %right INC DEC '!' '~' UMINUS UPLUS PTR_DR ADDR
 %left '(' '[' "." "->" POST_INC POST_DEC
 
+%type<Literal> NUMLITERAL STRINGLITERAL
+%type<std::string> IDENTIFIER
+
 %%
 
 shader: shader_unit_rec;
@@ -216,17 +229,23 @@ shader: shader_unit_rec;
 shader_unit_rec: shader_unit_rec shader_unit
 | %empty;
 
-shader_unit: function
-| function_prototype
-| struct ;
+shader_unit: function_a
+| function_prototype_a
+| struct_a ;
 
 /* FUNCTIONS */
 
-function: function_decl function_body ;
+function_a: function
+| attribute_rec function;
 
-function_prototype: function_decl ';' ;
+function_prototype_a: function_prototype
+| attribute_rec function_prototype;
 
-function_decl: attribute_rec type IDENTIFIER function_parameters
+function: function_decl function_body {--ctx;};
+
+function_prototype: function_decl {--ctx;} ';' ;
+
+function_decl: type IDENTIFIER {++ctx;} function_parameters;
 
 function_parameters: '(' function_parameter_list ')'
 | '(' ')';
@@ -241,7 +260,7 @@ function_body: braced_body;
 
 /* BODY AND STATEMENTS */
 
-braced_body: '{' body '}';
+braced_body: '{' {++ctx;} body {--ctx;} '}';
 
 body: statement_rec
 | %empty;
@@ -304,14 +323,20 @@ case_body: statement_nb_rec;
 
 /* Structs */
 
-struct: attribute_rec STRUCT '{' struct_body '}' ;
+struct_a: attribute_rec struct
+| struct;
+
+struct: STRUCT '{' struct_body '}';
 
 struct_body: struct_members_continious ;
 
-struct_members_continious: struct_members_continious struct_member
+struct_members_continious: struct_members_continious struct_member_a
+| struct_member_a;
+
+struct_member_a: attribute_rec struct_member
 | struct_member;
 
-struct_member: attribute_rec type struct_member_continious ';' ;
+struct_member: type struct_member_continious ';' ;
 
 struct_member_continious: struct_member_continious ',' IDENTIFIER
 | IDENTIFIER;
@@ -426,7 +451,7 @@ sampled_image_type: SAMPLED_IMAGE;
 
 /* Attributes */
 attribute_rec: attribute_rec attribute
-| %empty;
+| attribute;
 
 attribute: "[[" attribute_body "]]" ;
 
@@ -464,6 +489,45 @@ void lexcontext::operator++()
 void lexcontext::operator--()
 {
 	scopes.pop_back();
+}
+
+Literal makeStringLiteral(std::string str)
+{
+	Literal l;
+	l.type = LiteralType::String;
+	l.string = str;
+	return l;
+}
+
+Literal makeILiteral(std::string str)
+{
+	Literal l;
+	l.type = LiteralType::INumber;
+	l.inum = std::stoll(str);
+	return l;
+}
+
+Literal makeULiteral(std::string str)
+{
+	Literal l;
+	l.type = LiteralType::UNumber;
+	l.unum = std::stoull(str);
+	return l;
+}
+
+Literal makeDLiteral(std::string str)
+{
+	Literal l;
+	l.type = LiteralType::DNumber;
+	l.dnum = std::stold(str);
+	return l;
+}
+
+gen::BlastParser::symbol_type gen::yylex(lexcontext &ctx)
+{
+	// FUCK THIS
+	//WHERE IS FLEX?!
+	const char *anchor = ctx.cursor;
 }
 
 // TODO: [OOKAMI] Use re2c and use context to determine whenether the token is ident or user defined type.

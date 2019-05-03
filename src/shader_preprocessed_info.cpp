@@ -22,11 +22,6 @@ std::set<spv::Capability> ShaderPreprocessedInfo::capabilities() const
 	return capabilities_;
 }
 
-std::vector<EntryPoint> ShaderPreprocessedInfo::entryPoints() const
-{
-	return entryPoints_;
-}
-
 spv::MemoryModel ShaderPreprocessedInfo::memoryModel() const
 {
 	return memoryModel_;
@@ -35,58 +30,6 @@ spv::MemoryModel ShaderPreprocessedInfo::memoryModel() const
 spv::AddressingModel ShaderPreprocessedInfo::addressingModel() const
 {
 	return addressingModel_;
-}
-
-EntryPoint &ShaderPreprocessedInfo::getEntryPoint(const std::string &functionId)
-{
-	auto iter = std::find_if(entryPoints_.begin(), entryPoints_.end(), [&functionId](const EntryPoint &entryPoint) -> bool
-	{
-		return entryPoint.functionId == functionId;
-	});
-	if (iter != entryPoints_.end())
-		return *iter;
-	throw std::runtime_error("Unable to find entry point \"" + functionId + "\"!");
-}
-
-EntryPoint &ShaderPreprocessedInfo::addEntryPoint(const std::string &functionId, const std::string &executionModel)
-{
-	spv::ExecutionModel model;
-	if (executionModel == "Vertex")
-		model = spv::ExecutionModel::Vertex;
-	else if (executionModel == "TessellationControl")
-		model = spv::ExecutionModel::TessellationControl;
-	else if (executionModel == "TessellationEvaluation")
-		model = spv::ExecutionModel::TessellationEvaluation;
-	else if (executionModel == "Geometry")
-		model = spv::ExecutionModel::Geometry;
-	else if (executionModel == "Fragment")
-		model = spv::ExecutionModel::Fragment;
-	else if (executionModel == "GLCompute")
-		model = spv::ExecutionModel::GLCompute;
-	else if (executionModel == "Kernel")
-		model = spv::ExecutionModel::Kernel;
-	else if (executionModel == "TaskNV")
-		model = spv::ExecutionModel::TaskNV;
-	else if (executionModel == "MeshNV")
-		model = spv::ExecutionModel::MeshNV;
-	else if (executionModel == "RayGenerationNV")
-		model = spv::ExecutionModel::RayGenerationNV;
-	else if (executionModel == "IntersectionNV")
-		model = spv::ExecutionModel::IntersectionNV;
-	else if (executionModel == "AnyHitNV")
-		model = spv::ExecutionModel::AnyHitNV;
-	else if (executionModel == "ClosestHitNV")
-		model = spv::ExecutionModel::ClosestHitNV;
-	else if (executionModel == "MissNV")
-		model = spv::ExecutionModel::MissNV;
-	else if (executionModel == "CallableNV")
-		model = spv::ExecutionModel::CallableNV;
-	else
-		throw std::runtime_error("Unknown execution model \"" + executionModel + "\"!");
-
-	entryPoints_.push_back({ functionId, model });
-
-	return entryPoints_.back();
 }
 
 void ShaderPreprocessedInfo::setMemoryModel(std::string addressingModel, std::string memoryModel)

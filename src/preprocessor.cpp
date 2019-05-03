@@ -111,7 +111,11 @@ std::string Preprocessor::recursiveParse(std::filesystem::path currentFolder, de
 			else if (!state.ignoreText)
 			{
 				text += replaceByPreprocessorDefines(row, defines) + "\n";
-				localProcessedDebugRowsInfo.push_back(*rowInfo);
+				auto newLines = std::count(text.begin(), text.end(), '\n');
+				do
+				{
+					localProcessedDebugRowsInfo.push_back(*rowInfo);
+				} while (newLines--);
 			}
 			rowInfo++;
 		}
@@ -309,15 +313,6 @@ std::string Preprocessor::parsePreprocessorCommand(std::filesystem::path current
 	}
 
 	// Meta-data
-
-	std::regex entryPointRegex("^#entry\\s+(\\w+)\\s+(\\w+)$", std::regex_constants::ECMAScript);
-	auto entryPointMatchIter = std::sregex_iterator(text.begin(), text.end(), entryPointRegex);
-	if (entryPointMatchIter != end && !(*entryPointMatchIter).empty())
-	{
-		auto match = *entryPointMatchIter;
-		preprocessedInfo_.addEntryPoint(match[1], match[2]);
-		return std::string();
-	}
 
 	std::regex memoryModelRegex("^#memory\\s+(\\w+)\\s+(\\w+)$", std::regex_constants::ECMAScript);
 	auto memoryModelMatchIter = std::sregex_iterator(text.begin(), text.end(), memoryModelRegex);

@@ -35,8 +35,8 @@ int main(int argc, char**argv)
 
 	Preprocessor preprocessor;
 	Reader reader;
-	Parser parser;
-	Compiler compiler;
+	//Parser
+	//Compiler
 	Translator translator;
 	Writer writer;
 

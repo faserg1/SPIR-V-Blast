@@ -1,18 +1,30 @@
 cmake_minimum_required (VERSION 3.12)
 
-set(SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}) 
+set(SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR})
 set(SOURCE_GENERATED_DIR ${SOURCE_DIR}/gen)
 set(SOURCE_PARSER_DIR ${SOURCE_DIR}/parser)
 set(SOURCE_COMPILER_DIR ${SOURCE_DIR}/compiler)
 set(SOURCE_TRANSLATOR_DIR ${SOURCE_DIR}/translator)
 set(SOURCE_BLAST_DIR ${SOURCE_DIR}/blast)
 
-set(BlastParserHeaders
+#lang
+FLEX_TARGET(BlastTokens
+	${BLAST_LANG_DIR}/blast.l
+	${BLAST_GEN_DIR}/blast_scaner.hpp
+)
+BISON_TARGET(BlastParser
+	${BLAST_LANG_DIR}/blast.y
+	${BLAST_GEN_DIR}/blast_parser.hpp
+	DEFINES_FILE ${BLAST_GEN_DIR}/blast_tokens.hpp
+)
+ADD_FLEX_BISON_DEPENDENCY(BlastTokens BlastParser)
 
+set(BlastParserHeaders
+	${SOURCE_PARSER_DIR}/parser_common.hpp
 )
 
 set(BlastParserSources
-
+	${SOURCE_PARSER_DIR}/parser_common.cpp
 )
 
 set(BlastCompilerHeaders
@@ -39,7 +51,8 @@ set(BlastBlastSources
 )
 
 set(BlastGenerated
-	#${BISON_BlastParser_OUTPUTS}
+	${BISON_BlastParser_OUTPUTS}
+	${FLEX_BlastTokens_OUTPUTS}
 )
 
 set(BlastHeaders
@@ -65,7 +78,6 @@ set(BlastSources
 	${SOURCE_DIR}/shader_preprocessed_info.cpp
 	${SOURCE_DIR}/writer.cpp
 	${SOURCE_DIR}/main.cpp
-	${BlastGenerated}
 	${BlastParserSources}
 	${BlastCompilerSources}
 	${BlastTranslatorSources}
@@ -86,12 +98,4 @@ source_group("${SOURCE_GROUP_SOURCE_START}translator" FILES ${BlastTranslatorSou
 source_group("${SOURCE_GROUP_HEADER_START}blast" FILES ${BlastBlastHeaders})
 source_group("${SOURCE_GROUP_SOURCE_START}blast" FILES ${BlastBlastSources})
 
-add_executable(Blast ${BlastHeaders} ${BlastSources})
-
-#lang
-ADD_CUSTOM_COMMAND(
-	TARGET Blast
-	PRE_BUILD 
-	COMMAND ${BISON_EXECUTABLE} --report=all -d --output=${BLAST_GEN_DIR}/blast_parser.hpp ${BLAST_LANG_DIR}/blast.y
-	COMMENT "Generating blast_parser.hpp"
-)
+add_executable(Blast ${BlastHeaders} ${BlastSources} ${BlastGenerated})

@@ -6,12 +6,6 @@
 #include <vector>
 #include <set>
 
-struct EntryPoint
-{
-	std::string functionId;
-	spv::ExecutionModel executionModel;
-};
-
 struct DebugRowInfo
 {
 	size_t sourceFileId;
@@ -27,7 +21,6 @@ public:
 	std::vector<std::string> sourceFiles() const;
 
 	std::set<spv::Capability> capabilities() const;
-	std::vector<EntryPoint> entryPoints() const;
 	spv::MemoryModel memoryModel() const;
 	spv::AddressingModel addressingModel() const;
 private:
@@ -36,13 +29,9 @@ private:
 	std::vector<DebugRowInfo> debugRowsInfo_;
 
 	std::set<spv::Capability> capabilities_;
-	std::vector<EntryPoint> entryPoints_;
 	spv::MemoryModel memoryModel_;
 	spv::AddressingModel addressingModel_;
 private:
-	EntryPoint &getEntryPoint(const std::string &functionId);
-	EntryPoint &addEntryPoint(const std::string &functionId, const std::string &executionModel);
-
 	void setMemoryModel(std::string addressingModel, std::string memoryModel);
 
 	void addCapability(std::string capability);
