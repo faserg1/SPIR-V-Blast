@@ -3,3 +3,4 @@ build
 built
 gen
 *.bat
+gen_by_hand.bat
