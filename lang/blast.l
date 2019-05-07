@@ -84,3 +84,8 @@ gen::BlastParser::symbol_type gen::BlastScanner::yylex(LexContext &lc)
 	//TODO: [OOKAMI] Throw error?
 	return {};
 }
+
+gen::BlastParser::symbol_type yylex(gen::BlastScanner *scanner, LexContext &ctx)
+{
+	return scanner->yylex(ctx);
+}

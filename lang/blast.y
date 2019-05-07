@@ -59,10 +59,16 @@ enum class ExpressionType
 	Multiply,
 	Divide,
 	Modulo,
+	Remainder,
 	PreIncrement,
-	PostIncrement,
 	PreDecrement,
+	PostIncrement,
 	PostDecrement,
+	/*Bit instructions*/
+	BitShiftLogicalLeft,
+	BitShiftLogicalRight,
+	BitShiftArithmeticLeft,
+	BitShiftArithmeticRight,
 	/*Logical*/
 	Equal,
 	NonEqual,
@@ -88,6 +94,8 @@ enum class ExpressionType
 	Continue,
 	/*References*/
 	Reference, Dereference,
+	/*Cast*/
+	BitCast,
 	/*Misc*/
 	Comma,
 };
@@ -183,14 +191,20 @@ protected:
 };
 
 class Context;
+namespace gen
+{
+	class BlastScanner;
+}
 
 } //%code requires
 
-%lex-param { ctx }
+%param { gen::BlastScanner *scanner }
+%lex-param { LexContext &ctx }
 %parse-param { Context &ctx }
 
 %code
 {
+gen::BlastParser::symbol_type yylex(gen::BlastScanner *scanner, LexContext &ctx);
 
 struct scope
 {
@@ -219,6 +233,7 @@ private:
 %token DEFAULT "default" CASE "case"
 %token RETURN "return" BREAK "break" CONTINUE "continue"
 %token CONST "const" SPECCONST "specconst" NOVAR "novar" RUNTIME "runtime"
+%token BITCAST "bit_cast"
 %token VOID "void" INT "int" FLOAT "float" BOOL "bool"
 %token MATRIX "mat" VECTOR "vec"
 %token IMAGE "img" SAMPLER "smpl" SAMPLED_IMAGE "simg"
@@ -230,7 +245,7 @@ private:
 %token INC "++" DEC "--" PL_EQ "+=" MI_EQ "-="
 
 %left ','
-%right '?' ':' '=' "+=" "-=" "*=" "/=" "%=" "&=" "^=" "|="
+%right '?' ':' '=' "+=" "-=" "*=" "/=" "//=" "%=" ">>=" "<<=" "!>>=" "!<<=" "&=" "^=" "|="
 %left "||"
 %left "&&"
 %left '|'
@@ -238,8 +253,9 @@ private:
 %left '&'
 %left EQ NE
 %left LESS MORE LESS_EQ MORE_EQ
+%left "<<" ">>" "!<<" "!>>"
 %left '+' '-'
-%left '*' '/' '%'
+%left '*' '/' '%' "//"
 %right INC DEC '!' '~' UMINUS UPLUS PTR_DR ADDR
 %left '(' '[' "." "->" POST_INC POST_DEC
 
@@ -383,12 +399,18 @@ expression: IDENTIFIER
 | expression '-' expression
 | expression '*' expression
 | expression '/' expression
+| expression "//" expression
 | expression '%' expression
 | expression "+=" expression
 | expression "-=" expression
 | expression "*=" expression
 | expression "/=" expression
+| expression "//=" expression
 | expression "%=" expression
+| expression ">>=" expression
+| expression "<<=" expression
+| expression "!>>=" expression
+| expression "!<<=" expression
 | expression "&=" expression
 | expression "|=" expression
 | expression "^=" expression
@@ -413,7 +435,12 @@ expression: IDENTIFIER
 | DEC expression
 | expression INC %prec POST_INC
 | expression DEC %prec POST_DEC
-| expression '?' expression ':' expression;
+| expression '?' expression ':' expression
+| BITCAST '<' type '>' '(' expression ')'
+| expression "<<" expression
+| expression ">>" expression
+| expression "!<<" expression
+| expression "!>>" expression;
 
 /* Literals */
 
@@ -514,6 +541,3 @@ void Context::operator--()
 {
 	scopes.pop_back();
 }
-
-// TODO: [OOKAMI] Use re2c and use context to determine whenether the token is ident or user defined type.
-// TODO: [OOKAMI] Maybe I should use function name as like user defined types? user defined functions xD
