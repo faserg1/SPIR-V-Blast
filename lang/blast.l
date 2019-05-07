@@ -2,10 +2,10 @@
 #include "blast_tokens.hpp"
 #include "location.hh"
 
-gen::BlastParser::semantic_type makeStringLiteral(std::string str, const gen::BlastParser::location_type& loc);
-gen::BlastParser::semantic_type makeILiteral(std::string str, const gen::BlastParser::location_type& loc);
-gen::BlastParser::semantic_type makeULiteral(std::string str, const gen::BlastParser::location_type& loc);
-gen::BlastParser::semantic_type makeDLiteral(std::string str, const gen::BlastParser::location_type& loc);
+gen::BlastParser::symbol_type makeStringLiteral(std::string str, const gen::BlastParser::location_type& loc);
+gen::BlastParser::symbol_type makeILiteral(std::string str, const gen::BlastParser::location_type& loc);
+gen::BlastParser::symbol_type makeULiteral(std::string str, const gen::BlastParser::location_type& loc);
+gen::BlastParser::symbol_type makeDLiteral(std::string str, const gen::BlastParser::location_type& loc);
 
 namespace gen
 {
@@ -17,6 +17,10 @@ namespace gen
 	private:
 		gen::BlastParser::symbol_type currentSymbol_;
 		LexContext *lc = nullptr;
+		int column_;
+		location currentLocation_;
+	private:
+		void updateLocation();
 	};
 }
 
@@ -24,15 +28,16 @@ namespace gen
 
 %option yyclass="gen::BlastScanner"
 %option noyywrap
+%option yylineno
 %option c++
 
 %%
 [ \t] ; //Do nothing
 
-[0-9]+ {currentSymbol_ = makeILiteral(std::string(yytext)); return 0;}
-[0-9]+u {currentSymbol_ =  makeULiteral(std::string(yytext)); return 0;}
-[0-9]+f {currentSymbol_ =  makeDLiteral(std::string(yytext)); return 0;}
-[0-9]+.[0-9]* {currentSymbol_ =  makeDLiteral(std::string(yytext)); return 0;}
+[0-9]+ {currentSymbol_.move(makeILiteral(std::string(yytext), currentLocation_)); return 0;}
+[0-9]+u {currentSymbol_.move(makeULiteral(std::string(yytext), currentLocation_)); return 0;}
+[0-9]+f {currentSymbol_.move(makeDLiteral(std::string(yytext), currentLocation_)); return 0;}
+[0-9]+.[0-9]* {currentSymbol_.move(makeDLiteral(std::string(yytext), currentLocation_)); return 0;}
 
 %%
 
@@ -44,7 +49,7 @@ namespace gen
 }
 */
 
-gen::BlastParser::semantic_type makeStringLiteral(std::string str, const gen::BlastParser::location_type& loc)
+gen::BlastParser::symbol_type makeStringLiteral(std::string str, const gen::BlastParser::location_type& loc)
 {
 	Literal l;
 	l.type = LiteralType::String;
@@ -52,7 +57,7 @@ gen::BlastParser::semantic_type makeStringLiteral(std::string str, const gen::Bl
 	return gen::BlastParser::make_NUMLITERAL(l, loc);
 }
 
-gen::BlastParser::semantic_type makeILiteral(std::string str, const gen::BlastParser::location_type& loc)
+gen::BlastParser::symbol_type makeILiteral(std::string str, const gen::BlastParser::location_type& loc)
 {
 	Literal l;
 	l.type = LiteralType::INumber;
@@ -60,7 +65,7 @@ gen::BlastParser::semantic_type makeILiteral(std::string str, const gen::BlastPa
 	return gen::BlastParser::make_NUMLITERAL(l, loc);
 }
 
-gen::BlastParser::semantic_type makeULiteral(std::string str, const gen::BlastParser::location_type& loc)
+gen::BlastParser::symbol_type makeULiteral(std::string str, const gen::BlastParser::location_type& loc)
 {
 	Literal l;
 	l.type = LiteralType::UNumber;
@@ -68,7 +73,7 @@ gen::BlastParser::semantic_type makeULiteral(std::string str, const gen::BlastPa
 	return gen::BlastParser::make_NUMLITERAL(l, loc);
 }
 
-gen::BlastParser::semantic_type makeDLiteral(std::string str, const gen::BlastParser::location_type& loc)
+gen::BlastParser::symbol_type makeDLiteral(std::string str, const gen::BlastParser::location_type& loc)
 {
 	Literal l;
 	l.type = LiteralType::DNumber;
@@ -83,6 +88,11 @@ gen::BlastParser::symbol_type gen::BlastScanner::yylex(LexContext &lc)
 		return currentSymbol_;
 	//TODO: [OOKAMI] Throw error?
 	return {};
+}
+
+void gen::BlastScanner::updateLocation()
+{
+	location l(nullptr, yylineno, column_);
 }
 
 gen::BlastParser::symbol_type yylex(gen::BlastScanner *scanner, LexContext &ctx)

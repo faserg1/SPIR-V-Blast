@@ -20,6 +20,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <functional>
 #include <algorithm>
 
 enum class IdentifierType
@@ -190,6 +191,13 @@ protected:
 	virtual ~LexContext() = default;
 };
 
+namespace gen
+{
+	class location;
+}
+
+typedef std::function<void(const gen::location &, const std::string &)> ErrorCallback;
+
 class Context;
 namespace gen
 {
@@ -200,6 +208,7 @@ namespace gen
 
 %param { gen::BlastScanner *scanner }
 %lex-param { LexContext &ctx }
+%parse-param { ErrorCallback callback }
 %parse-param { Context &ctx }
 
 %code
@@ -540,4 +549,9 @@ void Context::operator++()
 void Context::operator--()
 {
 	scopes.pop_back();
+}
+
+void gen::BlastParser::error(const gen::location &loc, const std::string &msg)
+{
+	callback(loc, msg);
 }
