@@ -1,6 +1,14 @@
+// Use the default C++ style
 %skeleton "lalr1.cc"
+// Define the ParserClass
 %define api.parser.class {BlastParser}
+// Define namespace
 %define api.namespace {gen}
+// Request that symbols be handled as a whole (type, value, and possibly location) in the scanner.
+%define api.token.constructor
+// Use the default variant type as semantic type
+%define api.value.type variant
+// Enable locations!
 %locations
 
 %code requires
@@ -91,29 +99,55 @@ struct Identifier
 	std::size_t id;
 };
 
+struct Type
+{
+
+};
+
 struct BaseVariable
 {
 	struct Type type;
-	Identifier ident;
+	struct Identifier ident;
+};
+
+struct Literal
+{
+	LiteralType type;
+	uint64_t unum;
+	int64_t inum;
+	double dnum;
+	std::string string;
 };
 
 struct Attribute
 {
-	Identifier ident {};
+	struct Identifier ident {};
 	AttributeParamType type;
-	Identifier paramIdent {};
-	Literal paramLiteral {};
+	struct Identifier paramIdent {};
+	struct Literal paramLiteral {};
 };
 
 struct Attributable
 {
-	std::vector<Attribute> attributes;
+	std::vector<struct Attribute> attributes;
 };
+
+typedef std::list<struct Expression> ExpressionParams;
+
+struct Expression
+{
+	ExpressionType type;
+	Identifier ident {};
+	Literal literal {};
+	ExpressionParams params;
+};
+
+typedef std::vector<struct FunctionParameter> FunctionParameters;
 
 struct FunctionDeclaration
 {
 	std::string name;
-	std::vector<FunctionParameter> parameters;
+	FunctionParameters parameters;
 };
 
 struct Function : Attributable
@@ -137,35 +171,23 @@ struct StructMember : Attributable, BaseVariable
 	std::size_t position; //member position in struct
 };
 
-struct Literal
+class LexContext
 {
-	LiteralType type;
-	uint64_t unum;
-	int64_t inum;
-	double dnum;
-	std::string string;
+public:
+	virtual IdentifierType getIdentifierType(std::string name) = 0;
+	virtual Identifier getIdentifier(std::string name) = 0;
+	virtual Type getUserDefinedType(std::string name) = 0;
+protected:
+  LexContext() = default;
+	virtual ~LexContext() = default;
 };
 
-typedef  std::list<struct Expression> ExpressionParams;
-
-struct Expression
-{
-	ExpressionType type;
-	Identifier ident {};
-	Literal literal {};
-	ExpressionParams params;
-};
-
-struct Type
-{
-
-};
-
-struct lexcontext;
+class Context;
 
 } //%code requires
 
-%param { lexcontext &ctx }
+%lex-param { ctx }
+%parse-param { Context &ctx }
 
 %code
 {
@@ -175,17 +197,19 @@ struct scope
 	std::unordered_map<std::string, Identifier> identifiers;
 };
 
-struct lexcontext
+class Context :
+	public virtual LexContext
 {
 public:
-	char *cursor = nullptr;
-private:
-	std::vector<Attribute> tempAttributes;
-	std::vector<scope> scopes;
-private:
 	void addTempAttribute(const std::string &name, AttributeParamType type, std::any param);
 	void operator++();
 	void operator--();
+private:
+	char *cursor = nullptr;
+	std::vector<Attribute> tempAttributes;
+	std::vector<scope> scopes;
+private:
+
 };
 
 } //%code
@@ -463,7 +487,7 @@ attribute_body: IDENTIFIER
 %%
 
 // Realization of context
-void lexcontext::addTempAttribute(const std::string &name, AttributeParamType type, std::any param)
+void Context::addTempAttribute(const std::string &name, AttributeParamType type, std::any param)
 {
 	Attribute attr;
 	attr.ident = { IdentifierType::Attribute, name };
@@ -481,53 +505,14 @@ void lexcontext::addTempAttribute(const std::string &name, AttributeParamType ty
 	tempAttributes.push_back(attr);
 }
 
-void lexcontext::operator++()
+void Context::operator++()
 {
 	scopes.emplace_back();
 }
 
-void lexcontext::operator--()
+void Context::operator--()
 {
 	scopes.pop_back();
-}
-
-Literal makeStringLiteral(std::string str)
-{
-	Literal l;
-	l.type = LiteralType::String;
-	l.string = str;
-	return l;
-}
-
-Literal makeILiteral(std::string str)
-{
-	Literal l;
-	l.type = LiteralType::INumber;
-	l.inum = std::stoll(str);
-	return l;
-}
-
-Literal makeULiteral(std::string str)
-{
-	Literal l;
-	l.type = LiteralType::UNumber;
-	l.unum = std::stoull(str);
-	return l;
-}
-
-Literal makeDLiteral(std::string str)
-{
-	Literal l;
-	l.type = LiteralType::DNumber;
-	l.dnum = std::stold(str);
-	return l;
-}
-
-gen::BlastParser::symbol_type gen::yylex(lexcontext &ctx)
-{
-	// FUCK THIS
-	//WHERE IS FLEX?!
-	const char *anchor = ctx.cursor;
 }
 
 // TODO: [OOKAMI] Use re2c and use context to determine whenether the token is ident or user defined type.

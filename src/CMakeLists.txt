@@ -10,7 +10,8 @@ set(SOURCE_BLAST_DIR ${SOURCE_DIR}/blast)
 #lang
 FLEX_TARGET(BlastTokens
 	${BLAST_LANG_DIR}/blast.l
-	${BLAST_GEN_DIR}/blast_scaner.hpp
+	${BLAST_GEN_DIR}/blast_scanner.hpp
+	COMPILE_FLAGS ${FLEX_ARCH_ARGS}
 )
 BISON_TARGET(BlastParser
 	${BLAST_LANG_DIR}/blast.y
@@ -25,6 +26,8 @@ set(BlastParserHeaders
 
 set(BlastParserSources
 	${SOURCE_PARSER_DIR}/parser_common.cpp
+	${SOURCE_PARSER_DIR}/blast_scanner.cpp
+	${SOURCE_PARSER_DIR}/blast_parser.cpp
 )
 
 set(BlastCompilerHeaders
@@ -99,3 +102,4 @@ source_group("${SOURCE_GROUP_HEADER_START}blast" FILES ${BlastBlastHeaders})
 source_group("${SOURCE_GROUP_SOURCE_START}blast" FILES ${BlastBlastSources})
 
 add_executable(Blast ${BlastHeaders} ${BlastSources} ${BlastGenerated})
+target_include_directories(Blast PRIVATE ${FLEX_INCLUDE_DIRS})
