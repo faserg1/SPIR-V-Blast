@@ -191,6 +191,14 @@ protected:
 	virtual ~LexContext() = default;
 };
 
+class AbstractSyntaxTreeContainer
+{
+public:
+protected:
+	AbstractSyntaxTreeContainer() = default;
+	virtual ~AbstractSyntaxTreeContainer() = default;
+};
+
 namespace gen
 {
 	class location;
@@ -221,10 +229,14 @@ struct scope
 };
 
 class Context :
-	public virtual LexContext
+	public virtual LexContext,
+	public virtual AbstractSyntaxTreeContainer
 {
 public:
 	void addTempAttribute(const std::string &name, AttributeParamType type, std::any param);
+	IdentifierType getIdentifierType(std::string name) override;
+	Identifier getIdentifier(std::string name) override;
+	Type getUserDefinedType(std::string name) override;
 	void operator++();
 	void operator--();
 private:
@@ -539,6 +551,21 @@ void Context::addTempAttribute(const std::string &name, AttributeParamType type,
 		break;
 	}
 	tempAttributes.push_back(attr);
+}
+
+IdentifierType Context::getIdentifierType(std::string name)
+{
+	return IdentifierType::Undefined;
+}
+
+Identifier Context::getIdentifier(std::string name)
+{
+	return {};
+}
+
+Type Context::getUserDefinedType(std::string name)
+{
+	return {};
 }
 
 void Context::operator++()

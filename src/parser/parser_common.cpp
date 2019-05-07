@@ -4,6 +4,8 @@
 #include "../shader_preprocessed_info.hpp"
 
 std::shared_ptr<gen::BlastScanner> buildScanner();
+std::shared_ptr<Context> buildContext();
+std::shared_ptr<AbstractSyntaxTreeContainer> getContainer(std::shared_ptr<Context> context);
 
 void ParserCommon::parse(const ShaderPreprocessedInfo &preprocessedInfo)
 {
@@ -12,7 +14,8 @@ void ParserCommon::parse(const ShaderPreprocessedInfo &preprocessedInfo)
 	{
 
 	});
-	Context ctx;
-	gen::BlastParser parser(scanner.get(), errorCallback, ctx);
+	auto context = buildContext();
+	gen::BlastParser parser(scanner.get(), errorCallback, *context);
 	parser.parse();
+	auto ast = getContainer(context);
 }
