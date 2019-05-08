@@ -8,6 +8,9 @@ set(SOURCE_TRANSLATOR_DIR ${SOURCE_DIR}/translator)
 set(SOURCE_BLAST_DIR ${SOURCE_DIR}/blast)
 
 #lang
+
+file(MAKE_DIRECTORY ${SOURCE_GENERATED_DIR})
+
 FLEX_TARGET(BlastTokens
 	${BLAST_LANG_DIR}/blast.l
 	${BLAST_GEN_DIR}/blast_scanner.hpp
