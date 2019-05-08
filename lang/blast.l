@@ -1,7 +1,6 @@
 %{
 #include <memory>
 #include <sstream>
-#include <iostream>
 #include "blast_tokens.hpp"
 #include "location.hh"
 
@@ -52,7 +51,7 @@ namespace gen
 	};
 }
 
-#define YY_USER_ACTION {updateLocation(); text_ = std::string(yytext_ptr); std::cout << text_;}
+#define YY_USER_ACTION {updateLocation(); text_ = std::string(yytext_ptr);}
 
 %}
 
@@ -62,7 +61,6 @@ namespace gen
 %option c++
 
 %%
-
 
 "do" {return s_make(&gen::BlastParser::make_DO);}
 "while" {return s_make(&gen::BlastParser::make_WHILE);}
@@ -101,8 +99,8 @@ namespace gen
 
 "struct" {return s_make(&gen::BlastParser::make_STRUCT);}
 
-
-[ \t\v\b\f] {return ResultOf_yylex::Nothing;};
+[\n] {return ResultOf_yylex::Nothing;};
+[ \t\v\b\f] {currentLocation_.columns(); return ResultOf_yylex::Nothing;};
 <<EOF>> {return stop();}
 
 
@@ -177,7 +175,7 @@ gen::BlastParser::symbol_type gen::BlastScanner::yylex(LexContext &lc)
 	return {};
 }
 
-gen::BlastScanner::BlastScanner(const std::string &source)
+gen::BlastScanner::BlastScanner(const std::string &source) : column_(0)
 {
 	source_ << source;
 	switch_streams(&source_);
@@ -185,7 +183,7 @@ gen::BlastScanner::BlastScanner(const std::string &source)
 
 void gen::BlastScanner::updateLocation()
 {
-	location l(nullptr, yylineno, column_);
+	currentLocation_ = location(nullptr, yylineno, column_);
 }
 
 int gen::BlastScanner::stop()

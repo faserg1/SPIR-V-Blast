@@ -23,6 +23,8 @@
 #include <functional>
 #include <algorithm>
 
+#include <iostream>
+
 enum class IdentifierType
 {
 	Undefined,
@@ -105,7 +107,6 @@ struct Identifier
 {
 	IdentifierType type;
 	std::string name;
-	std::size_t id;
 };
 
 struct Type
@@ -116,7 +117,7 @@ struct Type
 struct BaseVariable
 {
 	struct Type type;
-	struct Identifier ident;
+	std::string name;
 };
 
 struct Literal
@@ -172,6 +173,7 @@ struct FunctionParameter : BaseVariable
 
 struct Struct : Attributable
 {
+	std::string name;
 	std::vector<struct StructMember> members;
 };
 
@@ -183,9 +185,7 @@ struct StructMember : Attributable, BaseVariable
 class LexContext
 {
 public:
-	virtual IdentifierType getIdentifierType(std::string name) = 0;
-	virtual Identifier getIdentifier(std::string name) = 0;
-	virtual Type getUserDefinedType(std::string name) = 0;
+	virtual IdentifierType getIdentifierType(std::string name) const = 0;
 protected:
   LexContext() = default;
 	virtual ~LexContext() = default;
@@ -194,6 +194,7 @@ protected:
 class AbstractSyntaxTreeContainer
 {
 public:
+	virtual std::vector<struct Struct> getStructs() const = 0;
 protected:
 	AbstractSyntaxTreeContainer() = default;
 	virtual ~AbstractSyntaxTreeContainer() = default;
@@ -233,18 +234,25 @@ class Context :
 	public virtual AbstractSyntaxTreeContainer
 {
 public:
+	//AST Container methods
+	std::vector<struct Struct> getStructs() const override;
+	//Context methods
 	void addTempAttribute(const std::string &name, AttributeParamType type, std::any param);
-	IdentifierType getIdentifierType(std::string name) override;
-	Identifier getIdentifier(std::string name) override;
-	Type getUserDefinedType(std::string name) override;
+	IdentifierType getIdentifierType(std::string name) const override;
+	std::vector<Attribute> getAndClearTempAttributes();
+	Struct &defineStruct(const std::string &name);
+	Struct &getStruct(const std::string &name);
+	std::vector<struct StructMember> defineStructMembers(Type t, const std::vector<std::string> &names);
+	void indexStructMembers(Struct &s);
 	void operator++();
 	void operator--();
 private:
 	char *cursor = nullptr;
 	std::vector<Attribute> tempAttributes;
 	std::vector<scope> scopes;
+	std::vector<Struct> structs;
 private:
-
+	void pushIdentifierToScope(const Identifier &id);
 };
 
 } //%code
@@ -288,10 +296,14 @@ private:
 
 %type<Literal> NUMLITERAL STRINGLITERAL
 %type<std::string> IDENTIFIER USER_DEFINED_TYPE
+%type<Struct> struct_a struct
+%type<std::vector<struct StructMember>> struct_body struct_members_continious struct_member_a struct_member
+%type<std::vector<std::string>> struct_member_continious
+%type<Type> type
 
 %%
 
-shader: shader_unit_rec;
+shader: {++ctx;} shader_unit_rec {--ctx;};
 
 shader_unit_rec: shader_unit_rec shader_unit
 | %empty;
@@ -390,23 +402,24 @@ case_body: statement_nb_rec;
 
 /* Structs */
 
-struct_a: attribute_rec struct
+struct_a: attribute_rec struct {$$ = $2;}
 | struct;
 
-struct: STRUCT '{' struct_body '}';
+struct: STRUCT IDENTIFIER { ctx.defineStruct($2); } '{' struct_body '}' ';' {auto &s = ctx.getStruct($2); s.members = $5; ctx.indexStructMembers(s); $$ = s;};
 
-struct_body: struct_members_continious ;
+struct_body: struct_members_continious {$$ = std::move($1);}
+| %empty {$$ = {};};
 
-struct_members_continious: struct_members_continious struct_member_a
-| struct_member_a;
+struct_members_continious: struct_members_continious struct_member_a {$$ = std::move($1); std::move($2.begin(), $2.end(), std::back_inserter($$));}
+| struct_member_a {$$ = std::move($1); };
 
-struct_member_a: attribute_rec struct_member
-| struct_member;
+struct_member_a: attribute_rec struct_member {$$ = $2; auto attrs = ctx.getAndClearTempAttributes(); std::for_each($$.begin(), $$.end(), [&attrs](StructMember &member){member.attributes = attrs;});}
+| struct_member {$$ = std::move($1);};
 
-struct_member: type struct_member_continious ';' ;
+struct_member: type struct_member_continious ';' {$$ = ctx.defineStructMembers($1, std::move($2));};
 
-struct_member_continious: struct_member_continious ',' IDENTIFIER
-| IDENTIFIER;
+struct_member_continious: struct_member_continious ',' IDENTIFIER {$$ = std::move($1); $$.push_back($3);}
+| IDENTIFIER {$$ = {$1};};
 
 /* EXPRESSIONS */
 
@@ -485,7 +498,7 @@ var_def_continious: var_def_continious ',' IDENTIFIER
 
 /* TYPES */
 
-type: type_mod type_variant type_suffix ;
+type: type_mod type_variant type_suffix {$$ = {};};
 
 type_suffix: type_suffix type_suffix_variant
 | %empty ;
@@ -537,6 +550,13 @@ attribute_body: IDENTIFIER
 
 %%
 
+// AST Container methods
+
+std::vector<struct Struct> Context::getStructs() const
+{
+	return structs;
+}
+
 // Realization of context
 void Context::addTempAttribute(const std::string &name, AttributeParamType type, std::any param)
 {
@@ -556,19 +576,70 @@ void Context::addTempAttribute(const std::string &name, AttributeParamType type,
 	tempAttributes.push_back(attr);
 }
 
-IdentifierType Context::getIdentifierType(std::string name)
+IdentifierType Context::getIdentifierType(std::string name) const
 {
+	for (auto it = scopes.rbegin(); it != scopes.rend(); it++)
+	{
+		auto findResult = it->identifiers.find(name);
+		if (findResult == it->identifiers.end())
+			continue;
+		return findResult->second.type;
+	}
 	return IdentifierType::Undefined;
 }
 
-Identifier Context::getIdentifier(std::string name)
+Struct &Context::defineStruct(const std::string &name)
 {
-	return {};
+	if (getIdentifierType(name) != IdentifierType::Undefined)
+		throw 0; // TODO: [OOKAMI] throw error
+	Identifier t;
+	t.type = IdentifierType::Structure;
+	t.name = name;
+	pushIdentifierToScope(t);
+	Struct s;
+	s.name = name;
+	s.attributes = getAndClearTempAttributes();
+	structs.push_back(s);
+	return structs.back();
 }
 
-Type Context::getUserDefinedType(std::string name)
+Struct &Context::getStruct(const std::string &name)
 {
-	return {};
+	auto it = std::find_if(structs.begin(), structs.end(),
+		[&name](const Struct &s) -> bool
+		{
+			return s.name == name;
+		});
+	if (it == structs.end())
+		throw 0;
+	return *it;
+}
+
+std::vector<struct StructMember> Context::defineStructMembers(Type t, const std::vector<std::string> &names)
+{
+	std::vector<struct StructMember> members;
+	std::transform(names.begin(), names.end(), std::back_inserter(members),
+		[&t](const std::string &name)
+		{
+			StructMember member;
+			member.type = t;
+			member.name = name;
+			member.position = 0;
+			return member;
+		});
+	return std::move(members);
+}
+
+void Context::indexStructMembers(Struct &s)
+{
+	size_t pos = 0;
+	for (auto &member : s.members)
+		member.position = pos++;
+}
+
+std::vector<Attribute> Context::getAndClearTempAttributes()
+{
+	return std::move(tempAttributes);
 }
 
 void Context::operator++()
@@ -579,6 +650,12 @@ void Context::operator++()
 void Context::operator--()
 {
 	scopes.pop_back();
+}
+
+void Context::pushIdentifierToScope(const Identifier &id)
+{
+	auto &topScope = scopes.back();
+	topScope.identifiers.insert(std::make_pair(id.name, id));
 }
 
 void gen::BlastParser::error(const gen::location &loc, const std::string &msg)

@@ -9,6 +9,12 @@
 oh yeah!
 */
 
+struct FirstStruct
+{
+	int i, i1, i2;
+	float f, f1, f2;
+};
+
 void main()
 {
 }

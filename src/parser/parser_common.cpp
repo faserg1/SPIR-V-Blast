@@ -18,4 +18,5 @@ void ParserCommon::parse(const ShaderPreprocessedInfo &preprocessedInfo)
 	gen::BlastParser parser(scanner.get(), errorCallback, *context);
 	parser.parse();
 	auto ast = getContainer(context);
+	auto structs = ast->getStructs();
 }
