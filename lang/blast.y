@@ -261,12 +261,18 @@ private:
 %token STRUCT "struct"
 %token IDENTIFIER USER_DEFINED_TYPE
 %token NUMLITERAL STRINGLITERAL
+%token MOD "//"
 %token OR "||" AND "&&" EQ "==" NE "!="
 %token LESS '<' MORE '>' LESS_EQ "<=" MORE_EQ ">="
-%token INC "++" DEC "--" PL_EQ "+=" MI_EQ "-="
+%token INC "++" DEC "--"
+%token PL_EQ "+=" MI_EQ "-=" MUL_EQ "*=" DIV_EQ "/=" MOD_EQ "//=" REM_EQ "%="
+%token SHIFT_LEFT_A_EQ "<<=" SHIFT_RIGHT_A_EQ ">>=" SHIFT_LEFT_L_EQ "!<<=" SHIFT_RIGHT_L_EQ "!>>="
+%token SHIFT_LEFT_A "<<" SHIFT_RIGHT_A ">>" SHIFT_LEFT_L "!<<" SHIFT_RIGHT_L "!>>"
+%token AND_EQ "&=" OR_EQ "|=" XOR_EQ "^="
+%token PTR_ACCESS "->"
 
 %left ','
-%right '?' ':' '=' "+=" "-=" "*=" "/=" "//=" "%=" ">>=" "<<=" "!>>=" "!<<=" "&=" "^=" "|="
+%right '?' ':' '=' "+=" "-=" "*=" "/=" "//=" "%=" ">>=" "<<=" "!>>=" "!<<=" "&=" "|=" "^="
 %left "||"
 %left "&&"
 %left '|'
@@ -274,11 +280,11 @@ private:
 %left '&'
 %left EQ NE
 %left LESS MORE LESS_EQ MORE_EQ
-%left "<<" ">>" "!<<" "!>>"
+%left SHIFT_LEFT_A SHIFT_RIGHT_A SHIFT_LEFT_L SHIFT_RIGHT_L
 %left '+' '-'
-%left '*' '/' '%' "//"
+%left '*' '/' MOD '%'
 %right INC DEC '!' '~' UMINUS UPLUS PTR_DR ADDR
-%left '(' '[' "." "->" POST_INC POST_DEC
+%left '(' '[' '.' PTR_ACCESS POST_INC POST_DEC
 
 %type<Literal> NUMLITERAL STRINGLITERAL
 %type<std::string> IDENTIFIER USER_DEFINED_TYPE
@@ -413,14 +419,14 @@ expression: IDENTIFIER
 | expression '(' ')'
 | expression '(' comma_expression ')'
 | expression '[' expression ']'
-| expression "->" expression
-| expression "." expression
+| expression PTR_ACCESS expression
+| expression '.' expression
 | expression '=' expression
 | expression '+' expression
 | expression '-' expression
 | expression '*' expression
 | expression '/' expression
-| expression "//" expression
+| expression MOD expression
 | expression '%' expression
 | expression "+=" expression
 | expression "-=" expression
@@ -458,10 +464,10 @@ expression: IDENTIFIER
 | expression DEC %prec POST_DEC
 | expression '?' expression ':' expression
 | BITCAST '<' type '>' '(' expression ')'
-| expression "<<" expression
-| expression ">>" expression
-| expression "!<<" expression
-| expression "!>>" expression;
+| expression SHIFT_LEFT_A expression
+| expression SHIFT_RIGHT_A expression
+| expression SHIFT_LEFT_L expression
+| expression SHIFT_RIGHT_L expression;
 
 /* Literals */
 

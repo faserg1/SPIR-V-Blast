@@ -1,6 +1,7 @@
 %{
 #include <memory>
 #include <sstream>
+#include <iostream>
 #include "blast_tokens.hpp"
 #include "location.hh"
 
@@ -41,6 +42,7 @@ namespace gen
 		int makeULiteral();
 		int makeDLiteral();
 		int makeIdentifier();
+		int makeSymbol();
 		template <class Func, class ... TArgs>
 		int s_make(Func f, TArgs ... args)
 		{
@@ -50,7 +52,7 @@ namespace gen
 	};
 }
 
-#define YY_USER_ACTION {updateLocation(); text_ = std::string(yytext_ptr);}
+#define YY_USER_ACTION {updateLocation(); text_ = std::string(yytext_ptr); std::cout << text_;}
 
 %}
 
@@ -118,14 +120,40 @@ namespace gen
 "&&" {return s_make(&gen::BlastParser::make_AND);}
 "==" {return s_make(&gen::BlastParser::make_EQ);}
 "!=" {return s_make(&gen::BlastParser::make_NE);}
+
 '<' {return s_make(&gen::BlastParser::make_LESS);}
 '>' {return s_make(&gen::BlastParser::make_MORE);}
 "<=" {return s_make(&gen::BlastParser::make_LESS_EQ);}
 ">=" {return s_make(&gen::BlastParser::make_MORE_EQ);}
+
+"//" {return s_make(&gen::BlastParser::make_MOD);}
+
 "++" {return s_make(&gen::BlastParser::make_INC);}
 "--" {return s_make(&gen::BlastParser::make_DEC);}
+
+"<<" {return s_make(&gen::BlastParser::make_SHIFT_LEFT_A);}
+">>" {return s_make(&gen::BlastParser::make_SHIFT_RIGHT_A);}
+"!<<" {return s_make(&gen::BlastParser::make_SHIFT_LEFT_L);}
+"!>>" {return s_make(&gen::BlastParser::make_SHIFT_RIGHT_L);}
+
 "+=" {return s_make(&gen::BlastParser::make_PL_EQ);}
 "-=" {return s_make(&gen::BlastParser::make_MI_EQ);}
+"*=" {return s_make(&gen::BlastParser::make_MUL_EQ);}
+"/=" {return s_make(&gen::BlastParser::make_DIV_EQ);}
+"//=" {return s_make(&gen::BlastParser::make_MOD_EQ);}
+"%=" {return s_make(&gen::BlastParser::make_REM_EQ);}
+"&=" {return s_make(&gen::BlastParser::make_AND_EQ);}
+"|=" {return s_make(&gen::BlastParser::make_OR_EQ);}
+"^=" {return s_make(&gen::BlastParser::make_XOR_EQ);}
+
+"<<=" {return s_make(&gen::BlastParser::make_SHIFT_LEFT_A_EQ);}
+">>=" {return s_make(&gen::BlastParser::make_SHIFT_RIGHT_A_EQ);}
+"!<<=" {return s_make(&gen::BlastParser::make_SHIFT_LEFT_L_EQ);}
+"!>>=" {return s_make(&gen::BlastParser::make_SHIFT_RIGHT_L_EQ);}
+
+"->" {return s_make(&gen::BlastParser::make_PTR_ACCESS);}
+
+. {return makeSymbol();}
 
 %%
 
@@ -212,4 +240,11 @@ int gen::BlastScanner::makeIdentifier()
 		default:
 			return s_make(&gen::BlastParser::make_IDENTIFIER, text_);
 	}
+}
+
+int gen::BlastScanner::makeSymbol()
+{
+	char symbol = text_[0] & 0xFF;
+	auto f = [](auto...s){return gen::BlastParser::symbol_type(s...);};
+	return s_make(f, gen::BlastParser::token_type(symbol));
 }
