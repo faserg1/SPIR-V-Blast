@@ -21,9 +21,13 @@ else()
 endif ()
 
 if ( CMAKE_COMPILER_IS_GNUCC )
+  set(ARCH_LIBS stdc++fs)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror=return-type")
 elseif ( MSVC )
+  set(ARCH_LIBS )
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4250 /wd4251 /wd4275")
+else ()
+  message(WARNING "What the compailer do you use?!")
 endif()
 
 if (UNIX)

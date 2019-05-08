@@ -106,3 +106,4 @@ source_group("${SOURCE_GROUP_SOURCE_START}blast" FILES ${BlastBlastSources})
 
 add_executable(Blast ${BlastHeaders} ${BlastSources} ${BlastGenerated})
 target_include_directories(Blast PRIVATE ${FLEX_INCLUDE_DIRS})
+target_link_libraries(Blast ${ARCH_LIBS})

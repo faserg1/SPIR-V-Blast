@@ -1,11 +1,15 @@
 %{
+#include <memory>
 #include "blast_tokens.hpp"
 #include "location.hh"
 
-gen::BlastParser::symbol_type makeStringLiteral(std::string str, const gen::BlastParser::location_type& loc);
-gen::BlastParser::symbol_type makeILiteral(std::string str, const gen::BlastParser::location_type& loc);
-gen::BlastParser::symbol_type makeULiteral(std::string str, const gen::BlastParser::location_type& loc);
-gen::BlastParser::symbol_type makeDLiteral(std::string str, const gen::BlastParser::location_type& loc);
+typedef gen::BlastParser::symbol_type symbol_t;
+typedef std::shared_ptr<symbol_t> s_symbol_t;
+
+s_symbol_t makeStringLiteral(std::string str, const gen::BlastParser::location_type& loc);
+s_symbol_t makeILiteral(std::string str, const gen::BlastParser::location_type& loc);
+s_symbol_t makeULiteral(std::string str, const gen::BlastParser::location_type& loc);
+s_symbol_t makeDLiteral(std::string str, const gen::BlastParser::location_type& loc);
 
 namespace gen
 {
@@ -15,7 +19,7 @@ namespace gen
 		gen::BlastParser::symbol_type yylex(LexContext &lc);
 		int yylex() override;
 	private:
-		gen::BlastParser::symbol_type currentSymbol_;
+		s_symbol_t currentSymbol_;
 		LexContext *lc = nullptr;
 		int column_;
 		location currentLocation_;
@@ -34,10 +38,10 @@ namespace gen
 %%
 [ \t] ; //Do nothing
 
-[0-9]+ {currentSymbol_.move(makeILiteral(std::string(yytext), currentLocation_)); return 0;}
-[0-9]+u {currentSymbol_.move(makeULiteral(std::string(yytext), currentLocation_)); return 0;}
-[0-9]+f {currentSymbol_.move(makeDLiteral(std::string(yytext), currentLocation_)); return 0;}
-[0-9]+.[0-9]* {currentSymbol_.move(makeDLiteral(std::string(yytext), currentLocation_)); return 0;}
+[0-9]+ {currentSymbol_ = makeILiteral(std::string(yytext), currentLocation_); return 0;}
+[0-9]+u {currentSymbol_ = makeULiteral(std::string(yytext), currentLocation_); return 0;}
+[0-9]+f {currentSymbol_ = makeDLiteral(std::string(yytext), currentLocation_); return 0;}
+[0-9]+.[0-9]* {currentSymbol_ = makeDLiteral(std::string(yytext), currentLocation_); return 0;}
 
 %%
 
@@ -49,44 +53,47 @@ namespace gen
 }
 */
 
-gen::BlastParser::symbol_type makeStringLiteral(std::string str, const gen::BlastParser::location_type& loc)
+s_symbol_t makeStringLiteral(std::string str, const gen::BlastParser::location_type& loc)
 {
 	Literal l;
 	l.type = LiteralType::String;
 	l.string = str;
-	return gen::BlastParser::make_NUMLITERAL(l, loc);
+	return std::make_shared<symbol_t>(gen::BlastParser::make_NUMLITERAL(l, loc));
 }
 
-gen::BlastParser::symbol_type makeILiteral(std::string str, const gen::BlastParser::location_type& loc)
+s_symbol_t makeILiteral(std::string str, const gen::BlastParser::location_type& loc)
 {
 	Literal l;
 	l.type = LiteralType::INumber;
 	l.inum = std::stoll(str);
-	return gen::BlastParser::make_NUMLITERAL(l, loc);
+	return std::make_shared<symbol_t>(gen::BlastParser::make_NUMLITERAL(l, loc));
 }
 
-gen::BlastParser::symbol_type makeULiteral(std::string str, const gen::BlastParser::location_type& loc)
+s_symbol_t makeULiteral(std::string str, const gen::BlastParser::location_type& loc)
 {
 	Literal l;
 	l.type = LiteralType::UNumber;
 	l.unum = std::stoull(str);
-	return gen::BlastParser::make_NUMLITERAL(l, loc);
+	return std::make_shared<symbol_t>(gen::BlastParser::make_NUMLITERAL(l, loc));
 }
 
-gen::BlastParser::symbol_type makeDLiteral(std::string str, const gen::BlastParser::location_type& loc)
+s_symbol_t makeDLiteral(std::string str, const gen::BlastParser::location_type& loc)
 {
 	Literal l;
 	l.type = LiteralType::DNumber;
 	l.dnum = std::stold(str);
-	return gen::BlastParser::make_STRINGLITERAL(l, loc);
+	return std::make_shared<symbol_t>(gen::BlastParser::make_STRINGLITERAL(l, loc));
 }
 
 gen::BlastParser::symbol_type gen::BlastScanner::yylex(LexContext &lc)
 {
 	this->lc = &lc;
 	if (this->yylex())
-		return currentSymbol_;
-	//TODO: [OOKAMI] Throw error?
+		return *currentSymbol_;
+	currentSymbol_ = {};
+	/*
+	TODO: [OOKAMI] Throw error?
+	*/
 	return {};
 }
 
