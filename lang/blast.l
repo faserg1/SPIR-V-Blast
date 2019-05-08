@@ -13,7 +13,7 @@ namespace gen
 	{
 	public:
 		gen::BlastParser::symbol_type yylex(LexContext &lc);
-		YY_DECL;
+		int yylex() override;
 	private:
 		gen::BlastParser::symbol_type currentSymbol_;
 		LexContext *lc = nullptr;
