@@ -7,10 +7,16 @@
 typedef gen::BlastParser::symbol_type symbol_t;
 typedef std::shared_ptr<symbol_t> s_symbol_t;
 
-s_symbol_t makeStringLiteral(std::string str, const gen::BlastParser::location_type& loc);
-s_symbol_t makeILiteral(std::string str, const gen::BlastParser::location_type& loc);
-s_symbol_t makeULiteral(std::string str, const gen::BlastParser::location_type& loc);
-s_symbol_t makeDLiteral(std::string str, const gen::BlastParser::location_type& loc);
+struct ResultOf_yylex
+{
+	enum EResultOf_yylex
+	{
+		Success,
+		Nothing,
+		Error,
+	};
+};
+
 
 namespace gen
 {
@@ -34,11 +40,12 @@ namespace gen
 		int makeILiteral();
 		int makeULiteral();
 		int makeDLiteral();
+		int makeIdentifier();
 		template <class Func, class ... TArgs>
 		int s_make(Func f, TArgs ... args)
 		{
 			currentSymbol_ = std::make_shared<symbol_t>(f(args..., currentLocation_));
-			return 0;
+			return ResultOf_yylex::Success;
 		}
 	};
 }
@@ -53,29 +60,88 @@ namespace gen
 %option c++
 
 %%
-[ \t] ; //Do nothing
 
+
+"do" {return s_make(&gen::BlastParser::make_DO);}
+"while" {return s_make(&gen::BlastParser::make_WHILE);}
+"if" {return s_make(&gen::BlastParser::make_IF);}
+"switch" {return s_make(&gen::BlastParser::make_SWITCH);}
+"for" {return s_make(&gen::BlastParser::make_FOR);}
+
+
+"default" {return s_make(&gen::BlastParser::make_DEFAULT);}
+"case" {return s_make(&gen::BlastParser::make_CASE);}
+
+
+"return" {return s_make(&gen::BlastParser::make_RETURN);}
+"break" {return s_make(&gen::BlastParser::make_BREAK);}
+"continue" {return s_make(&gen::BlastParser::make_CONTINUE);}
+
+
+"const" {return s_make(&gen::BlastParser::make_CONST);}
+
+
+"bit_cast" {return s_make(&gen::BlastParser::make_BITCAST);}
+
+
+"void" {return s_make(&gen::BlastParser::make_VOID);}
+"int" {return s_make(&gen::BlastParser::make_INT);}
+"float" {return s_make(&gen::BlastParser::make_FLOAT);}
+"bool" {return s_make(&gen::BlastParser::make_BOOL);}
+
+"mat" {return s_make(&gen::BlastParser::make_MATRIX);}
+"vec" {return s_make(&gen::BlastParser::make_VECTOR);}
+
+"img" {return s_make(&gen::BlastParser::make_IMAGE);}
+"smpl" {return s_make(&gen::BlastParser::make_SAMPLER);}
+"simg" {return s_make(&gen::BlastParser::make_SAMPLED_IMAGE);}
+
+
+"struct" {return s_make(&gen::BlastParser::make_STRUCT);}
+
+
+[ \t\v\b\f] {return ResultOf_yylex::Nothing;};
+<<EOF>> {return stop();}
+
+
+[a-zA-Z_][a-zA-Z_0-9]* {return makeIdentifier();}
+
+
+"\""[^\"]*"\"" {return makeStringLiteral();}
 [0-9]+ {return makeILiteral();}
 [0-9]+u {return makeULiteral();}
 [0-9]+f {return makeDLiteral();}
 [0-9]+.[0-9]* {return makeDLiteral();}
 
-<<EOF>> {return stop();}
+
+"||" {return s_make(&gen::BlastParser::make_OR);}
+"&&" {return s_make(&gen::BlastParser::make_AND);}
+"==" {return s_make(&gen::BlastParser::make_EQ);}
+"!=" {return s_make(&gen::BlastParser::make_NE);}
+'<' {return s_make(&gen::BlastParser::make_LESS);}
+'>' {return s_make(&gen::BlastParser::make_MORE);}
+"<=" {return s_make(&gen::BlastParser::make_LESS_EQ);}
+">=" {return s_make(&gen::BlastParser::make_MORE_EQ);}
+"++" {return s_make(&gen::BlastParser::make_INC);}
+"--" {return s_make(&gen::BlastParser::make_DEC);}
+"+=" {return s_make(&gen::BlastParser::make_PL_EQ);}
+"-=" {return s_make(&gen::BlastParser::make_MI_EQ);}
 
 %%
 
 /*
-[a-zA-Z_][a-zA-Z_0-9]+
-{
-	std::string ident(yytext);
-	auto type = lc.getIdentifierType(ident);
-}
+
 */
 
 gen::BlastParser::symbol_type gen::BlastScanner::yylex(LexContext &lc)
 {
 	this->lc = &lc;
-	if (this->yylex())
+	int result;
+	do
+	{
+		result = this->yylex();
+	} while (result == ResultOf_yylex::Nothing);
+	if (result == ResultOf_yylex::Success)
 		return *currentSymbol_;
 	/*
 	TODO: [OOKAMI] Throw error?
@@ -134,4 +200,16 @@ int gen::BlastScanner::makeDLiteral()
 	l.type = LiteralType::DNumber;
 	l.dnum = std::stold(text_);
 	return s_make(&gen::BlastParser::make_NUMLITERAL, l);
+}
+
+int gen::BlastScanner::makeIdentifier()
+{
+	auto type = lc->getIdentifierType(text_);
+	switch (type)
+	{
+		case IdentifierType::Structure:
+			return s_make(&gen::BlastParser::make_USER_DEFINED_TYPE, text_);
+		default:
+			return s_make(&gen::BlastParser::make_IDENTIFIER, text_);
+	}
 }

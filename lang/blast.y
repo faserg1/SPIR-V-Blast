@@ -253,7 +253,7 @@ private:
 %token DO "do" WHILE "while" IF "if" SWITCH "switch" FOR "for"
 %token DEFAULT "default" CASE "case"
 %token RETURN "return" BREAK "break" CONTINUE "continue"
-%token CONST "const" SPECCONST "specconst" NOVAR "novar" RUNTIME "runtime"
+%token CONST "const"
 %token BITCAST "bit_cast"
 %token VOID "void" INT "int" FLOAT "float" BOOL "bool"
 %token MATRIX "mat" VECTOR "vec"
@@ -281,7 +281,7 @@ private:
 %left '(' '[' "." "->" POST_INC POST_DEC
 
 %type<Literal> NUMLITERAL STRINGLITERAL
-%type<std::string> IDENTIFIER
+%type<std::string> IDENTIFIER USER_DEFINED_TYPE
 
 %%
 
@@ -488,9 +488,6 @@ type_suffix_variant: '*'
 | "[]";
 
 type_mod: CONST
-| SPECCONST
-| NOVAR
-| RUNTIME
 | %empty;
 
 type_variant: simple_type
