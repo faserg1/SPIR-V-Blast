@@ -7,7 +7,7 @@
 #include "args_processor.hpp"
 #include "preprocessor.hpp"
 #include "reader.hpp"
-//#include "parser/parser.hpp"
+#include "parser/parser_common.hpp"
 //#include "compiler/compiler.hpp"
 #include "translator/translator.hpp"
 #include "writer.hpp"
@@ -35,7 +35,7 @@ int main(int argc, char**argv)
 
 	Preprocessor preprocessor;
 	Reader reader;
-	//Parser
+	ParserCommon parser;
 	//Compiler
 	Translator translator;
 	Writer writer;
@@ -47,6 +47,7 @@ int main(int argc, char**argv)
 	preprocessor.setSearchFileCallback(std::bind(&Reader::search, &reader, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
 	auto processedInfo = preprocessor.process(argsParser.getInputFile());
+	parser.parse(processedInfo);
 
 	return 0;
 }

@@ -6,6 +6,8 @@ void ArgsParser::setArgsAndParse(std::vector<std::string> args)
 	args_ = std::move(args);
 	// remove first element - the name of executable
 	args_.erase(args_.begin());
+	if (args_.empty())
+		throw std::runtime_error("No input file!");
 	parse();
 	validateOptions();
 }

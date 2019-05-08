@@ -1,7 +1,8 @@
 #include "../gen/blast_scanner.hpp"
 #include <memory>
 
-std::shared_ptr<gen::BlastScanner> buildScanner()
+std::shared_ptr<gen::BlastScanner> buildScanner(const std::string &source)
 {
-	return std::make_shared<gen::BlastScanner>();
+	auto scanner = std::make_shared<gen::BlastScanner>(source);
+	return scanner;
 }
