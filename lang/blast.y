@@ -23,7 +23,7 @@
 #include <functional>
 #include <algorithm>
 
-#include <iostream>
+#include <spirv.hpp11>
 
 enum class IdentifierType
 {
@@ -41,17 +41,6 @@ enum class LiteralType
 	UNumber,
 	INumber,
 	DNumber
-};
-
-enum class DimType
-{
-	D1,
-	D2,
-	D3,
-	DCube,
-	DRect,
-	DBuffer,
-	DSubpassData,
 };
 
 enum class AttributeParamType
@@ -257,8 +246,10 @@ private:
 class ConstantHelper
 {
 public:
-	static DimType dimFromLiteral(const Literal &l);
-	static DimType dimFromIdent(const std::string &ident);
+	static spv::Dim dimFromLiteral(const Literal &l);
+	static spv::Dim dimFromIdent(const std::string &ident);
+	static spv::ImageFormat imageFormatFromIdent(const std::string &ident);
+	static spv::AccessQualifier accessQualifierFromIdent(const std::string &ident);
 private:
 	ConstantHelper() = delete;
 	~ConstantHelper() = delete;
@@ -297,7 +288,7 @@ private:
 %token DEFAULT "default" CASE "case"
 %token RETURN "return" BREAK "break" CONTINUE "continue"
 %token CONST "const"
-%token TRUE "true" FALSE "false"
+%token C_TRUE "true" C_FALSE "false"
 %token BITCAST "bit_cast"
 %token VOID "void" INT "int" FLOAT "float" BOOL "bool"
 %token MATRIX "mat" VECTOR "vec"
@@ -337,7 +328,9 @@ private:
 %type<std::vector<struct StructMember>> struct_body struct_members_continious struct_member_a struct_member
 %type<std::vector<std::string>> struct_member_continious
 %type<Type> type
-%type<DimType> image_dim
+%type<spv::Dim> image_dim
+%type<spv::ImageFormat> image_format
+%type<spv::AccessQualifier> image_access_qualifier
 %type<Attribute> attribute attribute_body
 
 %%
@@ -527,8 +520,8 @@ literal: NUMLITERAL
 | STRINGLITERAL
 | boolean_const_expr;
 
-boolean_const_expr: TRUE
-| FALSE;
+boolean_const_expr: C_TRUE
+| C_FALSE;
 
 /* VARIABLE DECLARATION */
 
@@ -583,11 +576,17 @@ vector_type: VECTOR '<' simple_type ',' NUMLITERAL '>';
 
 matrix_type: MATRIX '<' simple_type ',' NUMLITERAL ',' NUMLITERAL '>';
 
-image_type: IMAGE '<' image_sampled_type ',' image_dim ',' '>';
+image_type: IMAGE '<' image_sampled_type ',' image_dim ',' image_depth ',' image_ms ',' image_sampled ',' image_format ',' image_access_qualifier '>'
+| IMAGE '<' image_sampled_type ',' image_dim ',' image_depth ',' image_ms ',' image_sampled ',' image_format '>';
 image_sampled_type: int_type
 | void_type;
 image_dim: NUMLITERAL {$$ = ConstantHelper::dimFromLiteral($1);}
 | IDENTIFIER {$$ = ConstantHelper::dimFromIdent($1);};
+image_depth: NUMLITERAL;
+image_ms: NUMLITERAL;
+image_sampled: NUMLITERAL;
+image_format: IDENTIFIER;
+image_access_qualifier: IDENTIFIER;
 
 sampler_type: SAMPLER;
 
@@ -632,7 +631,7 @@ Attribute Attributes::fromLiteral(const std::string &ident, const Literal &l)
 	return attr;
 }
 
-DimType ConstantHelper::dimFromLiteral(const Literal &l)
+spv::Dim ConstantHelper::dimFromLiteral(const Literal &l)
 {
 	switch (l.type)
 	{
@@ -640,29 +639,41 @@ DimType ConstantHelper::dimFromLiteral(const Literal &l)
 			switch (l.inum)
 			{
 				case 1:
-					return DimType::D1;
+					return spv::Dim::Dim1D;
 				case 2:
-					return DimType::D2;
+					return spv::Dim::Dim2D;
 				case 3:
-					return DimType::D3;
+					return spv::Dim::Dim3D;
 			}
 	}
 	// TODO: [OOKAMI] Throw exception
 	throw 0;
 }
 
-DimType ConstantHelper::dimFromIdent(const std::string &ident)
+spv::Dim ConstantHelper::dimFromIdent(const std::string &ident)
 {
 	if (ident == "Cube")
-		return DimType::DCube;
+		return spv::Dim::Cube;
 	else if (ident == "Rect")
-		return DimType::DRect;
+		return spv::Dim::Rect;
 	else if (ident == "Buffer")
-		return DimType::DBuffer;
+		return spv::Dim::Buffer;
 	else if (ident == "SubpassData")
-		return DimType::DSubpassData;
+		return spv::Dim::SubpassData;
 	// TODO: [OOKAMI] Throw exception
 	throw 0;
+}
+
+spv::ImageFormat ConstantHelper::imageFormatFromIdent(const std::string &ident)
+{
+	// TODO: [OOKAMI] Realization
+	return {};
+}
+
+spv::AccessQualifier ConstantHelper::accessQualifierFromIdent(const std::string &ident)
+{
+	// TODO: [OOKAMI] Realization
+	return {};
 }
 
 // AST Container methods

@@ -111,8 +111,8 @@ namespace gen
 [0-9]+f {return makeDLiteral();}
 [0-9]+.[0-9]* {return makeDLiteral();}
 
-"true" {return s_make(&gen::BlastParser::make_TRUE);}
-"false" {return s_make(&gen::BlastParser::make_FALSE);}
+"true" {return s_make(&gen::BlastParser::make_C_TRUE);}
+"false" {return s_make(&gen::BlastParser::make_C_FALSE);}
 
 [a-zA-Z_][a-zA-Z_0-9]* {return makeIdentifier();}
 
