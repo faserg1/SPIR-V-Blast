@@ -29,8 +29,6 @@ private /*members*/:
 	struct PreprocessorState;
 private /*functions*/:
 	std::string recursiveParse(std::filesystem::path currentFolder, defines_t &defines, std::string inputText, std::string filePath, std::vector<DebugRowInfo> &debugRowsInfo);
-	std::string removeWhitespaces(std::string text, std::vector<DebugRowInfo> &debugRowInfo);
-	std::string removeComments(std::string text, std::vector<DebugRowInfo> &debugRowInfo);
 	std::string parsePreprocessorCommand(std::filesystem::path currentFolder, std::string text, defines_t &defines, PreprocessorState &state, std::vector<DebugRowInfo> &debugRowsInfo);
 	std::string replaceByPreprocessorDefines(std::string text, const defines_t &defines);
 };

@@ -51,7 +51,7 @@ namespace gen
 	};
 }
 
-#define YY_USER_ACTION {updateLocation(); text_ = std::string(yytext_ptr);}
+#define YY_USER_ACTION {text_ = std::string(yytext_ptr); updateLocation();}
 
 %}
 
@@ -99,9 +99,11 @@ namespace gen
 
 "struct" {return s_make(&gen::BlastParser::make_STRUCT);}
 
-[\n] {return ResultOf_yylex::Nothing;};
-[ \t\v\b\f] {currentLocation_.columns(); return ResultOf_yylex::Nothing;};
 <<EOF>> {return stop();}
+"\r\n"|"\n\r"|[\n] {return ResultOf_yylex::Nothing;};
+[ \t\v\b\f] {return ResultOf_yylex::Nothing;};
+"/*"(.|"\r\n"|"\n\r"|[\n])*"*/" {return ResultOf_yylex::Nothing;}
+"//"[^\n]* {return ResultOf_yylex::Nothing;}
 
 
 [a-zA-Z_][a-zA-Z_0-9]* {return makeIdentifier();}
@@ -124,7 +126,7 @@ namespace gen
 "<=" {return s_make(&gen::BlastParser::make_LESS_EQ);}
 ">=" {return s_make(&gen::BlastParser::make_MORE_EQ);}
 
-"//" {return s_make(&gen::BlastParser::make_MOD);}
+"/%" {return s_make(&gen::BlastParser::make_MOD);}
 
 "++" {return s_make(&gen::BlastParser::make_INC);}
 "--" {return s_make(&gen::BlastParser::make_DEC);}
@@ -138,7 +140,7 @@ namespace gen
 "-=" {return s_make(&gen::BlastParser::make_MI_EQ);}
 "*=" {return s_make(&gen::BlastParser::make_MUL_EQ);}
 "/=" {return s_make(&gen::BlastParser::make_DIV_EQ);}
-"//=" {return s_make(&gen::BlastParser::make_MOD_EQ);}
+"/%=" {return s_make(&gen::BlastParser::make_MOD_EQ);}
 "%=" {return s_make(&gen::BlastParser::make_REM_EQ);}
 "&=" {return s_make(&gen::BlastParser::make_AND_EQ);}
 "|=" {return s_make(&gen::BlastParser::make_OR_EQ);}
@@ -183,7 +185,16 @@ gen::BlastScanner::BlastScanner(const std::string &source) : column_(0)
 
 void gen::BlastScanner::updateLocation()
 {
-	currentLocation_ = location(nullptr, yylineno, column_);
+	currentLocation_.step();
+	auto newLines = std::count(text_.begin(), text_.end(), '\n');
+	currentLocation_.lines(newLines);
+	size_t columns = 0;
+	for (auto it = text_.rbegin(); it != text_.rend(); columns++, it++)
+	{
+		if (*it == '\n')
+			break;
+	}
+	currentLocation_.columns(columns);
 }
 
 int gen::BlastScanner::stop()

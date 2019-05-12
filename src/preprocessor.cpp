@@ -58,9 +58,6 @@ std::string Preprocessor::recursiveParse(std::filesystem::path currentFolder, de
 			rowInfo.sourceRowNumber = lineNum++;
 		});
 	}
-	
-	text = removeComments(std::move(text), localDebugRowsInfo);
-	text = removeWhitespaces(std::move(text), localDebugRowsInfo);
 
 	std::vector<std::string> rows;
 	while (!text.empty())
@@ -96,7 +93,7 @@ std::string Preprocessor::recursiveParse(std::filesystem::path currentFolder, de
 				row.erase(itSlashN, itSlashN + 2);
 		} while (true);
 		
-		rows.push_back(removeWhitespaces(std::move(row), localDebugRowsInfo));
+		rows.push_back(std::move(row));
 	}
 
 	PreprocessorState state;
@@ -110,12 +107,13 @@ std::string Preprocessor::recursiveParse(std::filesystem::path currentFolder, de
 				text += parsePreprocessorCommand(currentFolder, row, defines, state, localProcessedDebugRowsInfo);
 			else if (!state.ignoreText)
 			{
-				text += replaceByPreprocessorDefines(row, defines) + "\n";
-				auto newLines = std::count(text.begin(), text.end(), '\n');
+				auto processedText = replaceByPreprocessorDefines(row, defines) + "\n";
+				text += processedText;
+				auto newLines = std::count(processedText.begin(), processedText.end(), '\n');
 				do
 				{
 					localProcessedDebugRowsInfo.push_back(*rowInfo);
-				} while (newLines--);
+				} while (--newLines);
 			}
 			rowInfo++;
 		}
@@ -124,92 +122,6 @@ std::string Preprocessor::recursiveParse(std::filesystem::path currentFolder, de
 	}
 
 	debugRowsInfo.insert(debugRowsInfo.end(), localProcessedDebugRowsInfo.begin(), localProcessedDebugRowsInfo.end());
-	return std::move(text);
-}
-
-std::string Preprocessor::removeWhitespaces(std::string text, std::vector<DebugRowInfo> &debugRowInfo)
-{
-	std::string textCopy;
-	textCopy.reserve(text.size());
-
-	bool symbolCopy = false;
-	bool space = false;
-	size_t lineNumber = 0;
-
-	for (auto &c : text)
-	{
-		switch (c)
-		{
-		case '\t':
-		case ' ':
-			if (!symbolCopy)
-			{
-				if (space)
-					continue;
-				space = true;
-				break;
-			}
-			else
-			{
-				textCopy.push_back(c);
-				break;
-			}
-		case '\"':
-		case '\'':
-			symbolCopy = !symbolCopy;
-		default:
-			if (space && (!textCopy.empty() && textCopy.back() != '\n') && c != '\n')
-				textCopy.push_back(' ');
-			space = false;
-			if (c == '\n' && (textCopy.empty() || textCopy.back() == '\n'))
-			{
-				debugRowInfo.erase(debugRowInfo.begin() + lineNumber);
-				continue;
-			}
-			else
-			{
-				if (c == '\n')
-					lineNumber++;
-				textCopy.push_back(c);
-			}
-				
-			break;
-		}
-	}
-	textCopy.shrink_to_fit();
-	return std::move(textCopy);
-}
-
-std::string Preprocessor::removeComments(std::string text, std::vector<DebugRowInfo> &debugRowInfo)
-{
-	std::sregex_iterator end;
-	while (true)
-	{
-		std::regex multilineCommentRegex("\\/\\*(.|\\n)*\\*\\/", std::regex_constants::ECMAScript | std::regex_constants::optimize);
-		auto multilineCommentMatchIter = std::sregex_iterator(text.begin(), text.end(), multilineCommentRegex);
-		if (multilineCommentMatchIter != end && !(*multilineCommentMatchIter).empty())
-		{
-			auto match = *multilineCommentMatchIter;
-			auto newLinesCountBefore = std::count(text.begin(), text.begin() + match.position(), '\n');
-			auto newLinesCountIn = std::count(text.begin() + match.position(), text.begin() + match.position() + match.length(), '\n');
-			text.erase(text.begin() + match.position(), text.begin() + match.position() + match.length());
-			debugRowInfo.erase(debugRowInfo.begin() + newLinesCountBefore, debugRowInfo.begin() + newLinesCountBefore + newLinesCountIn);
-			continue;
-		}
-
-		std::regex inlineCommentRegex("\\/\\/.*\n", std::regex_constants::ECMAScript);
-		auto inlineCommentMatchIter = std::sregex_iterator(text.begin(), text.end(), inlineCommentRegex);
-		if (inlineCommentMatchIter != end && !(*inlineCommentMatchIter).empty())
-		{
-			auto match = *inlineCommentMatchIter;
-			auto lineCommentEnd = text.erase(text.begin() + match.position(), text.begin() + match.position() + match.length());
-			text.insert(lineCommentEnd, '\n');
-			continue;
-		}
-
-		break;
-	}
-	
 	return std::move(text);
 }
 
