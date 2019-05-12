@@ -1,5 +1,6 @@
-#include "../gen/blast_scanner.hpp"
 #include <memory>
+#include <cstdint>
+#include "../gen/blast_scanner.hpp"
 
 std::shared_ptr<gen::BlastScanner> buildScanner(const std::string &source)
 {

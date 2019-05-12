@@ -43,6 +43,17 @@ enum class LiteralType
 	DNumber
 };
 
+enum class DimType
+{
+	D1,
+	D2,
+	D3,
+	DCube,
+	DRect,
+	DBuffer,
+	DSubpassData,
+};
+
 enum class AttributeParamType
 {
 	None,
@@ -123,17 +134,20 @@ struct BaseVariable
 struct Literal
 {
 	LiteralType type;
-	uint64_t unum;
-	int64_t inum;
-	double dnum;
+	union
+	{
+		uint64_t unum;
+		int64_t inum;
+		long double dnum;
+	};
 	std::string string;
 };
 
 struct Attribute
 {
-	struct Identifier ident {};
+	std::string name;
 	AttributeParamType type;
-	struct Identifier paramIdent {};
+	std::string paramIdent {};
 	struct Literal paramLiteral {};
 };
 
@@ -229,6 +243,27 @@ struct scope
 	std::unordered_map<std::string, Identifier> identifiers;
 };
 
+class Attributes
+{
+public:
+	static Attribute fromIdentifiers(const std::string &ident, const std::string &ident2);
+	static Attribute fromIdentifier(const std::string &ident);
+	static Attribute fromLiteral(const std::string &ident, const Literal &l);
+private:
+	Attributes() = delete;
+	~Attributes() = delete;
+};
+
+class ConstantHelper
+{
+public:
+	static DimType dimFromLiteral(const Literal &l);
+	static DimType dimFromIdent(const std::string &ident);
+private:
+	ConstantHelper() = delete;
+	~ConstantHelper() = delete;
+};
+
 class Context :
 	public virtual LexContext,
 	public virtual AbstractSyntaxTreeContainer
@@ -237,9 +272,9 @@ public:
 	//AST Container methods
 	std::vector<struct Struct> getStructs() const override;
 	//Context methods
-	void addTempAttribute(const std::string &name, AttributeParamType type, std::any param);
-	IdentifierType getIdentifierType(std::string name) const override;
+	void addTempAttribute(Attribute attr);
 	std::vector<Attribute> getAndClearTempAttributes();
+	IdentifierType getIdentifierType(std::string name) const override;
 	Struct &defineStruct(const std::string &name);
 	Struct &getStruct(const std::string &name);
 	std::vector<struct StructMember> defineStructMembers(Type t, const std::vector<std::string> &names);
@@ -262,6 +297,7 @@ private:
 %token DEFAULT "default" CASE "case"
 %token RETURN "return" BREAK "break" CONTINUE "continue"
 %token CONST "const"
+%token TRUE "true" FALSE "false"
 %token BITCAST "bit_cast"
 %token VOID "void" INT "int" FLOAT "float" BOOL "bool"
 %token MATRIX "mat" VECTOR "vec"
@@ -278,6 +314,7 @@ private:
 %token SHIFT_LEFT_A "<<" SHIFT_RIGHT_A ">>" SHIFT_LEFT_L "!<<" SHIFT_RIGHT_L "!>>"
 %token AND_EQ "&=" OR_EQ "|=" XOR_EQ "^="
 %token PTR_ACCESS "->"
+%token ATTR_OPEN "[[" ATTR_CLOSE "]]"
 
 %left ','
 %right '?' ':' '=' "+=" "-=" "*=" "/=" "/%=" "%=" ">>=" "<<=" "!>>=" "!<<=" "&=" "|=" "^="
@@ -300,6 +337,8 @@ private:
 %type<std::vector<struct StructMember>> struct_body struct_members_continious struct_member_a struct_member
 %type<std::vector<std::string>> struct_member_continious
 %type<Type> type
+%type<DimType> image_dim
+%type<Attribute> attribute attribute_body
 
 %%
 
@@ -485,7 +524,11 @@ expression: IDENTIFIER
 /* Literals */
 
 literal: NUMLITERAL
-| STRINGLITERAL;
+| STRINGLITERAL
+| boolean_const_expr;
+
+boolean_const_expr: TRUE
+| FALSE;
 
 /* VARIABLE DECLARATION */
 
@@ -527,28 +570,100 @@ complex_type_variant: matrix_type
 | sampled_image_type;
 
 void_type: VOID;
-int_type: INT;
-float_type: FLOAT;
+int_type: INT
+| INT '<' '>'
+| INT '<' NUMLITERAL '>'
+| INT '<' NUMLITERAL ',' NUMLITERAL '>';
+float_type: FLOAT
+| FLOAT '<' '>'
+| FLOAT '<' NUMLITERAL '>';
 bool_type: BOOL;
 
 vector_type: VECTOR '<' simple_type ',' NUMLITERAL '>';
+
 matrix_type: MATRIX '<' simple_type ',' NUMLITERAL ',' NUMLITERAL '>';
-image_type: IMAGE;
+
+image_type: IMAGE '<' image_sampled_type ',' image_dim ',' '>';
+image_sampled_type: int_type
+| void_type;
+image_dim: NUMLITERAL {$$ = ConstantHelper::dimFromLiteral($1);}
+| IDENTIFIER {$$ = ConstantHelper::dimFromIdent($1);};
+
 sampler_type: SAMPLER;
+
 sampled_image_type: SAMPLED_IMAGE;
 
 /* Attributes */
-attribute_rec: attribute_rec attribute
-| attribute;
+attribute_rec: attribute_rec attribute {ctx.addTempAttribute($2);}
+| attribute {ctx.addTempAttribute($1);};
 
-attribute: "[[" attribute_body "]]" ;
+attribute: "[[" attribute_body "]]" {$$ = std::move($2);};
 
-attribute_body: IDENTIFIER
-| IDENTIFIER ':' NUMLITERAL
-| IDENTIFIER ':' STRINGLITERAL
-| IDENTIFIER ':' IDENTIFIER;
+attribute_body: IDENTIFIER  {$$ = Attributes::fromIdentifier($1);}
+| IDENTIFIER ':' NUMLITERAL {$$ = Attributes::fromLiteral($1, $3);}
+| IDENTIFIER ':' STRINGLITERAL {$$ = Attributes::fromLiteral($1, $3);}
+| IDENTIFIER ':' IDENTIFIER {$$ = Attributes::fromIdentifiers($1, $3);};
 
 %%
+
+Attribute Attributes::fromIdentifiers(const std::string &ident, const std::string &ident2)
+{
+	Attribute attr;
+	attr.name = ident;
+	attr.paramIdent = ident2;
+	attr.type = AttributeParamType::Identifier;
+	return attr;
+}
+
+Attribute Attributes::fromIdentifier(const std::string &ident)
+{
+	Attribute attr;
+	attr.name = ident;
+	attr.type = AttributeParamType::None;
+	return attr;
+}
+
+Attribute Attributes::fromLiteral(const std::string &ident, const Literal &l)
+{
+	Attribute attr;
+	attr.name = ident;
+	attr.type = AttributeParamType::Literal;
+	attr.paramLiteral = l;
+	return attr;
+}
+
+DimType ConstantHelper::dimFromLiteral(const Literal &l)
+{
+	switch (l.type)
+	{
+		case LiteralType::INumber:
+			switch (l.inum)
+			{
+				case 1:
+					return DimType::D1;
+				case 2:
+					return DimType::D2;
+				case 3:
+					return DimType::D3;
+			}
+	}
+	// TODO: [OOKAMI] Throw exception
+	throw 0;
+}
+
+DimType ConstantHelper::dimFromIdent(const std::string &ident)
+{
+	if (ident == "Cube")
+		return DimType::DCube;
+	else if (ident == "Rect")
+		return DimType::DRect;
+	else if (ident == "Buffer")
+		return DimType::DBuffer;
+	else if (ident == "SubpassData")
+		return DimType::DSubpassData;
+	// TODO: [OOKAMI] Throw exception
+	throw 0;
+}
 
 // AST Container methods
 
@@ -558,22 +673,14 @@ std::vector<struct Struct> Context::getStructs() const
 }
 
 // Realization of context
-void Context::addTempAttribute(const std::string &name, AttributeParamType type, std::any param)
+void Context::addTempAttribute(Attribute attr)
 {
-	Attribute attr;
-	attr.ident = { IdentifierType::Attribute, name };
-	attr.type = type;
-	switch (type)
-	{
-	case AttributeParamType::Identifier:
-		attr.paramIdent = std::any_cast<Identifier>(param);
-		attr.paramIdent.type = IdentifierType::Variable;
-		break;
-	case AttributeParamType::Literal:
-		attr.paramLiteral = std::any_cast<Literal>(param);
-		break;
-	}
 	tempAttributes.push_back(attr);
+}
+
+std::vector<Attribute> Context::getAndClearTempAttributes()
+{
+	return std::move(tempAttributes);
 }
 
 IdentifierType Context::getIdentifierType(std::string name) const
@@ -635,11 +742,6 @@ void Context::indexStructMembers(Struct &s)
 	size_t pos = 0;
 	for (auto &member : s.members)
 		member.position = pos++;
-}
-
-std::vector<Attribute> Context::getAndClearTempAttributes()
-{
-	return std::move(tempAttributes);
 }
 
 void Context::operator++()

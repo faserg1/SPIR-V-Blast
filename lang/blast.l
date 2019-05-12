@@ -105,16 +105,19 @@ namespace gen
 "/*"(.|"\r\n"|"\n\r"|[\n])*"*/" {return ResultOf_yylex::Nothing;}
 "//"[^\n]* {return ResultOf_yylex::Nothing;}
 
-
-[a-zA-Z_][a-zA-Z_0-9]* {return makeIdentifier();}
-
-
 "\""[^\"]*"\"" {return makeStringLiteral();}
 [0-9]+ {return makeILiteral();}
 [0-9]+u {return makeULiteral();}
 [0-9]+f {return makeDLiteral();}
 [0-9]+.[0-9]* {return makeDLiteral();}
 
+"true" {return s_make(&gen::BlastParser::make_TRUE);}
+"false" {return s_make(&gen::BlastParser::make_FALSE);}
+
+[a-zA-Z_][a-zA-Z_0-9]* {return makeIdentifier();}
+
+"[[" {return s_make(&gen::BlastParser::make_ATTR_OPEN);}
+"]]" {return s_make(&gen::BlastParser::make_ATTR_CLOSE);}
 
 "||" {return s_make(&gen::BlastParser::make_OR);}
 "&&" {return s_make(&gen::BlastParser::make_AND);}

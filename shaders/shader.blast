@@ -8,7 +8,7 @@
 /*
 oh yeah!
 */
-
+[[Nice]]
 struct FirstStruct
 {
 	int i, i1, i2;
