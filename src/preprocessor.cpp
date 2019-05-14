@@ -274,7 +274,7 @@ std::string Preprocessor::replaceByPreprocessorDefines(std::string text, const d
 				});
 		}
 	}
-	int64_t offset = 0;
+	int offset = 0;
 	for (auto &rep : reps)
 	{
 		auto where = text.erase(rep.begin + offset, rep.begin + offset + rep.count);

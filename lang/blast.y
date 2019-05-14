@@ -16,12 +16,14 @@
 #include <map>
 #include <unordered_map>
 #include <any>
+#include <optional>
 #include <list>
 #include <vector>
 #include <string>
 #include <memory>
 #include <functional>
 #include <algorithm>
+#include <type_traits>
 
 #include <spirv.hpp11>
 
@@ -41,6 +43,22 @@ enum class LiteralType
 	UNumber,
 	INumber,
 	DNumber
+};
+
+enum class EType
+{
+	Int,
+	Float,
+	Bool,
+	Void,
+	Matrix,
+	Vector,
+	Image,
+	Sampler,
+	SampledImage,
+	Pointer,
+	Array,
+	Struct
 };
 
 enum class AttributeParamType
@@ -109,9 +127,106 @@ struct Identifier
 	std::string name;
 };
 
-struct Type
+struct ScalarType
 {
 
+};
+
+struct VoidType
+{
+
+};
+
+struct BooleanType : ScalarType
+{
+
+};
+
+struct IntType : ScalarType
+{
+	uint8_t width;
+	bool signedness;
+};
+
+struct FloatType : ScalarType
+{
+	uint8_t width;
+};
+
+struct TypeInner
+{
+	EType etype;
+	std::any innerType;
+};
+
+struct VectorType
+{
+	TypeInner componentType;
+	uint8_t componentCount;
+};
+
+struct MatrixType
+{
+	TypeInner componentType;
+	uint8_t rowsCount;
+	uint8_t columnsCount;
+};
+
+struct ImageType
+{
+	TypeInner sampledType;
+	spv::Dim dimension;
+	uint8_t isDepth;
+	uint8_t isArrayed;
+	uint8_t isMultisampled;
+	uint8_t isSampled;
+	spv::ImageFormat imageFormat;
+	std::optional<spv::AccessQualifier> accessQualifier;
+};
+
+struct SamplerType
+{
+
+};
+
+struct SampledImageType
+{
+	TypeInner innerType;
+};
+
+struct TypeStruct
+{
+	std::string name;
+};
+
+struct PointerType
+{
+	TypeInner innerType;
+};
+
+struct ArrayType
+{
+	bool isRuntime;
+	uint64_t length;
+	TypeInner innerType;
+};
+
+struct TypeArraySuffix
+{
+	bool isArray;
+	bool isRuntime;
+	uint64_t length;
+};
+
+struct TypeModification
+{
+	bool isConst;
+};
+
+struct Type
+{
+	bool isConst;
+	TypeInner innerType;
 };
 
 struct BaseVariable
@@ -246,10 +361,19 @@ private:
 class ConstantHelper
 {
 public:
+	static uint64_t uintFromLiteral(const Literal &l);
+	static int64_t intFromLiteral(const Literal &l);
 	static spv::Dim dimFromLiteral(const Literal &l);
 	static spv::Dim dimFromIdent(const std::string &ident);
 	static spv::ImageFormat imageFormatFromIdent(const std::string &ident);
 	static spv::AccessQualifier accessQualifierFromIdent(const std::string &ident);
+	static IntType createIntType(uint8_t width, bool signedness);
+	static FloatType createFloatType(uint8_t width);
+	static ImageType createImageType(TypeInner sampledType, spv::Dim dim,
+		uint8_t isDepth, uint8_t isArrayed, uint8_t isMultisampled, uint8_t isSampled,
+		spv::ImageFormat imageFormat, std::optional<spv::AccessQualifier> accessQualifier = {});
+	static Type createType(const TypeModification &mod, TypeInner innerType,
+		const TypeArraySuffix &arraySuffix, uint64_t pointerSuffixCount);
 private:
 	ConstantHelper() = delete;
 	~ConstantHelper() = delete;
@@ -332,6 +456,21 @@ private:
 %type<spv::ImageFormat> image_format
 %type<spv::AccessQualifier> image_access_qualifier
 %type<Attribute> attribute attribute_body
+%type<uint8_t> type_pointer_suffix
+%type<uint64_t> image_depth image_arrayed image_ms image_sampled
+%type<bool> boolean_const_expr
+%type<TypeModification> type_mod
+%type<TypeArraySuffix> type_array_suffix
+%type<TypeInner> type_variant simple_type custom_type complex_type_variant image_sampled_type
+%type<VoidType> void_type
+%type<IntType> int_type
+%type<FloatType> float_type
+%type<BooleanType> bool_type
+%type<VectorType> vector_type
+%type<MatrixType> matrix_type
+%type<ImageType> image_type
+%type<SamplerType> sampler_type
+%type<SampledImageType> sampled_image_type
 
 %%
 
@@ -520,8 +659,8 @@ literal: NUMLITERAL
 | STRINGLITERAL
 | boolean_const_expr;
 
-boolean_const_expr: C_TRUE
-| C_FALSE;
+boolean_const_expr: C_TRUE {$$ = true;}
+| C_FALSE {$$ = false;};
 
 /* VARIABLE DECLARATION */
 
@@ -534,63 +673,66 @@ var_def_continious: var_def_continious ',' IDENTIFIER
 
 /* TYPES */
 
-type: type_mod type_variant type_suffix {$$ = {};};
+type: type_mod type_variant type_array_suffix type_pointer_suffix {$$ = ConstantHelper::createType($1, $2, $3, $4);};
 
-type_suffix: type_suffix type_suffix_variant
-| %empty ;
+type_pointer_suffix: type_pointer_suffix '*' {$$ = $1 + 1;}
+| %empty {$$ = 0;};
 
-type_suffix_variant: '*'
-| "[]";
+type_array_suffix: '[' NUMLITERAL ']' {$$ = TypeArraySuffix{true, false, ConstantHelper::uintFromLiteral($2)};}
+| '[' ']' {$$ = TypeArraySuffix{true, true, 0};}
+| %empty {$$ = TypeArraySuffix{false, false, 0};};
 
-type_mod: CONST
-| %empty;
+type_mod: CONST {$$ = {true};}
+| %empty {$$ = {};};
 
 type_variant: simple_type
 | custom_type
 | complex_type_variant;
 
-custom_type: USER_DEFINED_TYPE;
+custom_type: USER_DEFINED_TYPE {$$ = TypeInner {EType::Struct, TypeStruct{$1}};};
 
-simple_type: void_type
-| int_type
-| float_type
-| bool_type ;
+simple_type: void_type {$$ = TypeInner {EType::Void, $1};}
+| int_type {$$ = TypeInner {EType::Int, $1};}
+| float_type {$$ = TypeInner {EType::Float, $1};}
+| bool_type {$$ = TypeInner {EType::Bool, $1};};
 
-complex_type_variant: matrix_type
-| vector_type
-| image_type
-| sampler_type
-| sampled_image_type;
+complex_type_variant: matrix_type {$$ = TypeInner {EType::Matrix, $1};}
+| vector_type {$$ = TypeInner {EType::Vector, $1};}
+| image_type {$$ = TypeInner {EType::Image, $1};}
+| sampler_type {$$ = TypeInner {EType::Sampler, $1};}
+| sampled_image_type {$$ = TypeInner {EType::SampledImage, $1};};
 
-void_type: VOID;
-int_type: INT
-| INT '<' '>'
-| INT '<' NUMLITERAL '>'
-| INT '<' NUMLITERAL ',' NUMLITERAL '>';
-float_type: FLOAT
-| FLOAT '<' '>'
-| FLOAT '<' NUMLITERAL '>';
-bool_type: BOOL;
+void_type: VOID {$$ = VoidType {};};
+int_type: INT {$$ = ConstantHelper::createIntType(32, true);}
+| INT '<' '>'{$$ = ConstantHelper::createIntType(32, true);}
+| INT '<' NUMLITERAL '>'{$$ = ConstantHelper::createIntType((uint8_t) ConstantHelper::uintFromLiteral($3), true);}
+| INT '<' NUMLITERAL ',' NUMLITERAL '>' {$$ = ConstantHelper::createIntType((uint8_t) ConstantHelper::uintFromLiteral($3), ConstantHelper::uintFromLiteral($5) != 0);}
+| INT '<' NUMLITERAL ',' boolean_const_expr '>' {$$ = ConstantHelper::createIntType((uint8_t) ConstantHelper::uintFromLiteral($3), $5);};
+float_type: FLOAT {$$ = ConstantHelper::createFloatType(32);}
+| FLOAT '<' '>' {$$ = ConstantHelper::createFloatType(32);}
+| FLOAT '<' NUMLITERAL '>' {$$ = ConstantHelper::createFloatType((uint8_t) ConstantHelper::uintFromLiteral($3));};
+bool_type: BOOL {$$ = BooleanType{};};
 
-vector_type: VECTOR '<' simple_type ',' NUMLITERAL '>';
+vector_type: VECTOR '<' simple_type ',' NUMLITERAL '>' {$$ = VectorType{$3, (uint8_t) ConstantHelper::uintFromLiteral($5)};};
 
-matrix_type: MATRIX '<' simple_type ',' NUMLITERAL ',' NUMLITERAL '>';
+matrix_type: MATRIX '<' simple_type ',' NUMLITERAL ',' NUMLITERAL '>' {$$ = MatrixType{$3, (uint8_t) ConstantHelper::uintFromLiteral($5), (uint8_t) ConstantHelper::uintFromLiteral($7)};};
 
-image_type: IMAGE '<' image_sampled_type ',' image_dim ',' image_depth ',' image_ms ',' image_sampled ',' image_format ',' image_access_qualifier '>'
-| IMAGE '<' image_sampled_type ',' image_dim ',' image_depth ',' image_ms ',' image_sampled ',' image_format '>';
-image_sampled_type: int_type
-| void_type;
+image_type: IMAGE '<' image_sampled_type ',' image_dim ',' image_depth ',' image_arrayed ',' image_ms ',' image_sampled ',' image_format '>' {$$ = ConstantHelper::createImageType($3, $5, (uint8_t) $7, (uint8_t) $9, (uint8_t) $11, (uint8_t) $13, $15);}
+| IMAGE '<' image_sampled_type ',' image_dim ',' image_depth ',' image_arrayed ',' image_ms ',' image_sampled ',' image_format ',' image_access_qualifier '>' {$$ = ConstantHelper::createImageType($3, $5, (uint8_t) $7, (uint8_t) $9, (uint8_t) $11, (uint8_t) $13, $15, $17);};
+image_sampled_type: int_type {$$ = TypeInner {EType::Int, $1};}
+| void_type {$$ = TypeInner {EType::Void, $1};};
 image_dim: NUMLITERAL {$$ = ConstantHelper::dimFromLiteral($1);}
 | IDENTIFIER {$$ = ConstantHelper::dimFromIdent($1);};
-image_depth: NUMLITERAL;
-image_ms: NUMLITERAL;
-image_sampled: NUMLITERAL;
-image_format: IDENTIFIER;
-image_access_qualifier: IDENTIFIER;
+image_depth: NUMLITERAL {$$ = ConstantHelper::uintFromLiteral($1);};
+image_arrayed: NUMLITERAL {$$ = ConstantHelper::uintFromLiteral($1);};
+image_ms: NUMLITERAL {$$ = ConstantHelper::uintFromLiteral($1);};
+image_sampled: NUMLITERAL {$$ = ConstantHelper::uintFromLiteral($1);};
+image_format: IDENTIFIER {$$ = ConstantHelper::imageFormatFromIdent($1);};
+image_access_qualifier: IDENTIFIER {$$ = ConstantHelper::accessQualifierFromIdent ($1);};
 
-sampler_type: SAMPLER;
+sampler_type: SAMPLER {$$ = SamplerType{};};
 
-sampled_image_type: SAMPLED_IMAGE;
+sampled_image_type: SAMPLED_IMAGE '<' image_type '>' {$$ = SampledImageType{TypeInner{EType::Image, $3}};};
 
 /* Attributes */
 attribute_rec: attribute_rec attribute {ctx.addTempAttribute($2);}
@@ -629,6 +771,34 @@ Attribute Attributes::fromLiteral(const std::string &ident, const Literal &l)
 	attr.type = AttributeParamType::Literal;
 	attr.paramLiteral = l;
 	return attr;
+}
+
+uint64_t ConstantHelper::uintFromLiteral(const Literal &l)
+{
+	switch (l.type)
+	{
+		case LiteralType::INumber:
+			return static_cast<uint64_t>(l.inum);
+		case LiteralType::UNumber:
+			return static_cast<uint64_t>(l.unum);
+		default:
+			// TODO: [OOKAMI] Throw error
+			throw 0;
+	}
+}
+
+int64_t ConstantHelper::intFromLiteral(const Literal &l)
+{
+	switch (l.type)
+	{
+		case LiteralType::INumber:
+			return static_cast<int64_t>(l.inum);
+		case LiteralType::UNumber:
+			return static_cast<int64_t>(l.unum);
+		default:
+			// TODO: [OOKAMI] Throw error
+			throw 0;
+	}
 }
 
 spv::Dim ConstantHelper::dimFromLiteral(const Literal &l)
@@ -674,6 +844,52 @@ spv::AccessQualifier ConstantHelper::accessQualifierFromIdent(const std::string 
 {
 	// TODO: [OOKAMI] Realization
 	return {};
+}
+
+IntType ConstantHelper::createIntType(uint8_t width, bool signedness)
+{
+	IntType t;
+	t.width = width;
+	t.signedness = signedness;
+	return t;
+}
+
+FloatType ConstantHelper::createFloatType(uint8_t width)
+{
+	FloatType t;
+	t.width = width;
+	return t;
+}
+
+ImageType ConstantHelper::createImageType(TypeInner sampledType, spv::Dim dim,
+	uint8_t isDepth, uint8_t isArrayed, uint8_t isMultisampled, uint8_t isSampled,
+	spv::ImageFormat imageFormat, std::optional<spv::AccessQualifier> accessQualifier)
+{
+		ImageType itype;
+		itype.sampledType = sampledType;
+		itype.dimension = dim;
+		itype.isDepth = isDepth;
+		itype.isArrayed = isArrayed;
+		itype.isMultisampled = isMultisampled;
+		itype.isSampled = isSampled;
+		itype.imageFormat = imageFormat;
+		itype.accessQualifier = accessQualifier;
+		return itype;
+}
+
+Type ConstantHelper::createType(const TypeModification &mod, TypeInner innerType, const TypeArraySuffix &arraySuffix, uint64_t pointerSuffixCount)
+{
+	Type t;
+	t.isConst = mod.isConst;
+	while (pointerSuffixCount)
+	{
+		innerType = TypeInner {EType::Pointer, PointerType{innerType}};
+		pointerSuffixCount--;
+	}
+	if (arraySuffix.isArray)
+		innerType = TypeInner {EType::Array, ArrayType{arraySuffix.isRuntime, arraySuffix.length, innerType}};
+	t.innerType = innerType;
+	return t;
 }
 
 // AST Container methods
