@@ -113,7 +113,7 @@ enum class ExpressionType
 	MoreOrEqual,
 	/*Control Switch - condition and loops */
 	If,
-	Select, (ternary op)
+	Select, // ternary op
 	For,
 	While,
 	DoWhile,
@@ -407,6 +407,11 @@ public:
 	static Expression literal(const Literal &literal);
 	static Expression type(const Type &type);
 	static Expression group(const ExpressionParams &params);
+	static Expression nop();
+	static Expression break();
+	static Expression continue();
+	static Expression return();
+	static Expression return(const Expression expression);
 private:
 	Op() = delete;
 	~Op() = delete();
@@ -571,12 +576,11 @@ statement_nb: if_statement
 | switch_statement
 | do_while_statement
 | expression ';'
-| RETURN expression ';'
-| RETURN ';'
-| CONTINUE ';'
-| BREAK ';'
-| ';'
-;
+| RETURN expression ';' {$$ = Op::return($2);}
+| RETURN ';' {$$ = Op::return();}
+| CONTINUE ';' {$$ = Op::continue();}
+| BREAK ';' {$$ = Op::break();}
+| ';' {$$ = Op::nop();};
 
 /* CONTROL SWITCHS*/
 
@@ -1049,6 +1053,42 @@ Expression Op::type(const Type &type)
 	Expression e;
 	e.type = ExpressionType::Type;
 	e.type = type;
+	return e;
+}
+
+Expression Op::nop()
+{
+	Expression e;
+	e.type = ExpressionType::None;
+	return e;
+}
+
+Expression Op::break()
+{
+	Expression e;
+	e.type = ExpressionType::Break;
+	return e;
+}
+
+Expression Op::continue()
+{
+	Expression e;
+	e.type = ExpressionType::Continue;
+	return e;
+}
+
+Expression Op::return()
+{
+	Expression e;
+	e.type = ExpressionType::Return;
+	return e;
+}
+
+Expression Op::return(const Expression expression)
+{
+	Expression e;
+	e.type = ExpressionType::Return;
+	e.params.push_back(expression);
 	return e;
 }
 
