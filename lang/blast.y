@@ -411,7 +411,19 @@ public:
 	static Expression makeBreak();
 	static Expression makeContinue();
 	static Expression makeReturn();
-	static Expression makeReturn(const Expression expression);
+	static Expression makeReturn(const Expression &expression);
+	static Expression makeIf(const Expression &expression,
+		const Expression &statement);
+	static Expression makeIf(const Expression &varDecl,
+		const Expression &expression, const Expression &statement);
+	static Expression makeFor(const Expression &varDecl,
+		const Expression &expression, const Expression &action,
+		const Expression &statement);
+	static Expression makeWhile(const Expression &expression,
+		const Expression &statement);
+	static Expression makeDoWhile(const Expression &expression,
+		const Expression &statement);
+	//static Expression makeSwitch(const Expression &expression);
 private:
 	Op() = delete;
 	~Op() = delete;
@@ -514,6 +526,8 @@ private:
 %type<Expression> expression comma_expression
 %type<Expression> statement_rec statement statement_nb statement_nb_rec
 %type<Expression> if_statement while_statement for_statement switch_statement do_while_statement
+%type<Expression> for_init for_condition for_action
+%type<Expression> switch_body switch_case_rec switch_case switch_default_case case_body
 
 %%
 
@@ -584,24 +598,22 @@ statement_nb: if_statement
 
 /* CONTROL SWITCHS*/
 
-if_statement: IF '(' expression ')' {++ctx;} statement {--ctx;}
-| IF '(' var_def ';' expression ')' {++ctx;} statement {--ctx;};
-while_statement: WHILE '(' expression ')' {++ctx;} statement {--ctx;};
-for_statement: FOR '(' for_init ';' for_condition ';' for_action ')' {++ctx;} statement {--ctx;};
-switch_statement: SWITCH switch_init switch_body;
-do_while_statement: DO {++ctx;} statement {--ctx;} WHILE '(' expression ')' ';' ;
+if_statement: IF '(' {++ctx;} expression ')' statement {$$ = Op::makeIf($4, $6); --ctx;}
+| IF '(' {++ctx;} var_def ';' expression ')' statement {$$ = Op::makeIf($4, $6, $8); --ctx;};
+while_statement: WHILE  '(' {++ctx;} expression ')' statement {$$ = Op::makeWhile($4, $6); --ctx;};
+for_statement: FOR '(' {++ctx;} for_init ';' for_condition ';' for_action ')' statement {$$ = Op::makeWhile($4, $6, $8, $10); --ctx;};
+switch_statement: SWITCH '(' {++ctx;} expression ')' switch_body {--ctx;}
+| SWITCH '(' {++ctx;} var_def ';' expression ')' switch_body {--ctx;};
+do_while_statement: DO {++ctx;} statement {--ctx;} WHILE '(' expression ')' ';' {$$ = Op::makeDoWhile($3, $7);};
 
 for_init: var_def
-| %empty;
+| %empty {$$ = Op::nop();};
 
 for_condition: expression
-| %empty;
+| %empty {$$ = Op::nop();};
 
 for_action: expression
-| %empty;
-
-switch_init: '(' expression ')'
-| '(' var_def ';' expression ')';
+| %empty {$$ = Op::nop();};
 
 switch_body: '{' switch_case_rec '}';
 
@@ -642,7 +654,7 @@ comma_expression: expression {$$ = Op::simple(ExpressionType::Comma, {$1});}
 
 expression: IDENTIFIER {$$ = Op::ident(ctx.use($1));}
 | literal {$$ = Op::literal($1);}
-| '(' comma_expression ')'
+| '(' comma_expression ')' {$$ = $2;}
 | expression '(' ')'
 | expression '(' comma_expression ')'
 | expression '[' expression ']' {$$ = Op::simple(ExpressionType::ArrayAccess, {$1, $3});}
@@ -1060,6 +1072,14 @@ Expression Op::type(const Type &type)
 	return e;
 }
 
+Expression Op::group(const ExpressionParams &params)
+{
+	Expression e;
+	e.type = ExpressionType::StatementGroup;
+	e.params = params;
+	return e;
+}
+
 Expression Op::nop()
 {
 	Expression e;
@@ -1088,10 +1108,64 @@ Expression Op::makeReturn()
 	return e;
 }
 
-Expression Op::makeReturn(const Expression expression)
+Expression Op::makeReturn(const Expression &expression)
 {
 	Expression e;
 	e.type = ExpressionType::Return;
+	e.params.push_back(expression);
+	return e;
+}
+
+Expression makeIf(const Expression &expression,
+	const Expression &statement)
+{
+	Expression e;
+	e.type = ExpressionType::If;
+	e.params.push_back(expression);
+	e.params.push_back(statement);
+	return e;
+}
+
+Expression makeIf(const Expression &varDecl,
+	const Expression &expression, const Expression &statement)
+{
+	Expression e;
+	e.type = ExpressionType::If;
+	e.params.push_back(varDecl);
+	e.params.push_back(expression);
+	e.params.push_back(statement);
+	return e;
+}
+
+Expression makeFor(const Expression &varDecl,
+	const Expression &expression, const Expression &action,
+	const Expression &statement)
+{
+	Expression e;
+	e.type = ExpressionType::For;
+	e.params.push_back(varDecl);
+	e.params.push_back(expression);
+	e.params.push_back(action);
+	e.params.push_back(statement);
+	return e;
+}
+
+Expression makeWhile(const Expression &expression,
+	const Expression &statement)
+{
+	Expression e;
+	e.type = ExpressionType::While;
+	e.params.push_back(expression);
+	e.params.push_back(statement);
+	return e;
+}
+
+Expression makeDoWhile(const Expression &expression,
+	const Expression &statement)
+{
+	Expression e;
+	e.type = ExpressionType::DoWhile;
+	e.params.push_back(statement);
 	e.params.push_back(expression);
 	return e;
 }
@@ -1135,7 +1209,7 @@ Identifier Context::use(std::string name)
 			continue;
 		return findResult->second;
 	}
-	return {}; 
+	return {};
 }
 
 Struct &Context::defineStruct(const std::string &name)
