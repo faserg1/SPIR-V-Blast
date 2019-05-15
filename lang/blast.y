@@ -42,7 +42,8 @@ enum class LiteralType
 	String,
 	UNumber,
 	INumber,
-	DNumber
+	DNumber,
+	Boolean
 };
 
 enum class EType
@@ -260,6 +261,7 @@ struct Literal
 		uint64_t unum;
 		int64_t inum;
 		long double dnum;
+		bool boolean;
 	};
 	std::string string;
 };
@@ -478,7 +480,7 @@ private:
 %right INC DEC '!' '~' UMINUS UPLUS PTR_DR ADDR
 %left '(' '[' '.' PTR_ACCESS POST_INC POST_DEC
 
-%type<Literal> NUMLITERAL STRINGLITERAL
+%type<Literal> literal NUMLITERAL STRINGLITERAL
 %type<std::string> IDENTIFIER USER_DEFINED_TYPE
 %type<Struct> struct_a struct
 %type<std::vector<struct StructMember>> struct_body struct_members_continious struct_member_a struct_member
@@ -503,7 +505,9 @@ private:
 %type<ImageType> image_type
 %type<SamplerType> sampler_type
 %type<SampledImageType> sampled_image_type
-%type<Expression> function_body braced_body body statement_rec statement statement_nb var_def expression comma_expression
+%type<Expression> function_body braced_body body var_def
+%type<Expression> expression comma_expression
+%type<Expression> statement_rec statement statement_nb statement_nb_rec
 %type<Expression> if_statement while_statement for_statement switch_statement do_while_statement
 
 %%
@@ -692,7 +696,7 @@ expression: IDENTIFIER {$$ = Op::ident(ctx.use($1));}
 
 literal: NUMLITERAL
 | STRINGLITERAL
-| boolean_const_expr;
+| boolean_const_expr {Literal l; l.type = LiteralType::Boolean; l.boolean = $1; $$ = l;};
 
 boolean_const_expr: C_TRUE {$$ = true;}
 | C_FALSE {$$ = false;};
