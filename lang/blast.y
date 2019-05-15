@@ -414,7 +414,7 @@ public:
 	static Expression makeReturn(const Expression expression);
 private:
 	Op() = delete;
-	~Op() = delete();
+	~Op() = delete;
 };
 
 class Context :
@@ -637,7 +637,7 @@ struct_member_continious: struct_member_continious ',' IDENTIFIER {$$ = std::mov
 
 /* EXPRESSIONS */
 
-comma_expression: expression {$$ = Op(ExpressionType::Comma, {$1});}
+comma_expression: expression {$$ = Op::simple(ExpressionType::Comma, {$1});}
 | comma_expression ',' expression {auto c = $1; c.params.push_back($3); $$ = c;};
 
 expression: IDENTIFIER {$$ = Op::ident(ctx.use($1));}
