@@ -836,14 +836,100 @@ spv::Dim ConstantHelper::dimFromIdent(const std::string &ident)
 
 spv::ImageFormat ConstantHelper::imageFormatFromIdent(const std::string &ident)
 {
-	// TODO: [OOKAMI] Realization
-	return {};
+	if (ident == "Unknown")
+		return spv::ImageFormat::Unknown;
+	else if (ident == "Rgba32f")
+		return spv::ImageFormat::Rgba32f;
+	else if (ident == "Rgba16f")
+		return spv::ImageFormat::Rgba16f;
+	else if (ident == "R32f")
+		return spv::ImageFormat::R32f;
+	else if (ident == "Rgba8")
+		return spv::ImageFormat::Rgba8;
+	else if (ident == "Rgba8Snorm")
+		return spv::ImageFormat::Rgba8Snorm;
+	else if (ident == "Rg32f")
+		return spv::ImageFormat::Rg32f;
+	else if (ident == "Rg16f")
+		return spv::ImageFormat::Rg16f;
+	else if (ident == "R11fG11fB10f")
+		return spv::ImageFormat::R11fG11fB10f;
+	else if (ident == "R16f")
+		return spv::ImageFormat::R16f;
+	else if (ident == "Rgba16")
+		return spv::ImageFormat::Rgba16;
+	else if (ident == "Rgb10A2")
+		return spv::ImageFormat::Rgb10A2;
+	else if (ident == "Rg16")
+		return spv::ImageFormat::Rg16;
+	else if (ident == "Rg8")
+		return spv::ImageFormat::Rg8;
+	else if (ident == "R16")
+		return spv::ImageFormat::R16;
+	else if (ident == "R8")
+		return spv::ImageFormat::R8;
+	else if (ident == "Rgba16Snorm")
+		return spv::ImageFormat::Rgba16Snorm;
+	else if (ident == "Rg16Snorm")
+		return spv::ImageFormat::Rg16Snorm;
+	else if (ident == "Rg8Snorm")
+		return spv::ImageFormat::Rg8Snorm;
+	else if (ident == "R16Snorm")
+		return spv::ImageFormat::R16Snorm;
+	else if (ident == "R8Snorm")
+		return spv::ImageFormat::R8Snorm;
+	else if (ident == "Rgba32i")
+		return spv::ImageFormat::Rgba32i;
+	else if (ident == "Rgba16i")
+		return spv::ImageFormat::Rgba16i;
+	else if (ident == "Rgba8i")
+		return spv::ImageFormat::Rgba8i;
+	else if (ident == "R32i")
+		return spv::ImageFormat::R32i;
+	else if (ident == "Rg32i")
+		return spv::ImageFormat::Rg32i;
+	else if (ident == "Rg16i")
+		return spv::ImageFormat::Rg16i;
+	else if (ident == "Rg8i")
+		return spv::ImageFormat::Rg8i;
+	else if (ident == "R16i")
+		return spv::ImageFormat::R16i;
+	else if (ident == "R8i")
+		return spv::ImageFormat::R8i;
+	else if (ident == "Rgba32ui")
+		return spv::ImageFormat::Rgba32ui;
+	else if (ident == "Rgba16ui")
+		return spv::ImageFormat::Rgba16ui;
+	else if (ident == "Rgba8ui")
+		return spv::ImageFormat::Rgba8ui;
+	else if (ident == "R32ui")
+		return spv::ImageFormat::R32ui;
+	else if (ident == "Rgb10a2ui")
+		return spv::ImageFormat::Rgb10a2ui;
+	else if (ident == "Rg32ui")
+		return spv::ImageFormat::Rg32ui;
+	else if (ident == "Rg16ui")
+		return spv::ImageFormat::Rg16ui;
+	else if (ident == "Rg8ui")
+		return spv::ImageFormat::Rg8ui;
+	else if (ident == "R16ui")
+		return spv::ImageFormat::R16ui;
+	else if (ident == "R8ui")
+		return spv::ImageFormat::R8ui;
+	// TODO: [OOKAMI] Throw exception
+	throw 0;
 }
 
 spv::AccessQualifier ConstantHelper::accessQualifierFromIdent(const std::string &ident)
 {
-	// TODO: [OOKAMI] Realization
-	return {};
+	if (ident == "ReadOnly")
+		return spv::AccessQualifier::ReadOnly;
+	else if (ident == "WriteOnly")
+		return spv::AccessQualifier::WriteOnly;
+	if (ident == "ReadWrite")
+		return spv::AccessQualifier::ReadWrite;
+	// TODO: [OOKAMI] Throw exception
+	throw 0;
 }
 
 IntType ConstantHelper::createIntType(uint8_t width, bool signedness)
