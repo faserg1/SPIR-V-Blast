@@ -428,7 +428,7 @@ public:
 	void addTempAttribute(Attribute attr);
 	std::vector<Attribute> getAndClearTempAttributes();
 	IdentifierType getIdentifierType(std::string name) const override;
-	Identifier use(std::string);
+	Identifier use(std::string name);
 	Struct &defineStruct(const std::string &name);
 	Struct &getStruct(const std::string &name);
 	std::vector<struct StructMember> defineStructMembers(Type t, const std::vector<std::string> &names);
@@ -576,10 +576,10 @@ statement_nb: if_statement
 | switch_statement
 | do_while_statement
 | expression ';'
-| RETURN expression ';' {$$ = Op::return($2);}
-| RETURN ';' {$$ = Op::return();}
-| CONTINUE ';' {$$ = Op::continue();}
-| BREAK ';' {$$ = Op::break();}
+| RETURN expression ';' {$$ = Op::makeReturn($2);}
+| RETURN ';' {$$ = Op::makeReturn();}
+| CONTINUE ';' {$$ = Op::makeContinue();}
+| BREAK ';' {$$ = Op::makeBreak();}
 | ';' {$$ = Op::nop();};
 
 /* CONTROL SWITCHS*/
@@ -1063,28 +1063,28 @@ Expression Op::nop()
 	return e;
 }
 
-Expression Op::break()
+Expression Op::makeBreak()
 {
 	Expression e;
 	e.type = ExpressionType::Break;
 	return e;
 }
 
-Expression Op::continue()
+Expression Op::makeContinue()
 {
 	Expression e;
 	e.type = ExpressionType::Continue;
 	return e;
 }
 
-Expression Op::return()
+Expression Op::makeReturn()
 {
 	Expression e;
 	e.type = ExpressionType::Return;
 	return e;
 }
 
-Expression Op::return(const Expression expression)
+Expression Op::makeReturn(const Expression expression)
 {
 	Expression e;
 	e.type = ExpressionType::Return;
@@ -1122,7 +1122,7 @@ IdentifierType Context::getIdentifierType(std::string name) const
 	return IdentifierType::Undefined;
 }
 
-Identifier Context::use(std::string)
+Identifier Context::use(std::string name)
 {
 	for (auto it = scopes.rbegin(); it != scopes.rend(); it++)
 	{
