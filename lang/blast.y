@@ -408,10 +408,10 @@ public:
 	static Expression type(const Type &type);
 	static Expression group(const ExpressionParams &params);
 	static Expression nop();
-	static Expression break();
-	static Expression continue();
-	static Expression return();
-	static Expression return(const Expression expression);
+	static Expression makeBreak();
+	static Expression makeContinue();
+	static Expression makeReturn();
+	static Expression makeReturn(const Expression expression);
 private:
 	Op() = delete;
 	~Op() = delete();
@@ -554,10 +554,10 @@ function_body: braced_body;
 
 /* BODY AND STATEMENTS */
 
-braced_body: '{' {++ctx;} body {--ctx;} '}';
+braced_body: '{' {++ctx;} body {--ctx;} '}' {$$ = $3;};
 
 body: statement_rec
-| %empty;
+| %empty {$$ = Op::nop();};
 
 statement_rec: statement_rec statement {auto e = $1; e.params.push_back($2); $$ = e;}
 | statement {$$ = Op::group({$1});};
@@ -860,7 +860,11 @@ spv::Dim ConstantHelper::dimFromLiteral(const Literal &l)
 					return spv::Dim::Dim2D;
 				case 3:
 					return spv::Dim::Dim3D;
+				default:
+					break;
 			}
+		default:
+			break;
 	}
 	// TODO: [OOKAMI] Throw exception
 	throw 0;
