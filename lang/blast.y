@@ -71,9 +71,13 @@ enum class AttributeParamType
 enum class ExpressionType
 {
 	None,
+	Statement,
+	StatementGroup,
+	VariableDeclaration,
 	/*Basic*/
 	Literal,
 	Identifier,
+	Type,
 	/*Ariphmetic*/
 	Add,
 	Negate,
@@ -85,14 +89,21 @@ enum class ExpressionType
 	PreDecrement,
 	PostIncrement,
 	PostDecrement,
+	UnaryPlus,
+	UnaryMinus,
 	/*Bit instructions*/
 	BitShiftLogicalLeft,
 	BitShiftLogicalRight,
 	BitShiftArithmeticLeft,
 	BitShiftArithmeticRight,
+	BitAnd,
+	BitOr,
+	BitXor,
+	BitInvert,
 	/*Logical*/
 	Equal,
 	NonEqual,
+	Not,
 	And,
 	Or,
 	Less,
@@ -101,6 +112,7 @@ enum class ExpressionType
 	MoreOrEqual,
 	/*Control Switch - condition and loops */
 	If,
+	Select, (ternary op)
 	For,
 	While,
 	DoWhile,
@@ -114,11 +126,16 @@ enum class ExpressionType
 	Break,
 	Continue,
 	/*References*/
-	Reference, Dereference,
+	ArrayAccess,
+	PointerAccess,
+	ObjectAccess,
+	Reference,
+	Dereference,
 	/*Cast*/
 	BitCast,
 	/*Misc*/
 	Comma,
+	Assignment,
 };
 
 struct Identifier
@@ -267,20 +284,21 @@ struct Expression
 	ExpressionType type;
 	Identifier ident {};
 	Literal literal {};
+	Type type {};
 	ExpressionParams params;
+	std::vector<BaseVariable> declaredVariables;
 };
 
 typedef std::vector<struct FunctionParameter> FunctionParameters;
 
-struct FunctionDeclaration
+struct FunctionDeclaration : Attributable
 {
 	std::string name;
 	FunctionParameters parameters;
 };
 
-struct Function : Attributable
+struct Function : FunctionDeclaration
 {
-	std::string name;
 	struct Expression body;
 };
 
@@ -379,6 +397,19 @@ private:
 	~ConstantHelper() = delete;
 };
 
+class Op
+{
+public:
+	static Expression simple(ExpressionType type, const ExpressionParams &params);
+	static Expression ident(const Identifier &ident);
+	static Expression literal(const Literal &literal);
+	static Expression type(const Type &type);
+	static Expression group(const ExpressionParams &params);
+private:
+	Op() = delete;
+	~Op() = delete();
+};
+
 class Context :
 	public virtual LexContext,
 	public virtual AbstractSyntaxTreeContainer
@@ -390,6 +421,7 @@ public:
 	void addTempAttribute(Attribute attr);
 	std::vector<Attribute> getAndClearTempAttributes();
 	IdentifierType getIdentifierType(std::string name) const override;
+	Identifier use(std::string);
 	Struct &defineStruct(const std::string &name);
 	Struct &getStruct(const std::string &name);
 	std::vector<struct StructMember> defineStructMembers(Type t, const std::vector<std::string> &names);
@@ -471,6 +503,8 @@ private:
 %type<ImageType> image_type
 %type<SamplerType> sampler_type
 %type<SampledImageType> sampled_image_type
+%type<Expression> function_body braced_body body statement_rec statement statement_nb var_def expression comma_expression
+%type<Expression> if_statement while_statement for_statement switch_statement do_while_statement
 
 %%
 
@@ -481,7 +515,8 @@ shader_unit_rec: shader_unit_rec shader_unit
 
 shader_unit: function_a
 | function_prototype_a
-| struct_a ;
+| struct_a
+| var_def_a;
 
 /* FUNCTIONS */
 
@@ -515,16 +550,16 @@ braced_body: '{' {++ctx;} body {--ctx;} '}';
 body: statement_rec
 | %empty;
 
-statement_rec: statement_rec statement
-| statement;
+statement_rec: statement_rec statement {auto e = $1; e.params.push_back($2); $$ = e;}
+| statement {$$ = Op::group({$1});};
 
 statement: statement_nb
 | braced_body
-| var_def ';' ;
+| var_def ';';
 
-statement_nb_rec: statement_nb_rec statement_nb
-| braced_body
-| statement_nb;
+statement_nb_rec: statement_nb_rec statement_nb {auto e = $1; e.params.push_back($2); $$ = e;}
+| braced_body {$$ = Op::group({$1});}
+| statement_nb {$$ = Op::group({$1});};
 
 statement_nb: if_statement
 | while_statement
@@ -541,12 +576,12 @@ statement_nb: if_statement
 
 /* CONTROL SWITCHS*/
 
-if_statement: IF '(' expression ')' statement
-| IF '(' var_def ';' expression ')' statement;
-while_statement: WHILE '(' expression ')' statement;
-for_statement: FOR '(' for_init ';' for_condition ';' for_action ')' statement;
+if_statement: IF '(' expression ')' {++ctx;} statement {--ctx;}
+| IF '(' var_def ';' expression ')' {++ctx;} statement {--ctx;};
+while_statement: WHILE '(' expression ')' {++ctx;} statement {--ctx;};
+for_statement: FOR '(' for_init ';' for_condition ';' for_action ')' {++ctx;} statement {--ctx;};
 switch_statement: SWITCH switch_init switch_body;
-do_while_statement: DO statement WHILE '(' expression ')' ';'
+do_while_statement: DO {++ctx;} statement {--ctx;} WHILE '(' expression ')' ';' ;
 
 for_init: var_def
 | %empty;
@@ -594,64 +629,64 @@ struct_member_continious: struct_member_continious ',' IDENTIFIER {$$ = std::mov
 
 /* EXPRESSIONS */
 
-comma_expression: expression
-| comma_expression ',' expression;
+comma_expression: expression {$$ = Op(ExpressionType::Comma, {$1}};}
+| comma_expression ',' expression {auto c = $1; c.params.push_back($3); $$ = c;};
 
-expression: IDENTIFIER
-| literal
+expression: IDENTIFIER {$$ = Op::ident(ctx.use($1));}
+| literal {$$ = Op::literal($1);}
 | '(' comma_expression ')'
 | expression '(' ')'
 | expression '(' comma_expression ')'
-| expression '[' expression ']'
-| expression PTR_ACCESS expression
-| expression '.' expression
-| expression '=' expression
-| expression '+' expression
-| expression '-' expression
-| expression '*' expression
-| expression '/' expression
-| expression MOD expression
-| expression '%' expression
-| expression "+=" expression
-| expression "-=" expression
-| expression "*=" expression
-| expression "/=" expression
-| expression "/%=" expression
-| expression "%=" expression
-| expression ">>=" expression
-| expression "<<=" expression
-| expression "!>>=" expression
-| expression "!<<=" expression
-| expression "&=" expression
-| expression "|=" expression
-| expression "^=" expression
-| expression '^' expression
-| expression '|' expression
-| expression '&' expression
-| expression OR expression
-| expression AND expression
-| expression EQ expression
-| expression NE expression
-| expression LESS expression
-| expression MORE expression
-| expression LESS_EQ expression
-| expression MORE_EQ expression
-| '-' expression %prec UMINUS
-| '+' expression %prec UPLUS
-| '*' expression %prec PTR_DR
-| '&' expression %prec ADDR
-| '!' expression
-| '~' expression
-| INC expression
-| DEC expression
-| expression INC %prec POST_INC
-| expression DEC %prec POST_DEC
-| expression '?' expression ':' expression
-| BITCAST '<' type '>' '(' expression ')'
-| expression SHIFT_LEFT_A expression
-| expression SHIFT_RIGHT_A expression
-| expression SHIFT_LEFT_L expression
-| expression SHIFT_RIGHT_L expression;
+| expression '[' expression ']' {$$ = Op::simple(ExpressionType::ArrayAccess, {$1, $3});}
+| expression PTR_ACCESS expression {$$ = Op::simple(ExpressionType::PointerAccess, {$1, $3});}
+| expression '.' expression {$$ = Op::simple(ExpressionType::ObjectAccess, {$1, $3});}
+| expression '=' expression {$$ = Op::simple(ExpressionType::Assignment, {$1, $3});}
+| expression '+' expression {$$ = Op::simple(ExpressionType::Add, {$1, $3});}
+| expression '-' expression {$$ = Op::simple(ExpressionType::Negate, {$1, $3});}
+| expression '*' expression {$$ = Op::simple(ExpressionType::Multiply, {$1, $3});}
+| expression '/' expression {$$ = Op::simple(ExpressionType::Divide, {$1, $3});}
+| expression MOD expression {$$ = Op::simple(ExpressionType::Modulo, {$1, $3});}
+| expression '%' expression {$$ = Op::simple(ExpressionType::Remainder, {$1, $3});}
+| expression "+=" expression {$$ = Op::simple(ExpressionType::Assignment, {$1, Op::simple(ExpressionType::Add, {$1, $3})});}
+| expression "-=" expression {$$ = Op::simple(ExpressionType::Assignment, {$1, Op::simple(ExpressionType::Negate, {$1, $3})});}
+| expression "*=" expression {$$ = Op::simple(ExpressionType::Assignment, {$1, Op::simple(ExpressionType::Multiply, {$1, $3})});}
+| expression "/=" expression {$$ = Op::simple(ExpressionType::Assignment, {$1, Op::simple(ExpressionType::Divide, {$1, $3})});}
+| expression "/%=" expression {$$ = Op::simple(ExpressionType::Assignment, {$1, Op::simple(ExpressionType::Modulo, {$1, $3})});}
+| expression "%=" expression {$$ = Op::simple(ExpressionType::Assignment, {$1, Op::simple(ExpressionType::Remainder, {$1, $3})});}
+| expression ">>=" expression {$$ = Op::simple(ExpressionType::Assignment, {$1, Op::simple(ExpressionType::BitShiftLogicalRight, {$1, $3})});}
+| expression "<<=" expression {$$ = Op::simple(ExpressionType::Assignment, {$1, Op::simple(ExpressionType::BitShiftLogicalLeft, {$1, $3})});}
+| expression "!>>=" expression {$$ = Op::simple(ExpressionType::Assignment, {$1, Op::simple(ExpressionType::BitShiftArithmeticRight, {$1, $3})});}
+| expression "!<<=" expression {$$ = Op::simple(ExpressionType::Assignment, {$1, Op::simple(ExpressionType::BitShiftArithmeticLeft, {$1, $3})});}
+| expression "&=" expression {$$ = Op::simple(ExpressionType::Assignment, {$1, Op::simple(ExpressionType::BitAnd, {$1, $3})});}
+| expression "|=" expression {$$ = Op::simple(ExpressionType::Assignment, {$1, Op::simple(ExpressionType::BitOr, {$1, $3})});}
+| expression "^=" expression {$$ = Op::simple(ExpressionType::Assignment, {$1, Op::simple(ExpressionType::BitXor, {$1, $3})});}
+| expression '^' expression {$$ = Op::simple(ExpressionType::BitXor, {$1, $3});}
+| expression '|' expression {$$ = Op::simple(ExpressionType::BitOr, {$1, $3});}
+| expression '&' expression {$$ = Op::simple(ExpressionType::BitAnd, {$1, $3});}
+| expression OR expression {$$ = Op::simple(ExpressionType::Or, {$1, $3});}
+| expression AND expression {$$ = Op::simple(ExpressionType::And, {$1, $3});}
+| expression EQ expression {$$ = Op::simple(ExpressionType::Equal, {$1, $3});}
+| expression NE expression {$$ = Op::simple(ExpressionType::NonEqual, {$1, $3});}
+| expression LESS expression {$$ = Op::simple(ExpressionType::Less, {$1, $3});}
+| expression MORE expression {$$ = Op::simple(ExpressionType::More, {$1, $3});}
+| expression LESS_EQ expression {$$ = Op::simple(ExpressionType::LessOrEqual, {$1, $3});}
+| expression MORE_EQ expression {$$ = Op::simple(ExpressionType::MoreOrEqual, {$1, $3});}
+| '-' expression %prec UMINUS {$$ = Op::simple(ExpressionType::UnaryMinus, {$2});}
+| '+' expression %prec UPLUS {$$ = Op::simple(ExpressionType::UnaryPlus, {$2});}
+| '*' expression %prec PTR_DR {$$ = Op::simple(ExpressionType::Dereference, {$2});}
+| '&' expression %prec ADDR {$$ = Op::simple(ExpressionType::Reference, {$2});}
+| '!' expression {$$ = Op::simple(ExpressionType::Not, {$2});}
+| '~' expression {$$ = Op::simple(ExpressionType::BitInvert, {$2});}
+| INC expression {$$ = Op::simple(ExpressionType::PreIncrement, {$2});}
+| DEC expression {$$ = Op::simple(ExpressionType::PreDecrement, {$2});}
+| expression INC %prec POST_INC {$$ = Op::simple(ExpressionType::PostIncrement, {$1});}
+| expression DEC %prec POST_DEC {$$ = Op::simple(ExpressionType::PostDecrement, {$1});}
+| expression '?' expression ':' expression {$$ = Op::simple(ExpressionType::Select, {$1, $3, $5});}
+| BITCAST '<' type '>' '(' expression ')' {$$ = Op::simple(ExpressionType::BitCast, {Op::type($3), $6});}
+| expression SHIFT_LEFT_A expression {$$ = Op::simple(ExpressionType::BitShiftArithmeticLeft, {$1, $3});}
+| expression SHIFT_RIGHT_A expression {$$ = Op::simple(ExpressionType::BitShiftArithmeticRight, {$1, $3});}
+| expression SHIFT_LEFT_L expression {$$ = Op::simple(ExpressionType::BitShiftLogicalLeft, {$1, $3});}
+| expression SHIFT_RIGHT_L expression {$$ = Op::simple(ExpressionType::BitShiftLogicalRight, {$1, $3});};
 
 /* Literals */
 
@@ -664,7 +699,10 @@ boolean_const_expr: C_TRUE {$$ = true;}
 
 /* VARIABLE DECLARATION */
 
-var_def: attribute_rec type var_def_continious;
+var_def_a: var_def
+| attribute_rec var_def;
+
+var_def: type var_def_continious;
 
 var_def_continious: var_def_continious ',' IDENTIFIER
 | var_def_continious ',' IDENTIFIER '=' expression
@@ -978,6 +1016,38 @@ Type ConstantHelper::createType(const TypeModification &mod, TypeInner innerType
 	return t;
 }
 
+Expression Op::simple(ExpressionType type, const ExpressionParams &params)
+{
+	Expression e;
+	e.type = type;
+	e.params = params;
+	return e;
+}
+
+Expression Op::ident(const Identifier &ident)
+{
+	Expression e;
+	e.type = ExpressionType::Identifier;
+	e.ident = ident;
+	return e;
+}
+
+Expression Op::literal(const Literal &literal)
+{
+	Expression e;
+	e.type = ExpressionType::Literal;
+	e.literal = literal;
+	return e;
+}
+
+Expression Op::type(const Type &type)
+{
+	Expression e;
+	e.type = ExpressionType::Type;
+	e.type = type;
+	return e;
+}
+
 // AST Container methods
 
 std::vector<struct Struct> Context::getStructs() const
@@ -1006,6 +1076,18 @@ IdentifierType Context::getIdentifierType(std::string name) const
 		return findResult->second.type;
 	}
 	return IdentifierType::Undefined;
+}
+
+Identifier Context::use(std::string)
+{
+	for (auto it = scopes.rbegin(); it != scopes.rend(); it++)
+	{
+		auto findResult = it->identifiers.find(name);
+		if (findResult == it->identifiers.end())
+			continue;
+		return findResult->second;
+	}
+	return {}; 
 }
 
 Struct &Context::defineStruct(const std::string &name)
