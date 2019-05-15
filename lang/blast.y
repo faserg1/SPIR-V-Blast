@@ -286,7 +286,7 @@ struct Expression
 	ExpressionType type;
 	Identifier ident {};
 	Literal literal {};
-	Type type {};
+	Type castToType {};
 	ExpressionParams params;
 	std::vector<BaseVariable> declaredVariables;
 };
@@ -1052,7 +1052,7 @@ Expression Op::type(const Type &type)
 {
 	Expression e;
 	e.type = ExpressionType::Type;
-	e.type = type;
+	e.castToType = type;
 	return e;
 }
 
