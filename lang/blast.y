@@ -1116,7 +1116,7 @@ Expression Op::makeReturn(const Expression &expression)
 	return e;
 }
 
-Expression makeIf(const Expression &expression,
+Expression Op::makeIf(const Expression &expression,
 	const Expression &statement)
 {
 	Expression e;
@@ -1126,7 +1126,7 @@ Expression makeIf(const Expression &expression,
 	return e;
 }
 
-Expression makeIf(const Expression &varDecl,
+Expression Op::makeIf(const Expression &varDecl,
 	const Expression &expression, const Expression &statement)
 {
 	Expression e;
@@ -1137,7 +1137,7 @@ Expression makeIf(const Expression &varDecl,
 	return e;
 }
 
-Expression makeFor(const Expression &varDecl,
+Expression Op::makeFor(const Expression &varDecl,
 	const Expression &expression, const Expression &action,
 	const Expression &statement)
 {
@@ -1150,7 +1150,7 @@ Expression makeFor(const Expression &varDecl,
 	return e;
 }
 
-Expression makeWhile(const Expression &expression,
+Expression Op::makeWhile(const Expression &expression,
 	const Expression &statement)
 {
 	Expression e;
@@ -1160,7 +1160,7 @@ Expression makeWhile(const Expression &expression,
 	return e;
 }
 
-Expression makeDoWhile(const Expression &expression,
+Expression Op::makeDoWhile(const Expression &expression,
 	const Expression &statement)
 {
 	Expression e;
