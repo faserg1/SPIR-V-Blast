@@ -601,7 +601,7 @@ statement_nb: if_statement
 if_statement: IF '(' {++ctx;} expression ')' statement {$$ = Op::makeIf($4, $6); --ctx;}
 | IF '(' {++ctx;} var_def ';' expression ')' statement {$$ = Op::makeIf($4, $6, $8); --ctx;};
 while_statement: WHILE  '(' {++ctx;} expression ')' statement {$$ = Op::makeWhile($4, $6); --ctx;};
-for_statement: FOR '(' {++ctx;} for_init ';' for_condition ';' for_action ')' statement {$$ = Op::makeWhile($4, $6, $8, $10); --ctx;};
+for_statement: FOR '(' {++ctx;} for_init ';' for_condition ';' for_action ')' statement {$$ = Op::makeFor($4, $6, $8, $10); --ctx;};
 switch_statement: SWITCH '(' {++ctx;} expression ')' switch_body {--ctx;}
 | SWITCH '(' {++ctx;} var_def ';' expression ')' switch_body {--ctx;};
 do_while_statement: DO {++ctx;} statement {--ctx;} WHILE '(' expression ')' ';' {$$ = Op::makeDoWhile($3, $7);};
