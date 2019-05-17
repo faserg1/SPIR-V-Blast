@@ -280,6 +280,7 @@ struct Attributable
 };
 
 typedef std::list<struct Expression> ExpressionParams;
+typedef std::list<struct LocalVariable> LocalVariables;
 
 struct Expression
 {
@@ -288,7 +289,12 @@ struct Expression
 	Literal literal {};
 	Type castToType {};
 	ExpressionParams params;
-	std::vector<BaseVariable> declaredVariables;
+	LocalVariables declaredVariables;
+};
+
+struct LocalVariable : BaseVariable
+{
+	std::optional<struct Expression> initialization;
 };
 
 typedef std::vector<struct FunctionParameter> FunctionParameters;
@@ -318,6 +324,11 @@ struct Struct : Attributable
 struct StructMember : Attributable, BaseVariable
 {
 	std::size_t position; //member position in struct
+};
+
+struct GlobalVariable : Attributable, BaseVariable
+{
+	std::optional<struct Expression> initialization;
 };
 
 class LexContext
