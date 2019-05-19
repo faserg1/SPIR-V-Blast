@@ -524,13 +524,13 @@ private:
 %left '|'
 %left '^'
 %left '&'
-%left EQ NE
-%left LESS MORE LESS_EQ MORE_EQ
-%left SHIFT_LEFT_A SHIFT_RIGHT_A SHIFT_LEFT_L SHIFT_RIGHT_L
+%left "==" "!="
+%left '<' '>' "<=" ">="
+%left "<<"  ">>" "!<<" "!>>"
 %left '+' '-'
-%left '*' '/' MOD '%'
-%right INC DEC '!' '~' UMINUS UPLUS PTR_DR ADDR
-%left '(' '[' '.' PTR_ACCESS POST_INC POST_DEC
+%left '*' '/' "/%" '%'
+%right "++" "--" '!' '~' UMINUS UPLUS PTR_DR ADDR
+%left '(' '[' '.' "->" POST_INC POST_DEC
 
 %type<Literal> literal NUMLITERAL STRINGLITERAL
 %type<std::string> IDENTIFIER USER_DEFINED_TYPE
@@ -698,14 +698,14 @@ expression: IDENTIFIER {$$ = Op::ident(ctx.use($1));}
 | expression '(' ')'
 | expression '(' comma_expression ')'
 | expression '[' expression ']' {$$ = Op::simple(ExpressionType::ArrayAccess, {$1, $3});}
-| expression PTR_ACCESS expression {$$ = Op::simple(ExpressionType::PointerAccess, {$1, $3});}
+| expression "->" expression {$$ = Op::simple(ExpressionType::PointerAccess, {$1, $3});}
 | expression '.' expression {$$ = Op::simple(ExpressionType::ObjectAccess, {$1, $3});}
 | expression '=' expression {$$ = Op::simple(ExpressionType::Assignment, {$1, $3});}
 | expression '+' expression {$$ = Op::simple(ExpressionType::Add, {$1, $3});}
 | expression '-' expression {$$ = Op::simple(ExpressionType::Negate, {$1, $3});}
 | expression '*' expression {$$ = Op::simple(ExpressionType::Multiply, {$1, $3});}
 | expression '/' expression {$$ = Op::simple(ExpressionType::Divide, {$1, $3});}
-| expression MOD expression {$$ = Op::simple(ExpressionType::Modulo, {$1, $3});}
+| expression "/%" expression {$$ = Op::simple(ExpressionType::Modulo, {$1, $3});}
 | expression '%' expression {$$ = Op::simple(ExpressionType::Remainder, {$1, $3});}
 | expression "+=" expression {$$ = Op::simple(ExpressionType::Assignment, {$1, Op::simple(ExpressionType::Add, {$1, $3})});}
 | expression "-=" expression {$$ = Op::simple(ExpressionType::Assignment, {$1, Op::simple(ExpressionType::Negate, {$1, $3})});}
@@ -723,30 +723,30 @@ expression: IDENTIFIER {$$ = Op::ident(ctx.use($1));}
 | expression '^' expression {$$ = Op::simple(ExpressionType::BitXor, {$1, $3});}
 | expression '|' expression {$$ = Op::simple(ExpressionType::BitOr, {$1, $3});}
 | expression '&' expression {$$ = Op::simple(ExpressionType::BitAnd, {$1, $3});}
-| expression OR expression {$$ = Op::simple(ExpressionType::Or, {$1, $3});}
-| expression AND expression {$$ = Op::simple(ExpressionType::And, {$1, $3});}
-| expression EQ expression {$$ = Op::simple(ExpressionType::Equal, {$1, $3});}
-| expression NE expression {$$ = Op::simple(ExpressionType::NonEqual, {$1, $3});}
-| expression LESS expression {$$ = Op::simple(ExpressionType::Less, {$1, $3});}
-| expression MORE expression {$$ = Op::simple(ExpressionType::More, {$1, $3});}
-| expression LESS_EQ expression {$$ = Op::simple(ExpressionType::LessOrEqual, {$1, $3});}
-| expression MORE_EQ expression {$$ = Op::simple(ExpressionType::MoreOrEqual, {$1, $3});}
+| expression "||" expression {$$ = Op::simple(ExpressionType::Or, {$1, $3});}
+| expression "&&" expression {$$ = Op::simple(ExpressionType::And, {$1, $3});}
+| expression "==" expression {$$ = Op::simple(ExpressionType::Equal, {$1, $3});}
+| expression "!=" expression {$$ = Op::simple(ExpressionType::NonEqual, {$1, $3});}
+| expression '<' expression {$$ = Op::simple(ExpressionType::Less, {$1, $3});}
+| expression '>' expression {$$ = Op::simple(ExpressionType::More, {$1, $3});}
+| expression "<=" expression {$$ = Op::simple(ExpressionType::LessOrEqual, {$1, $3});}
+| expression ">=" expression {$$ = Op::simple(ExpressionType::MoreOrEqual, {$1, $3});}
 | '-' expression %prec UMINUS {$$ = Op::simple(ExpressionType::UnaryMinus, {$2});}
 | '+' expression %prec UPLUS {$$ = Op::simple(ExpressionType::UnaryPlus, {$2});}
 | '*' expression %prec PTR_DR {$$ = Op::simple(ExpressionType::Dereference, {$2});}
 | '&' expression %prec ADDR {$$ = Op::simple(ExpressionType::Reference, {$2});}
 | '!' expression {$$ = Op::simple(ExpressionType::Not, {$2});}
 | '~' expression {$$ = Op::simple(ExpressionType::BitInvert, {$2});}
-| INC expression {$$ = Op::simple(ExpressionType::PreIncrement, {$2});}
-| DEC expression {$$ = Op::simple(ExpressionType::PreDecrement, {$2});}
-| expression INC %prec POST_INC {$$ = Op::simple(ExpressionType::PostIncrement, {$1});}
-| expression DEC %prec POST_DEC {$$ = Op::simple(ExpressionType::PostDecrement, {$1});}
+| "++" expression {$$ = Op::simple(ExpressionType::PreIncrement, {$2});}
+| "--" expression {$$ = Op::simple(ExpressionType::PreDecrement, {$2});}
+| expression "++" %prec POST_INC {$$ = Op::simple(ExpressionType::PostIncrement, {$1});}
+| expression "--" %prec POST_DEC {$$ = Op::simple(ExpressionType::PostDecrement, {$1});}
 | expression '?' expression ':' expression {$$ = Op::simple(ExpressionType::Select, {$1, $3, $5});}
 | BITCAST '<' type '>' '(' expression ')' {$$ = Op::simple(ExpressionType::BitCast, {Op::type($3), $6});}
-| expression SHIFT_LEFT_A expression {$$ = Op::simple(ExpressionType::BitShiftArithmeticLeft, {$1, $3});}
-| expression SHIFT_RIGHT_A expression {$$ = Op::simple(ExpressionType::BitShiftArithmeticRight, {$1, $3});}
-| expression SHIFT_LEFT_L expression {$$ = Op::simple(ExpressionType::BitShiftLogicalLeft, {$1, $3});}
-| expression SHIFT_RIGHT_L expression {$$ = Op::simple(ExpressionType::BitShiftLogicalRight, {$1, $3});};
+| expression "<<" expression {$$ = Op::simple(ExpressionType::BitShiftArithmeticLeft, {$1, $3});}
+| expression ">>" expression {$$ = Op::simple(ExpressionType::BitShiftArithmeticRight, {$1, $3});}
+| expression "!<<" expression {$$ = Op::simple(ExpressionType::BitShiftLogicalLeft, {$1, $3});}
+| expression "!>>" expression {$$ = Op::simple(ExpressionType::BitShiftLogicalRight, {$1, $3});};
 
 /* Literals */
 
@@ -1382,7 +1382,7 @@ void Context::defineFunction(const FunctionDeclaration &decl, const Expression &
 	ident.name = decl.name;
 	ident.type = IdentifierType::Function;
 	pushIdentifierToScope(ident);
-	auto func = getOrDefineFunction(decl);
+	auto &func = getOrDefineFunction(decl);
 	//TODO: [OOKAMI] if body already exists - exception
 	func.body = body;
 }

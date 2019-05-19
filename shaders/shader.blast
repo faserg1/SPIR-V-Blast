@@ -19,19 +19,11 @@ struct FirstStruct
 	float f, f1, f2;
 };
 
-void func()
+float func(int i, float f)
 {
-
-}
-
-void func(int i)
-{
-
-}
-
-void func(int i, float f)
-{
-
+	if (i > 5)
+		return f + 5;
+	return f;
 }
 
 void main()
