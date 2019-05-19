@@ -143,6 +143,7 @@ struct Identifier
 {
 	IdentifierType type;
 	std::string name;
+	uint64_t id;
 };
 
 struct ScalarType
@@ -331,6 +332,10 @@ struct GlobalVariable : Attributable, BaseVariable
 	std::optional<struct Expression> initialization;
 };
 
+using VarNamesAndInits =
+	std::vector<std::pair<std::string, std::optional<Expression>>>;
+using Vars = std::pair<Type, VarNamesAndInits>;
+
 class LexContext
 {
 public:
@@ -456,6 +461,8 @@ public:
 	Struct &getStruct(const std::string &name);
 	std::vector<struct StructMember> defineStructMembers(Type t, const std::vector<std::string> &names);
 	void indexStructMembers(Struct &s);
+	void defineGlobalVariables(Type t, const VarNamesAndInits &vars);
+	Expression defineLocalVariables(Type t, const VarNamesAndInits &vars);
 	void operator++();
 	void operator--();
 private:
@@ -463,8 +470,9 @@ private:
 	std::vector<Attribute> tempAttributes;
 	std::vector<scope> scopes;
 	std::vector<Struct> structs;
+	std::vector<GlobalVariable> globalVariables;
 private:
-	void pushIdentifierToScope(const Identifier &id);
+	void pushIdentifierToScope(Identifier id);
 };
 
 } //%code
@@ -533,12 +541,16 @@ private:
 %type<ImageType> image_type
 %type<SamplerType> sampler_type
 %type<SampledImageType> sampled_image_type
-%type<Expression> function_body braced_body body var_def
+%type<Expression> function_body braced_body body
 %type<Expression> expression comma_expression
 %type<Expression> statement_rec statement statement_nb statement_nb_rec
 %type<Expression> if_statement while_statement for_statement switch_statement do_while_statement
 %type<Expression> for_init for_condition for_action
 %type<Expression> switch_body switch_case_rec switch_case switch_default_case case_body
+%type<VarNamesAndInits> var_def_continious
+%type<Vars> var_def
+%type<FunctionParameter> function_parameter
+%type<FunctionParameters> function_parameter_list function_parameters
 
 %%
 
@@ -566,14 +578,14 @@ function_prototype: function_decl {--ctx;} ';' ;
 
 function_decl: type IDENTIFIER {++ctx;} function_parameters;
 
-function_parameters: '(' function_parameter_list ')'
-| '(' ')';
+function_parameters: '(' function_parameter_list ')' {$$ = $2;}
+| '(' ')' {$$ = {};};
 
-function_parameter_list: function_parameter
-| function_parameter_list ',' function_parameter;
+function_parameter_list: function_parameter {auto p = $1; p.position = 0; $$ = {p};}
+| function_parameter_list ',' function_parameter {auto list = $1; auto p = $3; p.position = list.back().position + 1; list.push_back(p); $$ = list; };
 
-function_parameter: type IDENTIFIER
-| type;
+function_parameter: type IDENTIFIER {FunctionParameter p; p.type = $1; p.name = $2; $$ = p;}
+| type {FunctionParameter p; p.type = $1; $$ = p;};
 
 function_body: braced_body;
 
@@ -610,14 +622,14 @@ statement_nb: if_statement
 /* CONTROL SWITCHS*/
 
 if_statement: IF '(' {++ctx;} expression ')' statement {$$ = Op::makeIf($4, $6); --ctx;}
-| IF '(' {++ctx;} var_def ';' expression ')' statement {$$ = Op::makeIf($4, $6, $8); --ctx;};
+| IF '(' {++ctx;} var_def ';' expression ')' statement {auto vars = ctx.defineLocalVariables($4.first, $4.second); $$ = Op::makeIf(vars, $6, $8); --ctx;};
 while_statement: WHILE  '(' {++ctx;} expression ')' statement {$$ = Op::makeWhile($4, $6); --ctx;};
 for_statement: FOR '(' {++ctx;} for_init ';' for_condition ';' for_action ')' statement {$$ = Op::makeFor($4, $6, $8, $10); --ctx;};
 switch_statement: SWITCH '(' {++ctx;} expression ')' switch_body {--ctx;}
 | SWITCH '(' {++ctx;} var_def ';' expression ')' switch_body {--ctx;};
 do_while_statement: DO {++ctx;} statement {--ctx;} WHILE '(' expression ')' ';' {$$ = Op::makeDoWhile($3, $7);};
 
-for_init: var_def
+for_init: var_def {$$ = ctx.defineLocalVariables($1.first, $1.second);}
 | %empty {$$ = Op::nop();};
 
 for_condition: expression
@@ -626,7 +638,7 @@ for_condition: expression
 for_action: expression
 | %empty {$$ = Op::nop();};
 
-switch_body: '{' switch_case_rec '}';
+switch_body: '{' switch_case_rec '}' {$$ = $2;};
 
 switch_case_rec: switch_case_rec switch_case
 | switch_case_rec switch_default_case
@@ -730,15 +742,15 @@ boolean_const_expr: C_TRUE {$$ = true;}
 
 /* VARIABLE DECLARATION */
 
-var_def_a: var_def
-| attribute_rec var_def;
+var_def_a: var_def {ctx.defineGlobalVariables($1.first, $1.second);}
+| attribute_rec var_def {ctx.defineGlobalVariables($2.first, $2.second);};
 
-var_def: type var_def_continious;
+var_def: type var_def_continious {$$ = std::make_pair($1, $2);};
 
-var_def_continious: var_def_continious ',' IDENTIFIER
-| var_def_continious ',' IDENTIFIER '=' expression
-| IDENTIFIER
-| IDENTIFIER '=' expression;
+var_def_continious: var_def_continious ',' IDENTIFIER {auto prev = $1; prev.push_back(std::make_pair($3, std::optional<Expression>())); $$ = prev;}
+| var_def_continious ',' IDENTIFIER '=' expression {auto prev = $1; prev.push_back(std::make_pair($3, $5)); $$ = prev;}
+| IDENTIFIER {$$ = {std::make_pair($1, std::optional<Expression>())};}
+| IDENTIFIER '=' expression {$$ = {std::make_pair($1, $3)};};
 
 /* TYPES */
 
@@ -1272,6 +1284,42 @@ void Context::indexStructMembers(Struct &s)
 		member.position = pos++;
 }
 
+void Context::defineGlobalVariables(Type t, const VarNamesAndInits &vars)
+{
+	for (auto &var : vars)
+	{
+		GlobalVariable v;
+		v.type = t;
+		v.name = var.first;
+		v.attributes = getAndClearTempAttributes();
+		v.initialization = var.second;
+		globalVariables.push_back(v);
+		Identifier ident;
+		ident.name = var.first;
+		ident.type = IdentifierType::Variable;
+		pushIdentifierToScope(ident);
+	}
+}
+
+Expression Context::defineLocalVariables(Type t, const VarNamesAndInits &vars)
+{
+	Expression ex;
+	ex.type = ExpressionType::VariableDeclaration;
+	for (auto &var : vars)
+	{
+		LocalVariable v;
+		v.type = t;
+		v.name = var.first;
+		v.initialization = var.second;
+		ex.declaredVariables.push_back(v);
+		Identifier ident;
+		ident.name = var.first;
+		ident.type = IdentifierType::Variable;
+		pushIdentifierToScope(ident);
+	}
+	return ex;
+}
+
 void Context::operator++()
 {
 	scopes.emplace_back();
@@ -1282,8 +1330,10 @@ void Context::operator--()
 	scopes.pop_back();
 }
 
-void Context::pushIdentifierToScope(const Identifier &id)
+void Context::pushIdentifierToScope(Identifier id)
 {
+	static int counter = 0;
+	id.id = counter++;
 	auto &topScope = scopes.back();
 	topScope.identifiers.insert(std::make_pair(id.name, id));
 }
