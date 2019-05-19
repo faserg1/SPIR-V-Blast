@@ -106,10 +106,10 @@ namespace gen
 "//"[^\n]* {return ResultOf_yylex::Nothing;}
 
 "\""[^\"]*"\"" {return makeStringLiteral();}
+[0-9]+[u] {return makeULiteral();}
+[0-9]+[f] {return makeDLiteral();}
 [0-9]+ {return makeILiteral();}
-[0-9]+u {return makeULiteral();}
-[0-9]+f {return makeDLiteral();}
-[0-9]+.[0-9]* {return makeDLiteral();}
+[0-9]+\.[0-9]* {return makeDLiteral();}
 
 "true" {return s_make(&gen::BlastParser::make_C_TRUE);}
 "false" {return s_make(&gen::BlastParser::make_C_FALSE);}

@@ -4,6 +4,10 @@
 #capability Int64
 
 //nice
+[[in:0]]
+vec<int, 4> posIn;
+[[out:0]]
+vec<int, 4> posOut;
 
 /*
 oh yeah!
@@ -14,6 +18,21 @@ struct FirstStruct
 	int i, i1, i2;
 	float f, f1, f2;
 };
+
+void func()
+{
+
+}
+
+void func(int i)
+{
+
+}
+
+void func(int i, float f)
+{
+
+}
 
 void main()
 {

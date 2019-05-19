@@ -143,7 +143,7 @@ struct Identifier
 {
 	IdentifierType type;
 	std::string name;
-	uint64_t id;
+	int64_t id;
 };
 
 struct ScalarType
@@ -252,6 +252,7 @@ struct BaseVariable
 {
 	struct Type type;
 	std::string name;
+	int64_t id;
 };
 
 struct Literal
@@ -300,15 +301,16 @@ struct LocalVariable : BaseVariable
 
 typedef std::vector<struct FunctionParameter> FunctionParameters;
 
-struct FunctionDeclaration : Attributable
+struct FunctionDeclaration
 {
+	Type returnType;
 	std::string name;
 	FunctionParameters parameters;
 };
 
-struct Function : FunctionDeclaration
+struct Function : FunctionDeclaration, Attributable
 {
-	struct Expression body;
+	std::optional<struct Expression> body;
 };
 
 struct FunctionParameter : BaseVariable
@@ -320,6 +322,7 @@ struct Struct : Attributable
 {
 	std::string name;
 	std::vector<struct StructMember> members;
+	int64_t id;
 };
 
 struct StructMember : Attributable, BaseVariable
@@ -336,6 +339,9 @@ using VarNamesAndInits =
 	std::vector<std::pair<std::string, std::optional<Expression>>>;
 using Vars = std::pair<Type, VarNamesAndInits>;
 
+bool operator==(const Type &t1, const Type &t2);
+bool operator!=(const Type &t1, const Type &t2);
+
 class LexContext
 {
 public:
@@ -349,6 +355,8 @@ class AbstractSyntaxTreeContainer
 {
 public:
 	virtual std::vector<struct Struct> getStructs() const = 0;
+	virtual std::vector<struct GlobalVariable> getGlobalVariables() const = 0;
+	virtual std::vector<struct Function> getFunctions() const = 0;
 protected:
 	AbstractSyntaxTreeContainer() = default;
 	virtual ~AbstractSyntaxTreeContainer() = default;
@@ -452,6 +460,8 @@ class Context :
 public:
 	//AST Container methods
 	std::vector<struct Struct> getStructs() const override;
+	std::vector<struct GlobalVariable> getGlobalVariables() const override;
+	std::vector<struct Function> getFunctions() const override;
 	//Context methods
 	void addTempAttribute(Attribute attr);
 	std::vector<Attribute> getAndClearTempAttributes();
@@ -463,6 +473,9 @@ public:
 	void indexStructMembers(Struct &s);
 	void defineGlobalVariables(Type t, const VarNamesAndInits &vars);
 	Expression defineLocalVariables(Type t, const VarNamesAndInits &vars);
+	FunctionParameter defineFunctionParameter(Type t, const std::string &name);
+	void defineFunctionPrototype(const FunctionDeclaration &decl);
+	void defineFunction(const FunctionDeclaration &decl, const Expression &body);
 	void operator++();
 	void operator--();
 private:
@@ -471,8 +484,11 @@ private:
 	std::vector<scope> scopes;
 	std::vector<Struct> structs;
 	std::vector<GlobalVariable> globalVariables;
+	std::vector<Function> functions;
 private:
-	void pushIdentifierToScope(Identifier id);
+	int64_t pushIdentifierToScope(Identifier id);
+	std::vector<struct Function*> getFunctionsByName(std::string name);
+	Function &getOrDefineFunction(const FunctionDeclaration &decl);
 };
 
 } //%code
@@ -551,6 +567,7 @@ private:
 %type<Vars> var_def
 %type<FunctionParameter> function_parameter
 %type<FunctionParameters> function_parameter_list function_parameters
+%type<FunctionDeclaration> function_decl
 
 %%
 
@@ -562,7 +579,7 @@ shader_unit_rec: shader_unit_rec shader_unit
 shader_unit: function_a
 | function_prototype_a
 | struct_a
-| var_def_a;
+| var_def_a ';';
 
 /* FUNCTIONS */
 
@@ -572,11 +589,11 @@ function_a: function
 function_prototype_a: function_prototype
 | attribute_rec function_prototype;
 
-function: function_decl function_body {--ctx;};
+function: function_decl function_body {--ctx;} {ctx.defineFunction($1, $2);};
 
-function_prototype: function_decl {--ctx;} ';' ;
+function_prototype: function_decl {--ctx;} ';' {ctx.defineFunctionPrototype($1);};
 
-function_decl: type IDENTIFIER {++ctx;} function_parameters;
+function_decl: type IDENTIFIER {++ctx;} function_parameters {$$ = {$1, $2, $4};};
 
 function_parameters: '(' function_parameter_list ')' {$$ = $2;}
 | '(' ')' {$$ = {};};
@@ -584,8 +601,8 @@ function_parameters: '(' function_parameter_list ')' {$$ = $2;}
 function_parameter_list: function_parameter {auto p = $1; p.position = 0; $$ = {p};}
 | function_parameter_list ',' function_parameter {auto list = $1; auto p = $3; p.position = list.back().position + 1; list.push_back(p); $$ = list; };
 
-function_parameter: type IDENTIFIER {FunctionParameter p; p.type = $1; p.name = $2; $$ = p;}
-| type {FunctionParameter p; p.type = $1; $$ = p;};
+function_parameter: type IDENTIFIER {$$ = ctx.defineFunctionParameter($1, $2);}
+| type {$$ = ctx.defineFunctionParameter($1, "");};
 
 function_body: braced_body;
 
@@ -1200,6 +1217,16 @@ std::vector<struct Struct> Context::getStructs() const
 	return structs;
 }
 
+std::vector<struct GlobalVariable> Context::getGlobalVariables() const
+{
+	return globalVariables;
+}
+
+std::vector<struct Function> Context::getFunctions() const
+{
+	return functions;
+}
+
 // Realization of context
 void Context::addTempAttribute(Attribute attr)
 {
@@ -1242,10 +1269,11 @@ Struct &Context::defineStruct(const std::string &name)
 	Identifier t;
 	t.type = IdentifierType::Structure;
 	t.name = name;
-	pushIdentifierToScope(t);
+	auto id = pushIdentifierToScope(t);
 	Struct s;
 	s.name = name;
 	s.attributes = getAndClearTempAttributes();
+	s.id = id;
 	structs.push_back(s);
 	return structs.back();
 }
@@ -1288,16 +1316,17 @@ void Context::defineGlobalVariables(Type t, const VarNamesAndInits &vars)
 {
 	for (auto &var : vars)
 	{
+		Identifier ident;
+		ident.name = var.first;
+		ident.type = IdentifierType::Variable;
+		auto id = pushIdentifierToScope(ident);
 		GlobalVariable v;
+		v.id = id;
 		v.type = t;
 		v.name = var.first;
 		v.attributes = getAndClearTempAttributes();
 		v.initialization = var.second;
 		globalVariables.push_back(v);
-		Identifier ident;
-		ident.name = var.first;
-		ident.type = IdentifierType::Variable;
-		pushIdentifierToScope(ident);
 	}
 }
 
@@ -1307,17 +1336,55 @@ Expression Context::defineLocalVariables(Type t, const VarNamesAndInits &vars)
 	ex.type = ExpressionType::VariableDeclaration;
 	for (auto &var : vars)
 	{
+		Identifier ident;
+		ident.name = var.first;
+		ident.type = IdentifierType::Variable;
+		auto id = pushIdentifierToScope(ident);
 		LocalVariable v;
+		v.id = id;
 		v.type = t;
 		v.name = var.first;
 		v.initialization = var.second;
 		ex.declaredVariables.push_back(v);
-		Identifier ident;
-		ident.name = var.first;
-		ident.type = IdentifierType::Variable;
-		pushIdentifierToScope(ident);
 	}
 	return ex;
+}
+
+FunctionParameter Context::defineFunctionParameter(Type t, const std::string &name)
+{
+	int64_t id = -1;
+	if (!name.empty())
+	{
+		Identifier ident;
+		ident.name = name;
+		ident.type = IdentifierType::Variable;
+		id = pushIdentifierToScope(ident);
+	}
+	FunctionParameter p;
+	p.id = id;
+	p.type = t;
+	p.name = name;
+	return p;
+}
+
+void Context::defineFunctionPrototype(const FunctionDeclaration &decl)
+{
+	Identifier ident;
+	ident.name = decl.name;
+	ident.type = IdentifierType::Function;
+	pushIdentifierToScope(ident);
+	getOrDefineFunction(decl);
+}
+
+void Context::defineFunction(const FunctionDeclaration &decl, const Expression &body)
+{
+	Identifier ident;
+	ident.name = decl.name;
+	ident.type = IdentifierType::Function;
+	pushIdentifierToScope(ident);
+	auto func = getOrDefineFunction(decl);
+	//TODO: [OOKAMI] if body already exists - exception
+	func.body = body;
 }
 
 void Context::operator++()
@@ -1330,15 +1397,184 @@ void Context::operator--()
 	scopes.pop_back();
 }
 
-void Context::pushIdentifierToScope(Identifier id)
+int64_t Context::pushIdentifierToScope(Identifier id)
 {
 	static int counter = 0;
-	id.id = counter++;
+	// Functions can be overloaded.
+	//So compiler decide which function to call
+	if (id.type != IdentifierType::Function)
+		id.id = counter++;
+	else
+		id.id = -1;
 	auto &topScope = scopes.back();
-	topScope.identifiers.insert(std::make_pair(id.name, id));
+	if (id.type == IdentifierType::Function)
+	{
+		if (topScope.identifiers.find(id.name) == topScope.identifiers.end())
+			topScope.identifiers.insert(std::make_pair(id.name, id));
+	}
+	else
+		topScope.identifiers.insert(std::make_pair(id.name, id));
+	return id.id;
+}
+
+std::vector<struct Function*> Context::getFunctionsByName(std::string name)
+{
+	std::vector<struct Function*> findedFunctions;
+	for (auto &func : functions)
+	{
+		if (func.name == name)
+			findedFunctions.push_back(&func);
+	}
+	return findedFunctions;
+}
+
+Function &Context::getOrDefineFunction(const FunctionDeclaration &decl)
+{
+	auto functionsByName = getFunctionsByName(decl.name);
+	bool createNew = false;
+	if (functionsByName.empty())
+		createNew = true;
+	else
+	{
+		auto lambdaRemove = [&decl](Function *func) -> bool
+		{
+			if (func->parameters.size() != decl.parameters.size())
+				return true;
+			for (size_t i = 0; i < func->parameters.size(); i++)
+			{
+				const auto &fParam = func->parameters[i];
+				const auto &dParam = decl.parameters[i];
+				if (fParam.type != dParam.type)
+					return true;
+			}
+			return false;
+		};
+		//remove with different params
+		auto iterDelete = std::remove_if(functionsByName.begin(), functionsByName.end(), lambdaRemove);
+		functionsByName.erase(iterDelete, functionsByName.end());
+		if (functionsByName.size() > 1)
+			throw 0; // TODO: [OOKAMI] Throw normal exception
+		else if (functionsByName.size() == 1)
+		{
+			auto findedFunc = functionsByName.back();
+			if (findedFunc->returnType == decl.returnType)
+				return *findedFunc;
+			// TODO: [OOKAMI] Throw normal exception
+			throw 0;
+		}
+		else
+			createNew = true;
+	}
+	if (createNew)
+	{
+		Function f;
+		f.returnType = decl.returnType;
+		f.name = decl.name;
+		f.parameters = decl.parameters;
+		functions.push_back(f);
+		return functions.back();
+	}
+	// TODO: [OOKAMI] Throw normal exception
+	throw 0;
 }
 
 void gen::BlastParser::error(const gen::location &loc, const std::string &msg)
 {
 	callback(loc, msg);
+}
+
+bool operator==(const TypeInner &t1, const TypeInner &t2)
+{
+	if (t1.etype != t2.etype)
+		return false;
+	switch (t1.etype)
+	{
+		case EType::Int:
+		{
+			auto i1 = std::any_cast<IntType>(t1.innerType);
+			auto i2 = std::any_cast<IntType>(t2.innerType);
+			return i1.width == i2.width && i1.signedness == i2.signedness;
+		}
+		case EType::Float:
+		{
+			auto f1 = std::any_cast<FloatType>(t1.innerType);
+			auto f2 = std::any_cast<FloatType>(t2.innerType);
+			return f1.width == f2.width;
+		}
+		case EType::Bool:
+		case EType::Void:
+			return true;
+		case EType::Matrix:
+		{
+			auto m1 = std::any_cast<MatrixType>(t1.innerType);
+			auto m2 = std::any_cast<MatrixType>(t2.innerType);
+			return m1.rowsCount == m2.rowsCount &&
+				m1.columnsCount == m2.columnsCount &&
+				m1.componentType == m2.componentType;
+		}
+		case EType::Vector:
+		{
+			auto v1 = std::any_cast<VectorType>(t1.innerType);
+			auto v2 = std::any_cast<VectorType>(t2.innerType);
+			return v1.componentCount == v2.componentCount &&
+				v1.componentType == v2.componentType;
+		}
+		case EType::Image:
+		{
+			auto i1 = std::any_cast<ImageType>(t1.innerType);
+			auto i2 = std::any_cast<ImageType>(t2.innerType);
+			return i1.sampledType == i2.sampledType &&
+				i1.dimension == i2.dimension &&
+				i1.isDepth == i2.isDepth &&
+				i1.isArrayed == i2.isArrayed &&
+				i1.isMultisampled == i2.isMultisampled &&
+				i1.isSampled == i2.isSampled &&
+				i1.imageFormat == i2.imageFormat &&
+				i1.accessQualifier == i2.accessQualifier;
+		}
+		case EType::Sampler:
+			return true;
+		case EType::SampledImage:
+		{
+			auto si1 = std::any_cast<SampledImageType>(t1.innerType);
+			auto si2 = std::any_cast<SampledImageType>(t2.innerType);
+			return si1.innerType == si2.innerType;
+		}
+		case EType::Pointer:
+		{
+			auto p1 = std::any_cast<PointerType>(t1.innerType);
+			auto p2 = std::any_cast<PointerType>(t2.innerType);
+			return p1.innerType == p2.innerType;
+		}
+		case EType::Array:
+		{
+			auto a1 = std::any_cast<ArrayType>(t1.innerType);
+			auto a2 = std::any_cast<ArrayType>(t2.innerType);
+			return a1.isRuntime == a2.isRuntime &&
+				a1.length == a2.length &&
+				a1.innerType == a2.innerType;
+		}
+		case EType::Struct:
+		{
+			auto s1 = std::any_cast<TypeStruct>(t1.innerType);
+			auto s2 = std::any_cast<TypeStruct>(t2.innerType);
+			return s1.name == s2.name;
+		}
+	}
+	return false;
+}
+
+bool operator!=(const TypeInner &t1, const TypeInner &t2)
+{
+	return !(t1 == t2);
+}
+
+bool operator==(const Type &t1, const Type &t2)
+{
+	return t1.isConst == t2.isConst && t1.innerType == t2.innerType;
+}
+
+bool operator!=(const Type &t1, const Type &t2)
+{
+	return !(t1 == t2);
 }
