@@ -48,6 +48,7 @@ int main(int argc, char**argv)
 
 	auto processedInfo = preprocessor.process(argsParser.getInputFile());
 	auto astContainer = parser.parse(processedInfo);
+	compiler.compile(astContainer, processedInfo);
 
 	return 0;
 }

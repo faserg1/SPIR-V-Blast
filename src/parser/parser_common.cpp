@@ -25,8 +25,5 @@ std::shared_ptr<AbstractSyntaxTreeContainer> ParserCommon::parse(const ShaderPre
 	auto context = buildContext();
 	gen::BlastParser parser(scanner.get(), errorCallback, *context);
 	parser.parse();
-	auto ast = getContainer(context);
-	auto structs = ast->getStructs();
-	auto globalVars = ast->getGlobalVariables();
-	auto functions = ast->getFunctions();
+	return getContainer(context);
 }
