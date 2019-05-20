@@ -3,4 +3,5 @@ build
 built
 gen
 *.bat
+*.py
 gen_by_hand.bat

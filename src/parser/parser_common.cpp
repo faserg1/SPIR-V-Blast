@@ -8,7 +8,7 @@ std::shared_ptr<gen::BlastScanner> buildScanner(const std::string &source);
 std::shared_ptr<Context> buildContext();
 std::shared_ptr<AbstractSyntaxTreeContainer> getContainer(std::shared_ptr<Context> context);
 
-void ParserCommon::parse(const ShaderPreprocessedInfo &preprocessedInfo)
+std::shared_ptr<AbstractSyntaxTreeContainer> ParserCommon::parse(const ShaderPreprocessedInfo &preprocessedInfo)
 {
 	auto scanner = buildScanner(preprocessedInfo.text());
 	auto sourceFiles = preprocessedInfo.sourceFiles();

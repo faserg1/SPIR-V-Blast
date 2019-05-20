@@ -4,15 +4,16 @@
 #capability Int64
 
 //nice
+[[bind:0]]
 [[in:0]]
 vec<int, 4> posIn;
+[[bind:0]]
 [[out:0]]
 vec<int, 4> posOut;
 
 /*
 oh yeah!
 */
-[[Nice]]
 struct FirstStruct
 {
 	int i, i1, i2;
@@ -30,6 +31,7 @@ float func(int i, float f)
 		return f;
 }
 
+[[entry]]
 void main()
 {
 }

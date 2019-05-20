@@ -34,11 +34,13 @@ set(BlastParserSources
 )
 
 set(BlastCompilerHeaders
-
+	${SOURCE_COMPILER_DIR}/compiler_common.hpp
+	${SOURCE_COMPILER_DIR}/compiler_validator.hpp
 )
 
 set(BlastCompilerSources
-
+	${SOURCE_COMPILER_DIR}/compiler_common.cpp
+	${SOURCE_COMPILER_DIR}/compiler_validator.cpp
 )
 
 set(BlastTranslatorHeaders
