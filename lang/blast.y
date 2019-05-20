@@ -648,8 +648,8 @@ statement_nb: if_statement
 
 /* CONTROL SWITCHS*/
 
-if_statement: IF '(' {++ctx;} expression ')' statement else_statement {auto es = $7; $$ = es ? Op::makeIfElse($4, $6, es) : Op::makeIf($4, $6); --ctx;}
-| IF '(' {++ctx;} var_def ';' expression ')' statement else_statement {auto es = $9; auto vars = ctx.defineLocalVariables($4.first, $4.second); $$ = es ? Op::makeIfElse(vars, $6, $8, es) : Op::makeIf(vars, $6, $8); --ctx;};
+if_statement: IF '(' {++ctx;} expression ')' statement else_statement {auto es = $7; $$ = es ? Op::makeIfElse($4, $6, es.value) : Op::makeIf($4, $6); --ctx;}
+| IF '(' {++ctx;} var_def ';' expression ')' statement else_statement {auto es = $9; auto vars = ctx.defineLocalVariables($4.first, $4.second); $$ = es ? Op::makeIfElse(vars, $6, $8, es.value) : Op::makeIf(vars, $6, $8); --ctx;};
 while_statement: WHILE  '(' {++ctx;} expression ')' statement {$$ = Op::makeWhile($4, $6); --ctx;};
 for_statement: FOR '(' {++ctx;} for_init ';' for_condition ';' for_action ')' statement {$$ = Op::makeFor($4, $6, $8, $10); --ctx;};
 switch_statement: SWITCH '(' {++ctx;} expression ')' switch_body {$$ = Op::makeSwitch($4, $6); --ctx;}
