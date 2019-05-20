@@ -570,6 +570,7 @@ private:
 %type<Expression> statement_rec statement statement_nb statement_nb_rec
 %type<std::vector<Expression>> switch_body switch_case_rec
 %type<Expression> if_statement while_statement for_statement switch_statement do_while_statement
+%type<std::optional<Expression>> else_statement
 %type<Expression> for_init for_condition for_action
 %type<Expression> switch_case switch_default_case case_body
 %type<VarNamesAndInits> var_def_continious
@@ -647,15 +648,16 @@ statement_nb: if_statement
 
 /* CONTROL SWITCHS*/
 
-if_statement: IF '(' {++ctx;} expression ')' statement {$$ = Op::makeIf($4, $6); --ctx;}
-| IF '(' {++ctx;} var_def ';' expression ')' statement {auto vars = ctx.defineLocalVariables($4.first, $4.second); $$ = Op::makeIf(vars, $6, $8); --ctx;}
-| IF '(' {++ctx;} expression ')' statement ELSE statement {$$ = Op::makeIfElse($4, $6, $8); --ctx;}
-| IF '(' {++ctx;} var_def ';' expression ')' statement ELSE statement {auto vars = ctx.defineLocalVariables($4.first, $4.second); $$ = Op::makeIfElse(vars, $6, $8, $10); --ctx;};
+if_statement: IF '(' {++ctx;} expression ')' statement else_statement {auto es = $7; $$ = es ? Op::makeIfElse($4, $6, es) : Op::makeIf($4, $6); --ctx;}
+| IF '(' {++ctx;} var_def ';' expression ')' statement else_statement {auto es = $9; auto vars = ctx.defineLocalVariables($4.first, $4.second); $$ = es ? Op::makeIfElse(vars, $6, $8, es) : Op::makeIf(vars, $6, $8); --ctx;};
 while_statement: WHILE  '(' {++ctx;} expression ')' statement {$$ = Op::makeWhile($4, $6); --ctx;};
 for_statement: FOR '(' {++ctx;} for_init ';' for_condition ';' for_action ')' statement {$$ = Op::makeFor($4, $6, $8, $10); --ctx;};
 switch_statement: SWITCH '(' {++ctx;} expression ')' switch_body {$$ = Op::makeSwitch($4, $6); --ctx;}
 | SWITCH '(' {++ctx;} var_def ';' expression ')' switch_body {auto vars = ctx.defineLocalVariables($4.first, $4.second); $$ = Op::makeSwitch(vars, $6, $8); --ctx;};
 do_while_statement: DO {++ctx;} statement {--ctx;} WHILE '(' expression ')' ';' {$$ = Op::makeDoWhile($3, $7);};
+
+else_statement: ELSE statement {$$ = $2;}
+| %empty {$$ = std::optional<Expression>();};
 
 for_init: var_def {$$ = ctx.defineLocalVariables($1.first, $1.second);}
 | %empty {$$ = Op::nop();};
