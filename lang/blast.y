@@ -113,6 +113,7 @@ enum class ExpressionType
 	MoreOrEqual,
 	/*Control Switch - condition and loops */
 	If,
+	IfElse,
 	Select, // ternary op
 	For,
 	While,
@@ -440,6 +441,10 @@ public:
 		const Expression &statement);
 	static Expression makeIf(const Expression &varDecl,
 		const Expression &expression, const Expression &statement);
+	static Expression makeIfElse(const Expression &expression,
+		const Expression &statement, const Expression &statementElse);
+	static Expression makeIfElse(const Expression &varDecl,
+		const Expression &expression, const Expression &statement, const Expression &statementElse);
 	static Expression makeFor(const Expression &varDecl,
 		const Expression &expression, const Expression &action,
 		const Expression &statement);
@@ -447,7 +452,10 @@ public:
 		const Expression &statement);
 	static Expression makeDoWhile(const Expression &expression,
 		const Expression &statement);
-	//static Expression makeSwitch(const Expression &expression);
+	static Expression makeSwitchCase(const Expression &expression);
+	static Expression makeSwitchCaseDefault(const Expression &expression);
+	static Expression makeSwitch(const Expression &expression, const std::vector<Expression> &body);
+	static Expression makeSwitch(const Expression &varDecl, const Expression &expression, const std::vector<Expression> &body);
 private:
 	Op() = delete;
 	~Op() = delete;
@@ -494,7 +502,7 @@ private:
 } //%code
 
 %token END 0
-%token DO "do" WHILE "while" IF "if" SWITCH "switch" FOR "for"
+%token DO "do" WHILE "while" IF "if" ELSE "else" SWITCH "switch" FOR "for"
 %token DEFAULT "default" CASE "case"
 %token RETURN "return" BREAK "break" CONTINUE "continue"
 %token CONST "const"
@@ -560,9 +568,10 @@ private:
 %type<Expression> function_body braced_body body
 %type<Expression> expression comma_expression
 %type<Expression> statement_rec statement statement_nb statement_nb_rec
+%type<std::vector<Expression>> switch_body switch_case_rec
 %type<Expression> if_statement while_statement for_statement switch_statement do_while_statement
 %type<Expression> for_init for_condition for_action
-%type<Expression> switch_body switch_case_rec switch_case switch_default_case case_body
+%type<Expression> switch_case switch_default_case case_body
 %type<VarNamesAndInits> var_def_continious
 %type<Vars> var_def
 %type<FunctionParameter> function_parameter
@@ -618,7 +627,7 @@ statement_rec: statement_rec statement {auto e = $1; e.params.push_back($2); $$ 
 
 statement: statement_nb
 | braced_body
-| var_def ';';
+| var_def ';' {$$ = ctx.defineLocalVariables($1.first, $1.second);};
 
 statement_nb_rec: statement_nb_rec statement_nb {auto e = $1; e.params.push_back($2); $$ = e;}
 | braced_body {$$ = Op::group({$1});}
@@ -639,11 +648,13 @@ statement_nb: if_statement
 /* CONTROL SWITCHS*/
 
 if_statement: IF '(' {++ctx;} expression ')' statement {$$ = Op::makeIf($4, $6); --ctx;}
-| IF '(' {++ctx;} var_def ';' expression ')' statement {auto vars = ctx.defineLocalVariables($4.first, $4.second); $$ = Op::makeIf(vars, $6, $8); --ctx;};
+| IF '(' {++ctx;} var_def ';' expression ')' statement {auto vars = ctx.defineLocalVariables($4.first, $4.second); $$ = Op::makeIf(vars, $6, $8); --ctx;}
+| IF '(' {++ctx;} expression ')' statement ELSE statement {$$ = Op::makeIfElse($4, $6, $8); --ctx;}
+| IF '(' {++ctx;} var_def ';' expression ')' statement ELSE statement {auto vars = ctx.defineLocalVariables($4.first, $4.second); $$ = Op::makeIfElse(vars, $6, $8, $10); --ctx;};
 while_statement: WHILE  '(' {++ctx;} expression ')' statement {$$ = Op::makeWhile($4, $6); --ctx;};
 for_statement: FOR '(' {++ctx;} for_init ';' for_condition ';' for_action ')' statement {$$ = Op::makeFor($4, $6, $8, $10); --ctx;};
-switch_statement: SWITCH '(' {++ctx;} expression ')' switch_body {--ctx;}
-| SWITCH '(' {++ctx;} var_def ';' expression ')' switch_body {--ctx;};
+switch_statement: SWITCH '(' {++ctx;} expression ')' switch_body {$$ = makeSwitch($4, $6); --ctx;}
+| SWITCH '(' {++ctx;} var_def ';' expression ')' switch_body {auto vars = ctx.defineLocalVariables($4.first, $4.second); $$ = makeSwitch(vars, $6, $8); --ctx;};
 do_while_statement: DO {++ctx;} statement {--ctx;} WHILE '(' expression ')' ';' {$$ = Op::makeDoWhile($3, $7);};
 
 for_init: var_def {$$ = ctx.defineLocalVariables($1.first, $1.second);}
@@ -657,12 +668,12 @@ for_action: expression
 
 switch_body: '{' switch_case_rec '}' {$$ = $2;};
 
-switch_case_rec: switch_case_rec switch_case
-| switch_case_rec switch_default_case
-| %empty;
+switch_case_rec: switch_case_rec switch_case {auto vec = $1; vec.push_back($2);}
+| switch_case_rec switch_default_case {auto vec = $1; vec.push_back($2);}
+| %empty {$$ = {};};
 
-switch_case: CASE NUMLITERAL ':' case_body ;
-switch_default_case: DEFAULT ':' case_body ;
+switch_case: CASE NUMLITERAL ':' case_body {$$ = Op::makeSwitchCase($2, $4);};
+switch_default_case: DEFAULT ':' case_body {$$ = Op::makeSwitchCaseDefault($3);};
 
 case_body: statement_nb_rec;
 
@@ -1177,6 +1188,29 @@ Expression Op::makeIf(const Expression &varDecl,
 	return e;
 }
 
+Expression Op::makeIfElse(const Expression &expression,
+	const Expression &statement, const Expression &statementElse)
+{
+	Expression e;
+	e.type = ExpressionType::IfElse;
+	e.params.push_back(expression);
+	e.params.push_back(statement);
+	e.params.push_back(statementElse);
+	return e;
+}
+
+Expression Op::makeIfElse(const Expression &varDecl, const Expression &expression,
+	const Expression &statement, const Expression &statementElse)
+{
+	Expression e;
+	e.type = ExpressionType::IfElse;
+	e.params.push_back(varDecl);
+	e.params.push_back(expression);
+	e.params.push_back(statement);
+	e.params.push_back(statementElse);
+	return e;
+}
+
 Expression Op::makeFor(const Expression &varDecl,
 	const Expression &expression, const Expression &action,
 	const Expression &statement)
@@ -1207,6 +1241,41 @@ Expression Op::makeDoWhile(const Expression &expression,
 	e.type = ExpressionType::DoWhile;
 	e.params.push_back(statement);
 	e.params.push_back(expression);
+	return e;
+}
+
+Expression Op::makeSwitchCase(const Literal &literal, const Expression &expression)
+{
+	Expression e;
+	e.type = ExpressionType::SwitchCase;
+	e.literal = literal;
+	e.params.push_back(expression);
+	return e;
+}
+
+Expression Op::makeSwitchCaseDefault(const Expression &expression)
+{
+	Expression e;
+	e.type = ExpressionType::SwitchDefault;
+	e.params.push_back(expression);
+	return e;
+}
+
+Expression Op::makeSwitch(const Expression &expression, const std::vector<Expression> &body)
+{
+	Expression e;
+	e.type = ExpressionType::Switch;
+	e.params.push_back(expression);
+	e.params.insert(e.params.end(), body.begin(), body.end());
+	return e;
+}
+Expression Op::makeSwitch(const Expression &varDecl, const Expression &expression, const std::vector<Expression> &body)
+{
+	Expression e;
+	e.type = ExpressionType::Switch;
+	e.params.push_back(varDecl);
+	e.params.push_back(expression);
+	e.params.insert(e.params.end(), body.begin(), body.end());
 	return e;
 }
 

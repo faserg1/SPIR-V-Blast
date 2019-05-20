@@ -65,6 +65,7 @@ namespace gen
 "do" {return s_make(&gen::BlastParser::make_DO);}
 "while" {return s_make(&gen::BlastParser::make_WHILE);}
 "if" {return s_make(&gen::BlastParser::make_IF);}
+"else" {return s_make(&gen::BlastParser::make_ELSE);}
 "switch" {return s_make(&gen::BlastParser::make_SWITCH);}
 "for" {return s_make(&gen::BlastParser::make_FOR);}
 
