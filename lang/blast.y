@@ -516,7 +516,7 @@ private:
 %token NUMLITERAL STRINGLITERAL
 %token MOD "/%"
 %token OR "||" AND "&&" EQ "==" NE "!="
-%token LESS '<' MORE '>' LESS_EQ "<=" MORE_EQ ">="
+%token LESS_EQ "<=" MORE_EQ ">="
 %token INC "++" DEC "--"
 %token PL_EQ "+=" MI_EQ "-=" MUL_EQ "*=" DIV_EQ "/=" MOD_EQ "/%=" REM_EQ "%="
 %token SHIFT_LEFT_A_EQ "<<=" SHIFT_RIGHT_A_EQ ">>=" SHIFT_LEFT_L_EQ "!<<=" SHIFT_RIGHT_L_EQ "!>>="

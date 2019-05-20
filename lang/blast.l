@@ -125,8 +125,6 @@ namespace gen
 "==" {return s_make(&gen::BlastParser::make_EQ);}
 "!=" {return s_make(&gen::BlastParser::make_NE);}
 
-'<' {return s_make(&gen::BlastParser::make_LESS);}
-'>' {return s_make(&gen::BlastParser::make_MORE);}
 "<=" {return s_make(&gen::BlastParser::make_LESS_EQ);}
 ">=" {return s_make(&gen::BlastParser::make_MORE_EQ);}
 
