@@ -540,6 +540,9 @@ private:
 %right "++" "--" '!' '~' UMINUS UPLUS PTR_DR ADDR
 %left '(' '[' '.' "->" POST_INC POST_DEC
 
+%nonassoc NO_ELSE
+%nonassoc ELSE
+
 %type<Literal> literal NUMLITERAL STRINGLITERAL
 %type<std::string> IDENTIFIER USER_DEFINED_TYPE
 %type<Struct> struct_a struct
@@ -657,7 +660,7 @@ switch_statement: SWITCH '(' {++ctx;} expression ')' switch_body {$$ = Op::makeS
 do_while_statement: DO {++ctx;} statement {--ctx;} WHILE '(' expression ')' ';' {$$ = Op::makeDoWhile($3, $7);};
 
 else_statement: ELSE statement {$$ = $2;}
-| %empty {$$ = std::optional<Expression>();};
+| %empty %prec NO_ELSE {$$ = std::optional<Expression>();};
 
 for_init: var_def {$$ = ctx.defineLocalVariables($1.first, $1.second);}
 | %empty {$$ = Op::nop();};

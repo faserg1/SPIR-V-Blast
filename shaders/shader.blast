@@ -22,8 +22,12 @@ struct FirstStruct
 float func(int i, float f)
 {
 	if (i > 5)
-		return f + 5;
-	return f;
+		if (f <  3)
+			return f + 5;
+		else
+			return f + 10;
+	else
+		return f;
 }
 
 void main()
