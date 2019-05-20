@@ -452,7 +452,7 @@ public:
 		const Expression &statement);
 	static Expression makeDoWhile(const Expression &expression,
 		const Expression &statement);
-	static Expression makeSwitchCase(const Expression &expression);
+	static Expression makeSwitchCase(const Literal &literal, const Expression &expression);
 	static Expression makeSwitchCaseDefault(const Expression &expression);
 	static Expression makeSwitch(const Expression &expression, const std::vector<Expression> &body);
 	static Expression makeSwitch(const Expression &varDecl, const Expression &expression, const std::vector<Expression> &body);
@@ -653,8 +653,8 @@ if_statement: IF '(' {++ctx;} expression ')' statement {$$ = Op::makeIf($4, $6);
 | IF '(' {++ctx;} var_def ';' expression ')' statement ELSE statement {auto vars = ctx.defineLocalVariables($4.first, $4.second); $$ = Op::makeIfElse(vars, $6, $8, $10); --ctx;};
 while_statement: WHILE  '(' {++ctx;} expression ')' statement {$$ = Op::makeWhile($4, $6); --ctx;};
 for_statement: FOR '(' {++ctx;} for_init ';' for_condition ';' for_action ')' statement {$$ = Op::makeFor($4, $6, $8, $10); --ctx;};
-switch_statement: SWITCH '(' {++ctx;} expression ')' switch_body {$$ = makeSwitch($4, $6); --ctx;}
-| SWITCH '(' {++ctx;} var_def ';' expression ')' switch_body {auto vars = ctx.defineLocalVariables($4.first, $4.second); $$ = makeSwitch(vars, $6, $8); --ctx;};
+switch_statement: SWITCH '(' {++ctx;} expression ')' switch_body {$$ = Op::makeSwitch($4, $6); --ctx;}
+| SWITCH '(' {++ctx;} var_def ';' expression ')' switch_body {auto vars = ctx.defineLocalVariables($4.first, $4.second); $$ = Op::makeSwitch(vars, $6, $8); --ctx;};
 do_while_statement: DO {++ctx;} statement {--ctx;} WHILE '(' expression ')' ';' {$$ = Op::makeDoWhile($3, $7);};
 
 for_init: var_def {$$ = ctx.defineLocalVariables($1.first, $1.second);}
