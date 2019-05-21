@@ -98,7 +98,10 @@ namespace gen
 "simg" {return s_make(&gen::BlastParser::make_SAMPLED_IMAGE);}
 
 
+"namespace" {return s_make(&gen::BlastParser::make_NAMESPACE);}
 "struct" {return s_make(&gen::BlastParser::make_STRUCT);}
+"enum" {return s_make(&gen::BlastParser::make_ENUM);}
+"class" {return s_make(&gen::BlastParser::make_CLASS);}
 
 <<EOF>> {return stop();}
 "\r\n"|"\n\r"|[\n] {return ResultOf_yylex::Nothing;};
@@ -116,6 +119,8 @@ namespace gen
 "false" {return s_make(&gen::BlastParser::make_C_FALSE);}
 
 [a-zA-Z_][a-zA-Z_0-9]* {return makeIdentifier();}
+
+"::" {return s_make(&gen::BlastParser::make_SCOPE_RESOLVE);}
 
 "[[" {return s_make(&gen::BlastParser::make_ATTR_OPEN);}
 "]]" {return s_make(&gen::BlastParser::make_ATTR_CLOSE);}
@@ -247,6 +252,7 @@ int gen::BlastScanner::makeIdentifier()
 	switch (type)
 	{
 		case IdentifierType::Structure:
+		case IdentifierType::Enumeration:
 			return s_make(&gen::BlastParser::make_USER_DEFINED_TYPE, text_);
 		default:
 			return s_make(&gen::BlastParser::make_IDENTIFIER, text_);

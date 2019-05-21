@@ -32,6 +32,7 @@ enum class IdentifierType
 	Undefined,
 	Attribute,
 	Structure,
+	Enumeration,
 	Function,
 	Parameter,
 	Variable
@@ -319,6 +320,13 @@ struct FunctionParameter : BaseVariable
 	std::size_t position; //position in parameters list
 };
 
+struct Enum
+{
+	struct Type baseType;
+	bool isEnumClass;
+	std::map<uint64_t, std::string> enumDeclarations;
+};
+
 struct Struct : Attributable
 {
 	std::string name;
@@ -484,6 +492,7 @@ public:
 	FunctionParameter defineFunctionParameter(Type t, const std::string &name);
 	void defineFunctionPrototype(const FunctionDeclaration &decl);
 	void defineFunction(const FunctionDeclaration &decl, const Expression &body);
+	void defineEnum(std::optional<Type> baseType, bool isEnumClass, std::map<uint64_t, std::string> defines);
 	void operator++();
 	void operator--();
 private:
@@ -493,6 +502,7 @@ private:
 	std::vector<Struct> structs;
 	std::vector<GlobalVariable> globalVariables;
 	std::vector<Function> functions;
+	std::vector<Enum> enums;
 private:
 	int64_t pushIdentifierToScope(Identifier id);
 	std::vector<struct Function*> getFunctionsByName(std::string name);
@@ -511,7 +521,7 @@ private:
 %token VOID "void" INT "int" FLOAT "float" BOOL "bool"
 %token MATRIX "mat" VECTOR "vec"
 %token IMAGE "img" SAMPLER "smpl" SAMPLED_IMAGE "simg"
-%token STRUCT "struct"
+%token NAMESPACE "namespace" STRUCT "struct" ENUM "enum" CLASS "class"
 %token IDENTIFIER USER_DEFINED_TYPE
 %token NUMLITERAL STRINGLITERAL
 %token MOD "/%"
@@ -524,6 +534,7 @@ private:
 %token AND_EQ "&=" OR_EQ "|=" XOR_EQ "^="
 %token PTR_ACCESS "->"
 %token ATTR_OPEN "[[" ATTR_CLOSE "]]"
+%token SCOPE_RESOLVE "::"
 
 %left ','
 %right '?' ':' '=' "+=" "-=" "*=" "/=" "/%=" "%=" ">>=" "<<=" "!>>=" "!<<=" "&=" "|=" "^="
@@ -539,6 +550,7 @@ private:
 %left '*' '/' "/%" '%'
 %right "++" "--" '!' '~' UMINUS UPLUS PTR_DR ADDR
 %left '(' '[' '.' "->" POST_INC POST_DEC
+%left "::"
 
 %nonassoc NO_ELSE
 %nonassoc ELSE
@@ -592,6 +604,7 @@ shader_unit_rec: shader_unit_rec shader_unit
 shader_unit: function_a
 | function_prototype_a
 | struct_a
+| enum
 | var_def_a ';';
 
 /* FUNCTIONS */
@@ -703,6 +716,22 @@ struct_member: type struct_member_continious ';' {$$ = ctx.defineStructMembers($
 struct_member_continious: struct_member_continious ',' IDENTIFIER {$$ = std::move($1); $$.push_back($3);}
 | IDENTIFIER {$$ = {$1};};
 
+/* Enumeration */
+
+enum: ENUM class_opt IDENTIFIER '{' enum_body '}' ';';
+
+class_opt: CLASS
+| %empty;
+
+enum_body: enum_ident_rec
+| %empty;
+
+enum_ident_rec: enum_ident_rec ',' enum_ident
+| enum_ident;
+
+enum_ident: IDENTIFIER
+| IDENTIFIER '=' NUMLITERAL;
+
 /* EXPRESSIONS */
 
 comma_expression: expression {$$ = Op::simple(ExpressionType::Comma, {$1});}
@@ -772,6 +801,8 @@ literal: NUMLITERAL
 
 boolean_const_expr: C_TRUE {$$ = true;}
 | C_FALSE {$$ = false;};
+
+inner_use: USER_DEFINED_TYPE SCOPE_RESOLVE IDENTIFIER;
 
 /* VARIABLE DECLARATION */
 
