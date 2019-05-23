@@ -3,6 +3,13 @@
 #capability Shader
 #capability Int64
 
+enum MySuperEnum
+{
+	Nice,
+	Dice,
+	Paradice
+};
+
 //nice
 [[bind:0]]
 [[in:0]]

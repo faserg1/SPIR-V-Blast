@@ -329,8 +329,9 @@ struct FunctionParameter : BaseVariable
 struct Enum
 {
 	struct Type baseType;
-	bool isEnumClass;
-	std::map<uint64_t, std::string> enumDeclarations;
+	std::string name;
+	bool isScoped;
+	std::map<std::string, uint64_t> enumDeclarations;
 };
 
 struct Struct : Attributable
@@ -372,6 +373,7 @@ public:
 	virtual std::vector<struct Struct> getStructs() const = 0;
 	virtual std::vector<struct GlobalVariable> getGlobalVariables() const = 0;
 	virtual std::vector<struct Function> getFunctions() const = 0;
+	virtual std::vector<struct Enum> getEnums() const = 0;
 protected:
 	AbstractSyntaxTreeContainer() = default;
 	virtual ~AbstractSyntaxTreeContainer() = default;
@@ -484,6 +486,7 @@ public:
 	std::vector<struct Struct> getStructs() const override;
 	std::vector<struct GlobalVariable> getGlobalVariables() const override;
 	std::vector<struct Function> getFunctions() const override;
+	std::vector<struct Enum> getEnums() const override;
 	//Context methods
 	void addTempAttribute(Attribute attr);
 	std::vector<Attribute> getAndClearTempAttributes();
@@ -498,17 +501,22 @@ public:
 	FunctionParameter defineFunctionParameter(Type t, const std::string &name);
 	void defineFunctionPrototype(const FunctionDeclaration &decl);
 	void defineFunction(const FunctionDeclaration &decl, const Expression &body);
-	void defineEnum(std::optional<Type> baseType, bool isEnumClass, std::map<uint64_t, std::string> defines);
+	void defineEnum(TypeInner baseType, std::string name, bool isScopedEnum, std::map<std::string, uint64_t> defines);
+	void resetEnumCounter();
+	void setEnumCounter(uint64_t num);
+	void incrementEnumCounter();
+	uint64_t getEnumCounter();
 	void operator++();
 	void operator--();
 private:
-	char *cursor = nullptr;
 	std::vector<Attribute> tempAttributes;
 	std::vector<scope> scopes;
 	std::vector<Struct> structs;
 	std::vector<GlobalVariable> globalVariables;
 	std::vector<Function> functions;
 	std::vector<Enum> enums;
+
+	uint64_t enumCounter;
 private:
 	int64_t pushIdentifierToScope(Identifier id);
 	std::vector<struct Function*> getFunctionsByName(std::string name);
@@ -527,8 +535,8 @@ private:
 %token VOID "void" INT "int" FLOAT "float" BOOL "bool"
 %token MATRIX "mat" VECTOR "vec"
 %token IMAGE "img" SAMPLER "smpl" SAMPLED_IMAGE "simg"
-%token NAMESPACE "namespace" STRUCT "struct" ENUM "enum" CLASS "class"
-%token IDENTIFIER user_defined_type
+%token STRUCT "struct" ENUM "enum" CLASS "class"
+%token IDENTIFIER STRUCT_TYPE CLASS_TYPE ENUM_TYPE
 %token NUMLITERAL STRINGLITERAL
 %token MOD "/%"
 %token OR "||" AND "&&" EQ "==" NE "!="
@@ -562,7 +570,7 @@ private:
 %nonassoc ELSE
 
 %type<Literal> literal NUMLITERAL STRINGLITERAL
-%type<std::string> IDENTIFIER NAMESPACE STRUCT_TYPE CLASS_TYPE ENUM_TYPE
+%type<std::string> IDENTIFIER STRUCT_TYPE CLASS_TYPE ENUM_TYPE
 %type<Struct> struct_a struct
 %type<std::vector<struct StructMember>> struct_body struct_members_continious struct_member_a struct_member
 %type<std::vector<std::string>> struct_member_continious
@@ -576,7 +584,7 @@ private:
 %type<bool> boolean_const_expr
 %type<TypeModification> type_mod
 %type<TypeArraySuffix> type_array_suffix
-%type<TypeInner> type_variant simple_type custom_type complex_type_variant image_sampled_type
+%type<TypeInner> type_variant user_defined_type simple_type complex_type_variant image_sampled_type
 %type<VoidType> void_type
 %type<IntType> int_type
 %type<FloatType> float_type
@@ -599,6 +607,10 @@ private:
 %type<FunctionParameter> function_parameter
 %type<FunctionParameters> function_parameter_list function_parameters
 %type<FunctionDeclaration> function_decl
+%type<TypeInner> enum_base_opt
+%type<std::map<std::string, uint64_t>> enum_body enum_ident_rec
+%type<std::pair<std::string, uint64_t>> enum_ident
+%type<bool> enum_scope_opt;
 
 %%
 
@@ -724,19 +736,23 @@ struct_member_continious: struct_member_continious ',' IDENTIFIER {$$ = std::mov
 
 /* Enumeration */
 
-enum: ENUM class_opt IDENTIFIER '{' enum_body '}' ';';
+enum: ENUM enum_scope_opt IDENTIFIER enum_base_opt '{' enum_body '}' ';' {ctx.defineEnum($4, $3, $2, $6);};
 
-class_opt: CLASS
-| %empty;
+enum_scope_opt: CLASS {$$ = true;}
+| STRUCT {$$ = true;}
+| %empty {$$ = false;};
+
+enum_base_opt: ':' int_type {$$ = TypeInner {EType::Int, $2};}
+| %empty {$$ = TypeInner {EType::Int, ConstantHelper::createIntType(32, true)};};
 
 enum_body: enum_ident_rec
-| %empty;
+| %empty {$$ = {};};
 
-enum_ident_rec: enum_ident_rec ',' enum_ident
-| enum_ident;
+enum_ident_rec: enum_ident_rec ',' enum_ident {auto map = $1; map.insert($3); $$ = map; ctx.incrementEnumCounter();}
+| {ctx.resetEnumCounter();} enum_ident {$$ = {$2}; ctx.incrementEnumCounter();};
 
-enum_ident: IDENTIFIER
-| IDENTIFIER '=' NUMLITERAL;
+enum_ident: IDENTIFIER {$$ = std::make_pair($1, ctx.getEnumCounter());}
+| IDENTIFIER '=' NUMLITERAL {auto num = ConstantHelper::uintFromLiteral($3); $$ = std::make_pair($1, num); ctx.setEnumCounter(num);};
 
 /* EXPRESSIONS */
 
@@ -808,7 +824,7 @@ literal: NUMLITERAL
 boolean_const_expr: C_TRUE {$$ = true;}
 | C_FALSE {$$ = false;};
 
-inner_use: user_defined_type SCOPE_RESOLVE IDENTIFIER;
+/*inner_use: user_defined_type SCOPE_RESOLVE IDENTIFIER;*/
 
 /* VARIABLE DECLARATION */
 
@@ -1339,6 +1355,11 @@ std::vector<struct Function> Context::getFunctions() const
 	return functions;
 }
 
+std::vector<struct Enum> Context::getEnums() const
+{
+	return enums;
+}
+
 // Realization of context
 void Context::addTempAttribute(Attribute attr)
 {
@@ -1497,6 +1518,40 @@ void Context::defineFunction(const FunctionDeclaration &decl, const Expression &
 	auto &func = getOrDefineFunction(decl);
 	//TODO: [OOKAMI] if body already exists - exception
 	func.body = body;
+}
+
+void Context::defineEnum(TypeInner baseType, std::string name, bool isScopedEnum, std::map<std::string, uint64_t> defines)
+{
+	Identifier ident;
+	ident.name = name;
+	ident.type = IdentifierType::Enumeration;
+	pushIdentifierToScope(ident);
+	Enum e;
+	e.baseType.innerType = baseType;
+	e.name = name;
+	e.isScoped = isScopedEnum;
+	e.enumDeclarations = defines;
+	enums.push_back(e);
+}
+
+void Context::resetEnumCounter()
+{
+	enumCounter = 0;
+}
+
+void Context::setEnumCounter(uint64_t num)
+{
+	enumCounter = num;
+}
+
+void Context::incrementEnumCounter()
+{
+	enumCounter++;
+}
+
+uint64_t Context::getEnumCounter()
+{
+	return enumCounter;
 }
 
 void Context::operator++()

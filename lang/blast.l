@@ -98,7 +98,6 @@ namespace gen
 "simg" {return s_make(&gen::BlastParser::make_SAMPLED_IMAGE);}
 
 
-"namespace" {return s_make(&gen::BlastParser::make_NAMESPACE);}
 "struct" {return s_make(&gen::BlastParser::make_STRUCT);}
 "enum" {return s_make(&gen::BlastParser::make_ENUM);}
 "class" {return s_make(&gen::BlastParser::make_CLASS);}
