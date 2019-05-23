@@ -60,7 +60,8 @@ enum class EType
 	SampledImage,
 	Pointer,
 	Array,
-	Struct
+	Struct,
+	Enum
 };
 
 enum class AttributeParamType
@@ -216,6 +217,11 @@ struct SampledImageType
 };
 
 struct TypeStruct
+{
+	std::string name;
+};
+
+struct TypeEnum
 {
 	std::string name;
 };
@@ -522,7 +528,7 @@ private:
 %token MATRIX "mat" VECTOR "vec"
 %token IMAGE "img" SAMPLER "smpl" SAMPLED_IMAGE "simg"
 %token NAMESPACE "namespace" STRUCT "struct" ENUM "enum" CLASS "class"
-%token IDENTIFIER USER_DEFINED_TYPE
+%token IDENTIFIER user_defined_type
 %token NUMLITERAL STRINGLITERAL
 %token MOD "/%"
 %token OR "||" AND "&&" EQ "==" NE "!="
@@ -556,7 +562,7 @@ private:
 %nonassoc ELSE
 
 %type<Literal> literal NUMLITERAL STRINGLITERAL
-%type<std::string> IDENTIFIER USER_DEFINED_TYPE
+%type<std::string> IDENTIFIER NAMESPACE STRUCT_TYPE CLASS_TYPE ENUM_TYPE
 %type<Struct> struct_a struct
 %type<std::vector<struct StructMember>> struct_body struct_members_continious struct_member_a struct_member
 %type<std::vector<std::string>> struct_member_continious
@@ -802,7 +808,7 @@ literal: NUMLITERAL
 boolean_const_expr: C_TRUE {$$ = true;}
 | C_FALSE {$$ = false;};
 
-inner_use: USER_DEFINED_TYPE SCOPE_RESOLVE IDENTIFIER;
+inner_use: user_defined_type SCOPE_RESOLVE IDENTIFIER;
 
 /* VARIABLE DECLARATION */
 
@@ -831,10 +837,11 @@ type_mod: CONST {$$ = {true};}
 | %empty {$$ = {};};
 
 type_variant: simple_type
-| custom_type
+| user_defined_type
 | complex_type_variant;
 
-custom_type: USER_DEFINED_TYPE {$$ = TypeInner {EType::Struct, TypeStruct{$1}};};
+user_defined_type: STRUCT_TYPE {$$ = TypeInner {EType::Struct, TypeStruct{$1}};}
+| ENUM_TYPE {$$ = TypeInner {EType::Enum, TypeEnum{$1}};};
 
 simple_type: void_type {$$ = TypeInner {EType::Void, $1};}
 | int_type {$$ = TypeInner {EType::Int, $1};}

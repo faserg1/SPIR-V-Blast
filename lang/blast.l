@@ -252,8 +252,9 @@ int gen::BlastScanner::makeIdentifier()
 	switch (type)
 	{
 		case IdentifierType::Structure:
+		return s_make(&gen::BlastParser::make_STRUCT_TYPE, text_);
 		case IdentifierType::Enumeration:
-			return s_make(&gen::BlastParser::make_USER_DEFINED_TYPE, text_);
+			return s_make(&gen::BlastParser::make_ENUM_TYPE, text_);
 		default:
 			return s_make(&gen::BlastParser::make_IDENTIFIER, text_);
 	}
