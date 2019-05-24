@@ -326,12 +326,14 @@ struct FunctionParameter : BaseVariable
 	std::size_t position; //position in parameters list
 };
 
+typedef EnumDecls std::map<std::string, uint64_t>;
+typedef EnumDecl std::pair<std::string, uint64_t>;
+
 struct Enum
 {
 	struct Type baseType;
 	std::string name;
-	bool isScoped;
-	std::map<std::string, uint64_t> enumDeclarations;
+	EnumDecls enumDeclarations;
 };
 
 struct Struct : Attributable
@@ -501,7 +503,7 @@ public:
 	FunctionParameter defineFunctionParameter(Type t, const std::string &name);
 	void defineFunctionPrototype(const FunctionDeclaration &decl);
 	void defineFunction(const FunctionDeclaration &decl, const Expression &body);
-	void defineEnum(TypeInner baseType, std::string name, bool isScopedEnum, std::map<std::string, uint64_t> defines);
+	void defineEnum(TypeInner baseType, std::string name, EnumDecls defines);
 	void resetEnumCounter();
 	void setEnumCounter(uint64_t num);
 	void incrementEnumCounter();
@@ -569,8 +571,8 @@ private:
 %nonassoc NO_ELSE
 %nonassoc ELSE
 
-%type<Literal> literal NUMLITERAL STRINGLITERAL
-%type<std::string> IDENTIFIER STRUCT_TYPE CLASS_TYPE ENUM_TYPE
+%type<Literal> literal enum_use NUMLITERAL STRINGLITERAL
+%type<std::string> IDENTIFIER STRUCT_TYPE ENUM_TYPE
 %type<Struct> struct_a struct
 %type<std::vector<struct StructMember>> struct_body struct_members_continious struct_member_a struct_member
 %type<std::vector<std::string>> struct_member_continious
@@ -608,9 +610,8 @@ private:
 %type<FunctionParameters> function_parameter_list function_parameters
 %type<FunctionDeclaration> function_decl
 %type<TypeInner> enum_base_opt
-%type<std::map<std::string, uint64_t>> enum_body enum_ident_rec
-%type<std::pair<std::string, uint64_t>> enum_ident
-%type<bool> enum_scope_opt;
+%type<EnumDecls> enum_body enum_ident_rec
+%type<EnumDecl> enum_ident
 
 %%
 
@@ -761,6 +762,7 @@ comma_expression: expression {$$ = Op::simple(ExpressionType::Comma, {$1});}
 
 expression: IDENTIFIER {$$ = Op::ident(ctx.use($1));}
 | literal {$$ = Op::literal($1);}
+| enum_use {$$ = Op::literal($1);}
 | '(' comma_expression ')' {$$ = $2;}
 | expression '(' ')'
 | expression '(' comma_expression ')'
@@ -824,7 +826,7 @@ literal: NUMLITERAL
 boolean_const_expr: C_TRUE {$$ = true;}
 | C_FALSE {$$ = false;};
 
-/*inner_use: user_defined_type SCOPE_RESOLVE IDENTIFIER;*/
+enum_use: ENUM_TYPE SCOPE_RESOLVE IDENTIFIER;
 
 /* VARIABLE DECLARATION */
 
@@ -1520,7 +1522,7 @@ void Context::defineFunction(const FunctionDeclaration &decl, const Expression &
 	func.body = body;
 }
 
-void Context::defineEnum(TypeInner baseType, std::string name, bool isScopedEnum, std::map<std::string, uint64_t> defines)
+void Context::defineEnum(TypeInner baseType, std::string name, EnumDecls defines)
 {
 	Identifier ident;
 	ident.name = name;
@@ -1529,7 +1531,6 @@ void Context::defineEnum(TypeInner baseType, std::string name, bool isScopedEnum
 	Enum e;
 	e.baseType.innerType = baseType;
 	e.name = name;
-	e.isScoped = isScopedEnum;
 	e.enumDeclarations = defines;
 	enums.push_back(e);
 }
