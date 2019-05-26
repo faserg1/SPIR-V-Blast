@@ -326,8 +326,8 @@ struct FunctionParameter : BaseVariable
 	std::size_t position; //position in parameters list
 };
 
-typedef EnumDecls std::map<std::string, uint64_t>;
-typedef EnumDecl std::pair<std::string, uint64_t>;
+using EnumDecls = std::map<std::string, Literal>;
+using EnumDecl = std::pair<std::string, Literal>;
 
 struct Enum
 {
@@ -505,9 +505,10 @@ public:
 	void defineFunction(const FunctionDeclaration &decl, const Expression &body);
 	void defineEnum(TypeInner baseType, std::string name, EnumDecls defines);
 	void resetEnumCounter();
-	void setEnumCounter(uint64_t num);
+	void setEnumCounter(Literal num);
 	void incrementEnumCounter();
-	uint64_t getEnumCounter();
+	Literal getEnumCounter();
+	Literal resolveEnum(std::string enumName, std::string name);
 	void operator++();
 	void operator--();
 private:
@@ -518,7 +519,7 @@ private:
 	std::vector<Function> functions;
 	std::vector<Enum> enums;
 
-	uint64_t enumCounter;
+	Literal enumCounter;
 private:
 	int64_t pushIdentifierToScope(Identifier id);
 	std::vector<struct Function*> getFunctionsByName(std::string name);
@@ -737,11 +738,7 @@ struct_member_continious: struct_member_continious ',' IDENTIFIER {$$ = std::mov
 
 /* Enumeration */
 
-enum: ENUM enum_scope_opt IDENTIFIER enum_base_opt '{' enum_body '}' ';' {ctx.defineEnum($4, $3, $2, $6);};
-
-enum_scope_opt: CLASS {$$ = true;}
-| STRUCT {$$ = true;}
-| %empty {$$ = false;};
+enum: ENUM IDENTIFIER enum_base_opt '{' enum_body '}' ';' {ctx.defineEnum($3, $2, $5);};
 
 enum_base_opt: ':' int_type {$$ = TypeInner {EType::Int, $2};}
 | %empty {$$ = TypeInner {EType::Int, ConstantHelper::createIntType(32, true)};};
@@ -753,7 +750,7 @@ enum_ident_rec: enum_ident_rec ',' enum_ident {auto map = $1; map.insert($3); $$
 | {ctx.resetEnumCounter();} enum_ident {$$ = {$2}; ctx.incrementEnumCounter();};
 
 enum_ident: IDENTIFIER {$$ = std::make_pair($1, ctx.getEnumCounter());}
-| IDENTIFIER '=' NUMLITERAL {auto num = ConstantHelper::uintFromLiteral($3); $$ = std::make_pair($1, num); ctx.setEnumCounter(num);};
+| IDENTIFIER '=' NUMLITERAL {$$ = std::make_pair($1, $3); ctx.setEnumCounter($3);};
 
 /* EXPRESSIONS */
 
@@ -826,7 +823,7 @@ literal: NUMLITERAL
 boolean_const_expr: C_TRUE {$$ = true;}
 | C_FALSE {$$ = false;};
 
-enum_use: ENUM_TYPE SCOPE_RESOLVE IDENTIFIER;
+enum_use: SCOPE_RESOLVE ENUM_TYPE SCOPE_RESOLVE IDENTIFIER {$$ = ctx.resolveEnum($2, $4);};
 
 /* VARIABLE DECLARATION */
 
@@ -1537,22 +1534,35 @@ void Context::defineEnum(TypeInner baseType, std::string name, EnumDecls defines
 
 void Context::resetEnumCounter()
 {
-	enumCounter = 0;
+	enumCounter.unum = 0;
 }
 
-void Context::setEnumCounter(uint64_t num)
+void Context::setEnumCounter(Literal num)
 {
 	enumCounter = num;
 }
 
 void Context::incrementEnumCounter()
 {
-	enumCounter++;
+	enumCounter.unum++;
 }
 
-uint64_t Context::getEnumCounter()
+Literal Context::getEnumCounter()
 {
 	return enumCounter;
+}
+
+Literal Context::resolveEnum(std::string enumName, std::string name)
+{
+	auto itEnum = std::find_if(enums.begin(), enums.end(),
+	[&enumName](Enum &e) -> bool
+	{
+		return e.name == enumName;
+	});
+	auto itName = itEnum->enumDeclarations.find(name);
+	if (itName == itEnum->enumDeclarations.end())
+		throw 0; // TODO: [OOKAMI] Throw exception
+	return itName->second;
 }
 
 void Context::operator++()
