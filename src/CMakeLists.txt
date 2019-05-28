@@ -5,7 +5,6 @@ set(SOURCE_GENERATED_DIR ${SOURCE_DIR}/gen)
 set(SOURCE_PARSER_DIR ${SOURCE_DIR}/parser)
 set(SOURCE_COMPILER_DIR ${SOURCE_DIR}/compiler)
 set(SOURCE_TRANSLATOR_DIR ${SOURCE_DIR}/translator)
-set(SOURCE_BLAST_DIR ${SOURCE_DIR}/blast)
 
 #lang
 
@@ -34,12 +33,17 @@ set(BlastParserSources
 )
 
 set(BlastCompilerHeaders
+	${SOURCE_COMPILER_DIR}/compiler_data.hpp
 	${SOURCE_COMPILER_DIR}/compiler_common.hpp
+	${SOURCE_COMPILER_DIR}/compiler_context.hpp
+	${SOURCE_COMPILER_DIR}/compiler_identifiers.hpp
 	${SOURCE_COMPILER_DIR}/compiler_validator.hpp
 )
 
 set(BlastCompilerSources
 	${SOURCE_COMPILER_DIR}/compiler_common.cpp
+	${SOURCE_COMPILER_DIR}/compiler_context.cpp
+	${SOURCE_COMPILER_DIR}/compiler_identifiers.cpp
 	${SOURCE_COMPILER_DIR}/compiler_validator.cpp
 )
 
@@ -49,13 +53,6 @@ set(BlastTranslatorHeaders
 
 set(BlastTranslatorSources
 	${SOURCE_TRANSLATOR_DIR}/translator.cpp
-)
-
-set(BlastBlastHeaders
-	${SOURCE_BLAST_DIR}/blast_types.hpp
-)
-
-set(BlastBlastSources
 )
 
 set(BlastGenerated
@@ -74,7 +71,6 @@ set(BlastHeaders
 	${BlastParserHeaders}
 	${BlastCompilerHeaders}
 	${BlastTranslatorHeaders}
-	${BlastBlastHeaders}
 )
 
 set(BlastSources
@@ -89,7 +85,6 @@ set(BlastSources
 	${BlastParserSources}
 	${BlastCompilerSources}
 	${BlastTranslatorSources}
-	${BlastBlastSources}
 )
 
 source_group("gen" FILES ${BlastGenerated})
@@ -102,9 +97,6 @@ source_group("${SOURCE_GROUP_SOURCE_START}compiler" FILES ${BlastCompilerSources
 
 source_group("${SOURCE_GROUP_HEADER_START}translator" FILES ${BlastTranslatorHeaders})
 source_group("${SOURCE_GROUP_SOURCE_START}translator" FILES ${BlastTranslatorSources})
-
-source_group("${SOURCE_GROUP_HEADER_START}blast" FILES ${BlastBlastHeaders})
-source_group("${SOURCE_GROUP_SOURCE_START}blast" FILES ${BlastBlastSources})
 
 add_executable(Blast ${BlastHeaders} ${BlastSources} ${BlastGenerated})
 target_include_directories(Blast PRIVATE ${FLEX_INCLUDE_DIRS})
