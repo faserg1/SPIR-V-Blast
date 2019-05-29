@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <map>
 #include "compiler_data.hpp"
+#include "../gen/blast_tokens.hpp"
 
 class CompilerIdentifiers
 {
