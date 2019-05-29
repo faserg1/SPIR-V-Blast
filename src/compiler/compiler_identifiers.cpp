@@ -58,4 +58,5 @@ std::string CompilerIdentifiers::toDebugName(const TypeInner &t)
 	default:
 		break;
 	}
+	return "<unknown_type>";
 }
