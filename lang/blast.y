@@ -1841,6 +1841,7 @@ bool operator<(const TypeInner &t1, const TypeInner &t2)
 			return e1.name < e2.name;
 		}
 	}
+	return false;
 }
 
 bool operator>(const TypeInner &t1, const TypeInner &t2)
@@ -1927,6 +1928,7 @@ bool operator>(const TypeInner &t1, const TypeInner &t2)
 			return e1.name > e2.name;
 		}
 	}
+	return false;
 }
 
 bool operator==(const Type &t1, const Type &t2)
