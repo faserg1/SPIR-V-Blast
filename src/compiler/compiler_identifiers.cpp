@@ -28,7 +28,7 @@ Id CompilerIdentifiers::getTypeId(const TypeInner &t)
 	return id;
 }
 
-std::string CompilerIdentifiers::toDebugName(TypeInner t)
+std::string CompilerIdentifiers::toDebugName(const TypeInner &t)
 {
 	switch (t.etype)
 	{
