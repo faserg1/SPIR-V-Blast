@@ -276,12 +276,17 @@ struct Literal
 	std::string string;
 };
 
-struct Attribute
+struct AttributeParam
 {
-	std::string name;
 	AttributeParamType type;
 	std::string paramIdent {};
 	struct Literal paramLiteral {};
+};
+
+struct Attribute
+{
+	std::string name;
+	std::vector<AttributeParam> params;
 };
 
 struct Attributable
@@ -417,9 +422,9 @@ struct scope
 class Attributes
 {
 public:
-	static Attribute fromIdentifiers(const std::string &ident, const std::string &ident2);
-	static Attribute fromIdentifier(const std::string &ident);
-	static Attribute fromLiteral(const std::string &ident, const Literal &l);
+	static Attribute makeAttribute(const std::string &ident, std::vector<AttributeParam> params);
+	static AttributeParam paramFromIdentifier(const std::string &ident);
+	static AttributeParam paramFromLiteral(const Literal &l);
 private:
 	Attributes() = delete;
 	~Attributes() = delete;
@@ -586,6 +591,8 @@ private:
 %type<spv::ImageFormat> image_format
 %type<spv::AccessQualifier> image_access_qualifier
 %type<Attribute> attribute attribute_body
+%type<AttributeParam> attribute_param
+%type<std::vector<AttributeParam>> attribute_params_rec
 %type<uint8_t> type_pointer_suffix
 %type<uint64_t> image_depth image_arrayed image_ms image_sampled
 %type<bool> boolean_const_expr
@@ -911,37 +918,40 @@ attribute_rec: attribute_rec attribute {ctx.addTempAttribute($2);}
 
 attribute: "[[" attribute_body "]]" {$$ = std::move($2);};
 
-attribute_body: IDENTIFIER  {$$ = Attributes::fromIdentifier($1);}
-| IDENTIFIER ':' NUMLITERAL {$$ = Attributes::fromLiteral($1, $3);}
-| IDENTIFIER ':' STRINGLITERAL {$$ = Attributes::fromLiteral($1, $3);}
-| IDENTIFIER ':' IDENTIFIER {$$ = Attributes::fromIdentifiers($1, $3);};
+attribute_body: IDENTIFIER {$$ = Attributes::makeAttribute($1, {});}
+| IDENTIFIER ':' attribute_params_rec {$$ = Attributes::makeAttribute($1, std::move($3));};
+
+attribute_params_rec: attribute_params_rec ',' attribute_param {auto params = $1; params.push_back($3); $$ = params;}
+| attribute_param {$$ = {$1};};
+
+attribute_param: IDENTIFIER {$$ = Attributes::paramFromIdentifier($1);}
+| STRINGLITERAL {$$ = Attributes::paramFromLiteral($1);}
+| NUMLITERAL {$$ = Attributes::paramFromLiteral($1);};
 
 %%
 
-Attribute Attributes::fromIdentifiers(const std::string &ident, const std::string &ident2)
+Attribute Attributes::makeAttribute(const std::string &ident, std::vector<AttributeParam> params)
 {
 	Attribute attr;
 	attr.name = ident;
-	attr.paramIdent = ident2;
-	attr.type = AttributeParamType::Identifier;
+	attr.params = params;
 	return attr;
 }
 
-Attribute Attributes::fromIdentifier(const std::string &ident)
+AttributeParam Attributes::paramFromIdentifier(const std::string &ident)
 {
-	Attribute attr;
-	attr.name = ident;
-	attr.type = AttributeParamType::None;
-	return attr;
+	AttributeParam param;
+	param.paramIdent = ident;
+	param.type = AttributeParamType::Identifier;
+	return param;
 }
 
-Attribute Attributes::fromLiteral(const std::string &ident, const Literal &l)
+AttributeParam Attributes::paramFromLiteral(const Literal &l)
 {
-	Attribute attr;
-	attr.name = ident;
-	attr.type = AttributeParamType::Literal;
-	attr.paramLiteral = l;
-	return attr;
+	AttributeParam param;
+	param.type = AttributeParamType::Literal;
+	param.paramLiteral = l;
+	return param;
 }
 
 uint64_t ConstantHelper::uintFromLiteral(const Literal &l)
@@ -1618,6 +1628,7 @@ Function &Context::getOrDefineFunction(const FunctionDeclaration &decl)
 		createNew = true;
 	else
 	{
+		// Try to find exists function
 		auto lambdaRemove = [&decl](Function *func) -> bool
 		{
 			if (func->parameters.size() != decl.parameters.size())
@@ -1653,6 +1664,7 @@ Function &Context::getOrDefineFunction(const FunctionDeclaration &decl)
 		f.returnType = decl.returnType;
 		f.name = decl.name;
 		f.parameters = decl.parameters;
+		f.attributes = getAndClearTempAttributes();
 		functions.push_back(f);
 		return functions.back();
 	}

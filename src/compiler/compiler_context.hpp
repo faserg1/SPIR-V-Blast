@@ -6,6 +6,7 @@
 class CompilerContext
 {
 public:
+	
 private:
 	CompilerIdentifiers ids_;
 	
