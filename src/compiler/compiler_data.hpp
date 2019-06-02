@@ -14,4 +14,29 @@ struct Id
 	std::string debugName;
 };
 
+enum class OpParamType
+{
+	Id,
+	Literal,
+	String,
+};
+
+struct OpParam
+{
+	OpParamType type;
+	Id id;
+	union
+	{
+		int64_t inum;
+		uint64_t unum;
+	};
+	std::string str;
+};
+
+struct SpirVOp
+{
+	spv::Op op;
+	std::vector<OpParam> params;
+};
+
 #endif // COMPILER_DATA

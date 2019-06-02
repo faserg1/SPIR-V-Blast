@@ -5,17 +5,10 @@ CompilerIdentifiers::CompilerIdentifiers() :
 {
 }
 
-Id CompilerIdentifiers::getTypeId(const Type &t)
+bool CompilerIdentifiers::hasType(const TypeInner &t) const
 {
-	return getTypeId(t.innerType);
-}
-
-Id CompilerIdentifiers::createId(const std::string &debugName)
-{
-	Id id;
-	id.id = counter_++;
-	id.debugName = debugName;
-	return id;
+	auto searchResult = types_.find(t);
+	return searchResult != types_.end();
 }
 
 Id CompilerIdentifiers::getTypeId(const TypeInner &t)
@@ -25,6 +18,14 @@ Id CompilerIdentifiers::getTypeId(const TypeInner &t)
 		return searchResult->second;
 	auto id = createId(toDebugName(t));
 	types_.insert(std::make_pair(t, id));
+	return id;
+}
+
+Id CompilerIdentifiers::createId(const std::string &debugName)
+{
+	Id id;
+	id.id = counter_++;
+	id.debugName = debugName;
 	return id;
 }
 
@@ -39,7 +40,7 @@ std::string CompilerIdentifiers::toDebugName(const TypeInner &t)
 	}
 	case EType::Float:
 	{
-		auto intType = std::any_cast<FloatType>(t.innerType);
+		auto floatType = std::any_cast<FloatType>(t.innerType);
 		return "float";
 	}
 	case EType::Bool:

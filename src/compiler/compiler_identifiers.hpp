@@ -11,14 +11,14 @@ class CompilerIdentifiers
 {
 public:
 	CompilerIdentifiers();
-	
-	Id getTypeId(const Type &t);
+
+	bool hasType(const TypeInner &t) const;
+	Id getTypeId(const TypeInner &t);
 private:
 	uint32_t counter_;
 	std::map<TypeInner, Id> types_;
 private:
 	Id createId(const std::string &debugName);
-	Id getTypeId(const TypeInner &t);
 	std::string toDebugName(const TypeInner &t);
 };
 
