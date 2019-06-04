@@ -10,7 +10,7 @@ class AbstractSyntaxTreeContainer;
 class CompilerCommon
 {
 public:
-	void compile(std::shared_ptr<AbstractSyntaxTreeContainer> container, const ShaderPreprocessedInfo &ppInfo);
+	std::vector<SpirVOp> compile(std::shared_ptr<AbstractSyntaxTreeContainer> container, const ShaderPreprocessedInfo &ppInfo);
 private:
 	Id compileType(const Type &type);
 	Id compileType(const TypeInner &type);
@@ -19,8 +19,8 @@ private:
 private:
 	SpirVOp debugOp(const Id &id);
 	OpParam paramId(const Id &id);
-	OpParam paramInt(int64_t i);
-	OpParam paramUint(uint64_t u);
+	OpParam paramInt(int64_t i, uint8_t size);
+	OpParam paramUint(uint64_t u, uint8_t size);
 	OpParam paramString(std::string str);
 private:
 	CompilerContext ctx_;

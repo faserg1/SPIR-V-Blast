@@ -42,13 +42,19 @@ int main(int argc, char**argv)
 
 	processPreprocessorFlags(preprocessor, options);
 	processReaderFlags(reader, options);
+	processWriterFlags(writer, options);
+
+	if (writer.getOutput().empty())
+		writer.setOutput(argsParser.getInputFile() + ".spv");
 
 	preprocessor.setLoadCallback(std::bind(&Reader::read, &reader, std::placeholders::_1));
 	preprocessor.setSearchFileCallback(std::bind(&Reader::search, &reader, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
 	auto processedInfo = preprocessor.process(argsParser.getInputFile());
 	auto astContainer = parser.parse(processedInfo);
-	compiler.compile(astContainer, processedInfo);
+	auto ops = compiler.compile(astContainer, processedInfo);
+	auto text = translator.translate(std::move(ops));
+	writer.write(text);
 
 	return 0;
 }

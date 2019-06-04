@@ -13,6 +13,11 @@ public:
 
 	void addType(SpirVOp typeInstruction);
 	void addDebug(SpirVOp debugInstruction);
+
+	std::vector<SpirVOp> getDebugNameOps() const;
+	std::vector<SpirVOp> getDecorateOps() const;
+	std::vector<SpirVOp> getTypeOps() const;
+	std::vector<SpirVOp> getGlobalOps() const;
 private:
 	CompilerIdentifiers ids_;
 	

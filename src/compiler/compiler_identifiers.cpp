@@ -1,7 +1,7 @@
 #include "compiler_identifiers.hpp"
 
 CompilerIdentifiers::CompilerIdentifiers() :
-	counter_(0)
+	counter_(1) // identifiers must start from 1
 {
 }
 
@@ -31,24 +31,34 @@ Id CompilerIdentifiers::createId(const std::string &debugName)
 
 std::string CompilerIdentifiers::toDebugName(const TypeInner &t)
 {
+	using namespace std::string_literals;
 	switch (t.etype)
 	{
 	case EType::Int:
 	{
 		auto intType = std::any_cast<IntType>(t.innerType);
-		return "int";
+		return "int<"s + std::to_string(intType.width) + ","s + (intType.signedness ? "true"s : "false"s) + ">"s;
 	}
 	case EType::Float:
 	{
 		auto floatType = std::any_cast<FloatType>(t.innerType);
-		return "float";
+		return "float<"s + std::to_string(floatType.width) + ">"s;
 	}
 	case EType::Bool:
 		return "bool";
 	case EType::Void:
 		return "void";
 	case EType::Matrix:
+	{
+		auto matrixType = std::any_cast<MatrixType>(t.innerType);
+		return "mat<"s + toDebugName(matrixType.componentType) + ","s + 
+			std::to_string(matrixType.rowsCount) + ","s + std::to_string(matrixType.columnsCount) + ">"s;
+	}
 	case EType::Vector:
+	{
+		auto vectorType = std::any_cast<VectorType>(t.innerType);
+		return "vec<"s + toDebugName(vectorType.componentType) + ","s + std::to_string(vectorType.componentCount) + ">"s;
+	}
 	case EType::Image:
 	case EType::Sampler:
 	case EType::SampledImage:
