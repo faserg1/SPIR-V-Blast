@@ -107,3 +107,4 @@ source_group("${SOURCE_GROUP_SOURCE_START}translator" FILES ${BlastTranslatorSou
 add_executable(Blast ${BlastHeaders} ${BlastSources} ${BlastGenerated})
 target_include_directories(Blast PRIVATE ${FLEX_INCLUDE_DIRS})
 target_link_libraries(Blast ${ARCH_LIBS})
+set_property(TARGET Blast PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${BLAST_ROOT}")

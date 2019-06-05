@@ -5,3 +5,6 @@ gen
 *.bat
 *.py
 gen_by_hand.bat
+__pycache__
+*.spv
+*.spv.dis
