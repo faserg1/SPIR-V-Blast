@@ -24,10 +24,18 @@ ADD_FLEX_BISON_DEPENDENCY(BlastTokens BlastParser)
 
 set(BlastParserHeaders
 	${SOURCE_PARSER_DIR}/parser_common.hpp
+	${SOURCE_PARSER_DIR}/parser_types.hpp
+	${SOURCE_PARSER_DIR}/parser_helper.hpp
+	${SOURCE_PARSER_DIR}/parser_context.hpp
+	${SOURCE_PARSER_DIR}/parser_abstract_syntax_tree_container.hpp
+	${SOURCE_PARSER_DIR}/parser_lex_context.hpp
 )
 
 set(BlastParserSources
 	${SOURCE_PARSER_DIR}/parser_common.cpp
+	${SOURCE_PARSER_DIR}/parser_types.cpp
+	${SOURCE_PARSER_DIR}/parser_helper.cpp
+	${SOURCE_PARSER_DIR}/parser_context.cpp
 	${SOURCE_PARSER_DIR}/blast_scanner.cpp
 	${SOURCE_PARSER_DIR}/blast_parser.cpp
 )
