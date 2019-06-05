@@ -10,23 +10,36 @@ class CompilerContext
 public:
 	bool hasType(const TypeInner &type);
 	Id getTypeId(const TypeInner &type);
+	Id getVariableId(const BaseVariable &var);
 
+	void addHeader(SpirVOp headerInstruction);
+	void addDecorate(SpirVOp decorateInstruction);
 	void addType(SpirVOp typeInstruction);
 	void addDebug(SpirVOp debugInstruction);
+	void addGlobal(SpirVOp globalInstruction);
 
+	std::vector<SpirVOp> getHeaderOps() const;
 	std::vector<SpirVOp> getDebugNameOps() const;
 	std::vector<SpirVOp> getDecorateOps() const;
 	std::vector<SpirVOp> getTypeOps() const;
+	std::vector<SpirVOp> getConstOps() const;
+	std::vector<SpirVOp> getSpecConstOps() const;
 	std::vector<SpirVOp> getGlobalOps() const;
 private:
 	CompilerIdentifiers ids_;
 	
+	//header operations
+	std::vector<SpirVOp> headerOps_;
 	//debug name operations
 	std::vector<SpirVOp> debugNameOps_;
 	//decorate operations
 	std::vector<SpirVOp> decorateOps_;
 	//type operations
 	std::vector<SpirVOp> typeOps_;
+	//const declarations operations
+	std::vector<SpirVOp> constOps_;
+	//specconst declarations operations
+	std::vector<SpirVOp> specConstOps_;
 	//global operations
 	std::vector<SpirVOp> globalOps_;
 	

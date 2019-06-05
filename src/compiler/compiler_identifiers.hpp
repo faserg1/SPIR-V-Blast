@@ -14,9 +14,11 @@ public:
 
 	bool hasType(const TypeInner &t) const;
 	Id getTypeId(const TypeInner &t);
+	Id getVariableId(const BaseVariable &var);
 private:
 	uint32_t counter_;
 	std::map<TypeInner, Id> types_;
+	std::map<uint64_t, Id> vars_;
 private:
 	Id createId(const std::string &debugName);
 	std::string toDebugName(const TypeInner &t);

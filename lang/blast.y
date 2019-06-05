@@ -229,6 +229,7 @@ struct TypeEnum
 struct PointerType
 {
 	TypeInner innerType;
+	uint32_t storageClass;
 };
 
 struct ArrayType
@@ -261,6 +262,7 @@ struct BaseVariable
 	struct Type type;
 	std::string name;
 	int64_t id;
+	uint32_t storageClass;
 };
 
 struct Literal
@@ -1738,7 +1740,7 @@ bool operator==(const TypeInner &t1, const TypeInner &t2)
 		{
 			auto p1 = std::any_cast<PointerType>(t1.innerType);
 			auto p2 = std::any_cast<PointerType>(t2.innerType);
-			return p1.innerType == p2.innerType;
+			return p1.innerType == p2.innerType && p1.storageClass == p2.storageClass;
 		}
 		case EType::Array:
 		{
@@ -1830,7 +1832,7 @@ bool operator<(const TypeInner &t1, const TypeInner &t2)
 		{
 			auto p1 = std::any_cast<PointerType>(t1.innerType);
 			auto p2 = std::any_cast<PointerType>(t2.innerType);
-			return p1.innerType < p2.innerType;
+			return p1.innerType < p2.innerType || p1.storageClass < p2.storageClass;
 		}
 		case EType::Array:
 		{
@@ -1917,7 +1919,7 @@ bool operator>(const TypeInner &t1, const TypeInner &t2)
 		{
 			auto p1 = std::any_cast<PointerType>(t1.innerType);
 			auto p2 = std::any_cast<PointerType>(t2.innerType);
-			return p1.innerType > p2.innerType;
+			return p1.innerType > p2.innerType || p1.storageClass > p2.storageClass;
 		}
 		case EType::Array:
 		{

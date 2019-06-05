@@ -21,6 +21,16 @@ Id CompilerIdentifiers::getTypeId(const TypeInner &t)
 	return id;
 }
 
+Id CompilerIdentifiers::getVariableId(const BaseVariable &var)
+{
+	auto searchResult = vars_.find(var.id);
+	if (searchResult != vars_.end())
+		return searchResult->second;
+	auto id = createId(var.name);
+	vars_.insert(std::make_pair(var.id, id));
+	return id;
+}
+
 Id CompilerIdentifiers::createId(const std::string &debugName)
 {
 	Id id;
@@ -62,7 +72,12 @@ std::string CompilerIdentifiers::toDebugName(const TypeInner &t)
 	case EType::Image:
 	case EType::Sampler:
 	case EType::SampledImage:
+		break;
 	case EType::Pointer:
+	{
+		auto ptrType = std::any_cast<PointerType>(t.innerType);
+		return toDebugName(ptrType.innerType) + "*"s;
+	}
 	case EType::Array:
 	case EType::Struct:
 	case EType::Enum:

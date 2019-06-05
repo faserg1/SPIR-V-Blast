@@ -64,7 +64,6 @@ set(BlastHeaders
 	${SOURCE_DIR}/args_parser.hpp
 	${SOURCE_DIR}/args_processor.hpp
 	${SOURCE_DIR}/reader.hpp
-	${SOURCE_DIR}/shader.hpp
 	${SOURCE_DIR}/preprocessor.hpp
 	${SOURCE_DIR}/shader_preprocessed_info.hpp
 	${SOURCE_DIR}/writer.hpp
@@ -77,7 +76,6 @@ set(BlastSources
 	${SOURCE_DIR}/args_parser.cpp
 	${SOURCE_DIR}/args_processor.cpp
 	${SOURCE_DIR}/reader.cpp
-	${SOURCE_DIR}/shader.cpp
 	${SOURCE_DIR}/preprocessor.cpp
 	${SOURCE_DIR}/shader_preprocessed_info.cpp
 	${SOURCE_DIR}/writer.cpp
