@@ -136,10 +136,13 @@ std::string CompilerIdentifiers::toDebugName(const FunctionType &t)
 	using namespace std::string_literals;
 	auto funcTypeDebugName = ""s;
 	funcTypeDebugName += t.returnType.debugName + " (";
-	for (auto &p : t.paramTypes)
-		funcTypeDebugName += p.debugName + ", ";
-	funcTypeDebugName.pop_back();
-	funcTypeDebugName.pop_back();
+	if (t.paramTypes.size())
+	{
+		for (auto &p : t.paramTypes)
+			funcTypeDebugName += p.debugName + ", ";
+		funcTypeDebugName.pop_back();
+		funcTypeDebugName.pop_back();
+	}
 	funcTypeDebugName += ")"s;
 	return funcTypeDebugName;
 }
