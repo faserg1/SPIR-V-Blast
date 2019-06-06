@@ -49,6 +49,7 @@ set(BlastCompilerHeaders
 )
 
 set(BlastCompilerSources
+	${SOURCE_COMPILER_DIR}/compiler_data.cpp
 	${SOURCE_COMPILER_DIR}/compiler_common.cpp
 	${SOURCE_COMPILER_DIR}/compiler_context.cpp
 	${SOURCE_COMPILER_DIR}/compiler_identifiers.cpp

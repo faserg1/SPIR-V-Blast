@@ -55,6 +55,22 @@ Id CompilerCommon::compileType(const Type &type)
 	return compileType(type.innerType);
 }
 
+Id CompilerCommon::compileType(const FunctionType &funcType)
+{
+	if (ctx_.hasType(funcType))
+		return ctx_.getTypeId(funcType);
+	auto funcTypeId = ctx_.getTypeId(funcType);
+	SpirVOp opType;
+	opType.op = spv::Op::OpTypeFunction;
+	opType.params.push_back(paramId(funcTypeId));
+	opType.params.push_back(paramId(funcType.returnType));
+	for (auto &idParam : funcType.paramTypes)
+		opType.params.push_back(paramId(idParam));
+	ctx_.addType(opType);
+	ctx_.addDebug(debugOp(funcTypeId));
+	return funcTypeId;
+}
+
 Id CompilerCommon::compileType(const TypeInner &type)
 {
 	auto getOrCreateInnerType = [this](const TypeInner &typeInner) -> Id
@@ -239,9 +255,13 @@ void CompilerCommon::compileStruct(const Struct &userStruct)
 
 void CompilerCommon::compileFunction(const Function &func)
 {
-	compileType(func.returnType);
+	// Compile function type
+	FunctionType funcType;
+	funcType.returnType = compileType(func.returnType);
 	for (auto &funcParameter : func.parameters)
-		compileType(funcParameter.type);
+		funcType.paramTypes.push_back(compileType(funcParameter.type));
+	auto funcTypeId = compileType(funcType);
+	// Compile function
 }
 
 void CompilerCommon::decorate(const Id &id, spv::Decoration dec, std::vector<AttributeParam> params)

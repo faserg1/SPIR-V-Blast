@@ -13,6 +13,7 @@ public:
 	std::vector<SpirVOp> compile(std::shared_ptr<AbstractSyntaxTreeContainer> container, const ShaderPreprocessedInfo &ppInfo);
 private:
 	Id compileType(const Type &type);
+	Id compileType(const FunctionType &type);
 	Id compileType(const TypeInner &type);
 	void applyStorageClass(Type &type, spv::StorageClass storageClass);
 	void applyStorageClass(BaseVariable &type, spv::StorageClass storageClass);

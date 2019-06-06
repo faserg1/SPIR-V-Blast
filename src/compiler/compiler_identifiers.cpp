@@ -7,8 +7,12 @@ CompilerIdentifiers::CompilerIdentifiers() :
 
 bool CompilerIdentifiers::hasType(const TypeInner &t) const
 {
-	auto searchResult = types_.find(t);
-	return searchResult != types_.end();
+	return types_.find(t) != types_.end();
+}
+
+bool CompilerIdentifiers::hasType(const FunctionType &t) const
+{
+	return functionTypes_.find(t) != functionTypes_.end();
 }
 
 Id CompilerIdentifiers::getTypeId(const TypeInner &t)
@@ -18,6 +22,16 @@ Id CompilerIdentifiers::getTypeId(const TypeInner &t)
 		return searchResult->second;
 	auto id = createId(toDebugName(t));
 	types_.insert(std::make_pair(t, id));
+	return id;
+}
+
+Id CompilerIdentifiers::getTypeId(const FunctionType &t)
+{
+	auto searchResult = functionTypes_.find(t);
+	if (searchResult != functionTypes_.end())
+		return searchResult->second;
+	auto id = createId(toDebugName(t));
+	functionTypes_.insert(std::make_pair(t, id));
 	return id;
 }
 
@@ -85,4 +99,17 @@ std::string CompilerIdentifiers::toDebugName(const TypeInner &t)
 		break;
 	}
 	return "<unknown_type>";
+}
+
+std::string CompilerIdentifiers::toDebugName(const FunctionType &t)
+{
+	using namespace std::string_literals;
+	auto funcTypeDebugName = ""s;
+	funcTypeDebugName += t.returnType.debugName + " (";
+	for (auto &p : t.paramTypes)
+		funcTypeDebugName += p.debugName + ", ";
+	funcTypeDebugName.pop_back();
+	funcTypeDebugName.pop_back();
+	funcTypeDebugName += ")"s;
+	return funcTypeDebugName;
 }

@@ -1,13 +1,23 @@
 #include "compiler_context.hpp"
 
-bool CompilerContext::hasType(const TypeInner &type)
+bool CompilerContext::hasType(const TypeInner &type) const
 {
 	return ids_.hasType(type);
+}
+
+bool CompilerContext::hasType(const FunctionType &funcType) const
+{
+	return ids_.hasType(funcType);
 }
 
 Id CompilerContext::getTypeId(const TypeInner &type)
 {
 	return ids_.getTypeId(type);
+}
+
+Id CompilerContext::getTypeId(const FunctionType &funcType)
+{
+	return ids_.getTypeId(funcType);
 }
 
 Id CompilerContext::getVariableId(const BaseVariable & var)

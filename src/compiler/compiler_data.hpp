@@ -14,6 +14,12 @@ struct Id
 	std::string debugName;
 };
 
+struct FunctionType
+{
+	Id returnType;
+	std::vector<Id> paramTypes;
+};
+
 enum class OpParamType
 {
 	Id,
@@ -40,5 +46,9 @@ struct SpirVOp
 	spv::Op op;
 	std::vector<OpParam> params;
 };
+
+bool operator==(const FunctionType &t1, const FunctionType &t2);
+bool operator!=(const FunctionType &t1, const FunctionType &t2);
+bool operator<(const FunctionType &t1, const FunctionType &t2);
 
 #endif // COMPILER_DATA
