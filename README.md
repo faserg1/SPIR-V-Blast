@@ -1,5 +1,6 @@
 # SPIR-V-Blast Translator
-Converting the C-like language to binary or human readable SPIR-V. [Read more](LANGUAGE.md)
+Converting the C-like language to binary or human readable SPIR-V. [Read more](LANGUAGE.md).
+
 To compile this tool see [Compile the Blast Translator](COMPILE.md).
 
 # About the language
