@@ -28,6 +28,8 @@ struct FirstStruct
 	float f, f1, f2;
 };
 
+FirstStruct *myWings;
+
 float func(int i, float f)
 {
 	if (i > 5)

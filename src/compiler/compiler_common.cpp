@@ -11,13 +11,13 @@ std::vector<SpirVOp> CompilerCommon::compile(std::shared_ptr<AbstractSyntaxTreeC
 	for (auto cap : caps)
 		compileCapability(cap);
 
-	auto &globalVariables = container->getGlobalVariables();
-	for (auto &globalVar : globalVariables)
-		compileGlobalVariable(globalVar);
-
 	auto &userStructs = container->getStructs();
 	for (auto &userStruct : userStructs)
 		compileStruct(userStruct);
+
+	auto &globalVariables = container->getGlobalVariables();
+	for (auto &globalVar : globalVariables)
+		compileGlobalVariable(globalVar);
 
 	auto &functions = container->getFunctions();
 	for (auto &function : functions)
@@ -175,9 +175,11 @@ Id CompilerCommon::compileType(const TypeInner &type)
 	}
 	case EType::Struct:
 	{
-		auto structType = std::any_cast<StructureType>(type.innerType);
+		auto structType = std::any_cast<TypeStruct>(type.innerType);
 		auto it = structIds_.find(structType.name);
-		return it->second;
+		auto id = it->second;
+		ctx_.addDebug(debugOp(id));
+		return id;
 	}
 	default:
 		break;

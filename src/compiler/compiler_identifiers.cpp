@@ -118,7 +118,12 @@ std::string CompilerIdentifiers::toDebugName(const TypeInner &t)
 		return toDebugName(ptrType.innerType) + "*"s;
 	}
 	case EType::Array:
+		break;
 	case EType::Struct:
+	{
+		auto structType = std::any_cast<TypeStruct>(t.innerType);
+		return "struct "s + structType.name;
+	}
 	case EType::Enum:
 	default:
 		break;
