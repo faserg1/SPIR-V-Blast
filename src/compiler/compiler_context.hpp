@@ -1,6 +1,7 @@
 #ifndef COMPILER_CONTEXT
 #define COMPILER_CONTEXT
 
+#include <stack>
 #include "compiler_data.hpp"
 #include "../gen/blast_tokens.hpp"
 #include "compiler_identifiers.hpp"
@@ -15,6 +16,7 @@ public:
 	Id getTypeId(const StructureType &type);
 	Id getTypeId(const FunctionType &funcType);
 	Id getVariableId(const BaseVariable &var);
+	Id getFunctionId(const Function &func);
 
 	void addHeader(SpirVOp headerInstruction);
 	void addDecorate(SpirVOp decorateInstruction);

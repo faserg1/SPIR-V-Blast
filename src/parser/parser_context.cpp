@@ -53,7 +53,11 @@ Identifier Context::use(std::string name)
 		auto findResult = it->identifiers.find(name);
 		if (findResult == it->identifiers.end())
 			continue;
-		return findResult->second;
+		//Compiler will decide which function to call
+		auto id = findResult->second;
+		if (id.type == IdentifierType::Function)
+			id.id = -1;
+		return id;
 	}
 	return {};
 }
@@ -168,19 +172,24 @@ void Context::defineFunctionPrototype(const FunctionDeclaration &decl)
 	Identifier ident;
 	ident.name = decl.name;
 	ident.type = IdentifierType::Function;
-	pushIdentifierToScope(ident);
-	getOrDefineFunction(decl);
+	auto id = pushIdentifierToScope(ident);
+	auto &func = getOrDefineFunction(decl);
+	func.id = id;
 }
 
 void Context::defineFunction(const FunctionDeclaration &decl, const Expression &body)
 {
-	Identifier ident;
-	ident.name = decl.name;
-	ident.type = IdentifierType::Function;
-	pushIdentifierToScope(ident);
 	auto &func = getOrDefineFunction(decl);
 	//TODO: [OOKAMI] if body already exists - exception
 	func.body = body;
+	if (func.id < 0)
+	{
+		Identifier ident;
+		ident.name = decl.name;
+		ident.type = IdentifierType::Function;
+		auto id = pushIdentifierToScope(ident);
+		func.id = id;
+	}
 }
 
 void Context::defineEnum(TypeInner baseType, std::string name, EnumDecls defines)
@@ -242,20 +251,9 @@ void Context::operator--()
 int64_t Context::pushIdentifierToScope(Identifier id)
 {
 	static int counter = 0;
-	// Functions can be overloaded.
-	//So compiler decide which function to call
-	if (id.type != IdentifierType::Function)
-		id.id = counter++;
-	else
-		id.id = -1;
+	id.id = counter++;
 	auto &topScope = scopes.back();
-	if (id.type == IdentifierType::Function)
-	{
-		if (topScope.identifiers.find(id.name) == topScope.identifiers.end())
-			topScope.identifiers.insert(std::make_pair(id.name, id));
-	}
-	else
-		topScope.identifiers.insert(std::make_pair(id.name, id));
+	topScope.identifiers.insert(std::make_pair(id.name, id));
 	return id.id;
 }
 
@@ -311,6 +309,7 @@ Function &Context::getOrDefineFunction(const FunctionDeclaration &decl)
 	if (createNew)
 	{
 		Function f;
+		f.id = INT64_MIN;
 		f.returnType = decl.returnType;
 		f.name = decl.name;
 		f.parameters = decl.parameters;

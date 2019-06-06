@@ -304,6 +304,7 @@ struct FunctionDeclaration
 	Type returnType;
 	std::string name;
 	FunctionParameters parameters;
+	int64_t id;
 };
 
 struct Function : FunctionDeclaration, Attributable

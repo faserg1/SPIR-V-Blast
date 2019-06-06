@@ -43,10 +43,15 @@ std::variant<std::string, std::vector<uint32_t>> Translator::translate(std::vect
 		resultWords.push_back(maxId.id + 1); // id bound
 		resultWords.push_back(0); // reserved
 
+		uint64_t currentWord = resultWords.size();
+
 		for (auto &op : ops)
 		{
+			op.wordStart = currentWord;
 			auto words = translateBinary(op);
 			resultWords.insert(resultWords.end(), words.begin(), words.end());
+			currentWord = resultWords.size();
+			op.wordEnd = currentWord - 1;
 		}
 		return resultWords;
 	}

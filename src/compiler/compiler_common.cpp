@@ -173,6 +173,12 @@ Id CompilerCommon::compileType(const TypeInner &type)
 		ctx_.addDebug(debugOp(id));
 		return id;
 	}
+	case EType::Struct:
+	{
+		auto structType = std::any_cast<StructureType>(type.innerType);
+		auto it = structIds_.find(structType.name);
+		return it->second;
+	}
 	default:
 		break;
 	}
@@ -265,6 +271,9 @@ void CompilerCommon::compileStruct(const Struct &userStruct)
 		ctx_.addDebug(dOp);
 	}
 	ctx_.addType(op);
+	ctx_.addDebug(debugOp(id));
+	structIds_.insert(std::make_pair(userStruct.name, id));
+	structs_.insert(std::make_pair(id, userStruct));
 }
 
 void CompilerCommon::compileFunction(const Function &func)
@@ -276,6 +285,42 @@ void CompilerCommon::compileFunction(const Function &func)
 		funcType.paramTypes.push_back(compileType(funcParameter.type));
 	auto funcTypeId = compileType(funcType);
 	// Compile function
+	SpirVOp opFunc, opFuncEnd;
+	std::vector<SpirVOp> opParameters;
+	auto bodyOps = compileFunctionBody(func);
+	opFunc.op = spv::Op::OpFunction;
+	auto id = ctx_.getFunctionId(func);
+	opFunc.params.push_back(paramId(funcType.returnType));
+	opFunc.params.push_back(paramId(id));
+	opFunc.params.push_back(paramUint(0, 32)); //TODO: [OOKAMI] Function control
+	opFunc.params.push_back(paramId(funcTypeId));
+
+	opFuncEnd.op = spv::Op::OpFunctionEnd;
+
+	for (size_t paramIdx = 0; paramIdx < func.parameters.size(); paramIdx++)
+	{
+		SpirVOp opFuncParam;
+		opFuncParam.op = spv::Op::OpFunctionParameter;
+		auto resultTypeId = funcType.paramTypes[paramIdx];
+		auto id = ctx_.getVariableId(func.parameters[paramIdx]);
+		opFuncParam.params.push_back(paramId(resultTypeId));
+		opFuncParam.params.push_back(paramId(id));
+		opParameters.push_back(opFuncParam);
+		ctx_.addDebug(debugOp(id));
+	}
+
+	ctx_.addGlobal(opFunc);
+	for (auto &opParam : opParameters)
+		ctx_.addGlobal(opParam);
+	for (auto &opBody : bodyOps)
+		ctx_.addGlobal(opBody);
+	ctx_.addGlobal(opFuncEnd);
+	ctx_.addDebug(debugOp(id));
+}
+
+std::vector<SpirVOp> CompilerCommon::compileFunctionBody(const Function & func)
+{
+	return {};
 }
 
 void CompilerCommon::decorate(const Id &id, spv::Decoration dec, std::vector<AttributeParam> params)

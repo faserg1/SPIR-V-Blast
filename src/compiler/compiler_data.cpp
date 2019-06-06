@@ -1,5 +1,10 @@
 #include "compiler_data.hpp"
 
+bool operator<(const Id & i1, const Id & i2)
+{
+	return i1.id < i2.id;
+}
+
 bool operator<(const FunctionType &t1, const FunctionType &t2)
 {
 	if (t1.paramTypes.size() > t2.paramTypes.size())

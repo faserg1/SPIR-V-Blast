@@ -60,6 +60,16 @@ Id CompilerIdentifiers::getVariableId(const BaseVariable &var)
 	return id;
 }
 
+Id CompilerIdentifiers::getFunctionId(const Function &func)
+{
+	auto searchResult = functions_.find(func.id);
+	if (searchResult != functions_.end())
+		return searchResult->second;
+	auto id = createId(func.name);
+	functions_.insert(std::make_pair(func.id, id));
+	return id;
+}
+
 Id CompilerIdentifiers::createId(const std::string &debugName)
 {
 	Id id;

@@ -51,8 +51,11 @@ struct SpirVOp
 {
 	spv::Op op;
 	std::vector<OpParam> params;
+	// for debug purposes, see Translator
+	uint64_t wordStart, wordEnd;
 };
 
+bool operator<(const Id &i1, const Id &i2);
 bool operator<(const FunctionType &t1, const FunctionType &t2);
 bool operator<(const StructureType &t1, const StructureType &t2);
 

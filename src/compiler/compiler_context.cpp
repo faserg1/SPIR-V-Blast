@@ -35,6 +35,11 @@ Id CompilerContext::getVariableId(const BaseVariable & var)
 	return ids_.getVariableId(var);
 }
 
+Id CompilerContext::getFunctionId(const Function &func)
+{
+	return ids_.getFunctionId(func);
+}
+
 void CompilerContext::addHeader(SpirVOp headerInstruction)
 {
 	headerOps_.push_back(headerInstruction);

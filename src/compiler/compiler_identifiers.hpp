@@ -19,12 +19,14 @@ public:
 	Id getTypeId(const StructureType &t);
 	Id getTypeId(const FunctionType &t);
 	Id getVariableId(const BaseVariable &var);
+	Id getFunctionId(const Function &func);
 private:
 	uint32_t counter_;
 	std::map<TypeInner, Id> types_;
 	std::map<StructureType, Id> structureTypes_;
 	std::map<FunctionType, Id> functionTypes_;
 	std::map<uint64_t, Id> vars_;
+	std::map<uint64_t, Id> functions_;
 private:
 	Id createId(const std::string &debugName);
 	std::string toDebugName(const TypeInner &t);
