@@ -5,13 +5,13 @@ This language is like "reinvented wheel".
 
 Now, this language can:
  * Work with preprocessor defines and includes.
- * Choose entry points.
-
-In theory, this language supposed to:
  * Work with base types.
+ * Work with enums.
  * Work with structures.
  * Work with pointers (include cast to integer types and backwards).
  * Work with additional capabilities.
+
+In theory, this language supposed to:
  * Work with math.
  * Work with logical branches.
  * Work with loops.
