@@ -5,12 +5,22 @@ bool CompilerContext::hasType(const TypeInner &type) const
 	return ids_.hasType(type);
 }
 
+bool CompilerContext::hasType(const StructureType & type) const
+{
+	return ids_.hasType(type);
+}
+
 bool CompilerContext::hasType(const FunctionType &funcType) const
 {
 	return ids_.hasType(funcType);
 }
 
 Id CompilerContext::getTypeId(const TypeInner &type)
+{
+	return ids_.getTypeId(type);
+}
+
+Id CompilerContext::getTypeId(const StructureType & type)
 {
 	return ids_.getTypeId(type);
 }

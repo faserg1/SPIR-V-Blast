@@ -10,6 +10,11 @@ bool CompilerIdentifiers::hasType(const TypeInner &t) const
 	return types_.find(t) != types_.end();
 }
 
+bool CompilerIdentifiers::hasType(const StructureType & t) const
+{
+	return structureTypes_.find(t) != structureTypes_.end();
+}
+
 bool CompilerIdentifiers::hasType(const FunctionType &t) const
 {
 	return functionTypes_.find(t) != functionTypes_.end();
@@ -22,6 +27,16 @@ Id CompilerIdentifiers::getTypeId(const TypeInner &t)
 		return searchResult->second;
 	auto id = createId(toDebugName(t));
 	types_.insert(std::make_pair(t, id));
+	return id;
+}
+
+Id CompilerIdentifiers::getTypeId(const StructureType & t)
+{
+	auto searchResult = structureTypes_.find(t);
+	if (searchResult != structureTypes_.end())
+		return searchResult->second;
+	auto id = createId(toDebugName(t));
+	structureTypes_.insert(std::make_pair(t, id));
 	return id;
 }
 
@@ -99,6 +114,11 @@ std::string CompilerIdentifiers::toDebugName(const TypeInner &t)
 		break;
 	}
 	return "<unknown_type>";
+}
+
+std::string CompilerIdentifiers::toDebugName(const StructureType &t)
+{
+	return "struct " + t.name;
 }
 
 std::string CompilerIdentifiers::toDebugName(const FunctionType &t)

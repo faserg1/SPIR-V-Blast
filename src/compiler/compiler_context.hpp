@@ -9,8 +9,10 @@ class CompilerContext
 {
 public:
 	bool hasType(const TypeInner &type) const;
+	bool hasType(const StructureType &type) const;
 	bool hasType(const FunctionType &type) const;
 	Id getTypeId(const TypeInner &type);
+	Id getTypeId(const StructureType &type);
 	Id getTypeId(const FunctionType &funcType);
 	Id getVariableId(const BaseVariable &var);
 

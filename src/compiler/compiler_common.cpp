@@ -249,8 +249,22 @@ void CompilerCommon::compileGlobalVariable(GlobalVariable &var)
 
 void CompilerCommon::compileStruct(const Struct &userStruct)
 {
+	StructureType sType;
+	sType.name = userStruct.name;
 	for (auto &member : userStruct.members)
-		compileType(member.type);
+		sType.memberTypes.push_back(compileType(member.type));
+	auto id = ctx_.getTypeId(sType);
+
+	SpirVOp op;
+	op.op = spv::Op::OpTypeStruct;
+	op.params.push_back(paramId(id));
+	for (uint32_t i = 0; i < userStruct.members.size(); i++)
+	{
+		op.params.push_back(paramId(sType.memberTypes[i]));
+		auto dOp = debugMemberOp(id, i, userStruct.members[i].name);
+		ctx_.addDebug(dOp);
+	}
+	ctx_.addType(op);
 }
 
 void CompilerCommon::compileFunction(const Function &func)
@@ -349,13 +363,13 @@ SpirVOp CompilerCommon::debugOp(const Id &id)
 	return op;
 }
 
-SpirVOp CompilerCommon::debugMemberOp(const Id &id, uint32_t memberPosition)
+SpirVOp CompilerCommon::debugMemberOp(const Id &id, uint32_t memberPosition, std::string debugMemberName)
 {
 	SpirVOp op;
 	op.op = spv::Op::OpMemberName;
 	op.params.push_back(paramId(id));
 	op.params.push_back(paramUint(memberPosition, 32));
-	op.params.push_back(paramString(id.debugName));
+	op.params.push_back(paramString(debugMemberName));
 	return op;
 }
 

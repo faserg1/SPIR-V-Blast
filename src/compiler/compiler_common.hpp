@@ -32,7 +32,7 @@ private:
 	std::vector<SpirVOp> collectResult();
 
 	SpirVOp debugOp(const Id &id);
-	SpirVOp debugMemberOp(const Id &id, uint32_t memberPosition);
+	SpirVOp debugMemberOp(const Id &id, uint32_t memberPosition, std::string debugMemberName);
 	OpParam paramId(const Id &id);
 	OpParam paramInt(int64_t i, uint8_t size);
 	OpParam paramUint(uint64_t u, uint8_t size);

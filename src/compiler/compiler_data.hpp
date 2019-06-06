@@ -20,6 +20,12 @@ struct FunctionType
 	std::vector<Id> paramTypes;
 };
 
+struct StructureType
+{
+	std::string name;
+	std::vector<Id> memberTypes;
+};
+
 enum class OpParamType
 {
 	Id,
@@ -47,8 +53,7 @@ struct SpirVOp
 	std::vector<OpParam> params;
 };
 
-bool operator==(const FunctionType &t1, const FunctionType &t2);
-bool operator!=(const FunctionType &t1, const FunctionType &t2);
 bool operator<(const FunctionType &t1, const FunctionType &t2);
+bool operator<(const StructureType &t1, const StructureType &t2);
 
 #endif // COMPILER_DATA
