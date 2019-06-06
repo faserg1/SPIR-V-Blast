@@ -59,7 +59,7 @@ Include some files is shader! Reuse your code :)
 ## Capabilities
 
 ```
-#capability
+#capability <capability>
 ```
 
 ## Entry point
