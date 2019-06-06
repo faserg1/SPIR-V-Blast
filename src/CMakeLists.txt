@@ -66,6 +66,8 @@ set(BlastTranslatorSources
 set(BlastGenerated
 	${BISON_BlastParser_OUTPUTS}
 	${FLEX_BlastTokens_OUTPUTS}
+	${SOURCE_GENERATED_DIR}/spirv_enums.hpp
+	${SOURCE_GENERATED_DIR}/spirv_enums.cpp
 )
 
 set(BlastHeaders

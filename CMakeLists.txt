@@ -36,6 +36,10 @@ add_custom_target(
 )
 
 add_custom_command(
-	OUTPUT ${BLAST_GEN_DIR}/spirv_enums.hpp
+	OUTPUT
+		${BLAST_GEN_DIR}/spirv_enums.hpp
+		${BLAST_GEN_DIR}/spirv_enums.cpp
 	WORKING_DIRECTORY ${BLAST_ROOT}
 	COMMAND ${PYTHON_EXECUTABLE} generateConverter.py)
+
+add_dependencies(Blast enum_generator)

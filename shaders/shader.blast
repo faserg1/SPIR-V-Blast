@@ -16,7 +16,7 @@ enum MySuperEnum
 vec<int, 4> *posIn;
 [[bind:0]]
 [[out:0]]
-[[buildIn:Position]]
+[[builtIn:Position]]
 vec<int, 4> *posOut;
 
 /*

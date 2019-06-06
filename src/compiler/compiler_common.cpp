@@ -1,5 +1,6 @@
 #include "compiler_common.hpp"
 #include "../gen/blast_tokens.hpp"
+#include "../gen/spirv_enums.hpp"
 #include "../shader_preprocessed_info.hpp"
 
 std::vector<SpirVOp> CompilerCommon::compile(std::shared_ptr<AbstractSyntaxTreeContainer> container, const ShaderPreprocessedInfo &ppInfo)
@@ -205,8 +206,15 @@ void CompilerCommon::compileGlobalVariable(GlobalVariable &var)
 			decorate(id, spv::Decoration::Binding, attribute.params);
 		else if (attribute.name == "builtIn")
 		{
-			// TODO: [OOKAMI] Read the value from string (as spv::BuiltIn enum)
-			//decorate(id, spv::Decoration::BuiltIn, attribute.params);
+			auto &bType = attribute.params[0];
+			if (bType.type == AttributeParamType::Identifier)
+			{
+				auto builtId = fromString<spv::BuiltIn>(bType.paramIdent);
+				bType.paramLiteral.unum = static_cast<uint32_t>(builtId);
+				bType.paramLiteral.type = LiteralType::UNumber;
+				bType.type = AttributeParamType::Literal;
+			}
+			decorate(id, spv::Decoration::BuiltIn, attribute.params);
 		}
 	}
 
