@@ -15,12 +15,17 @@ bool CompilerContext::hasType(const FunctionType &funcType) const
 	return ids_.hasType(funcType);
 }
 
+bool CompilerContext::hasConstant(const Type &t, Literal &value) const
+{
+	return ids_.hasConstant(t, value);
+}
+
 Id CompilerContext::getTypeId(const TypeInner &type)
 {
 	return ids_.getTypeId(type);
 }
 
-Id CompilerContext::getTypeId(const StructureType & type)
+Id CompilerContext::getTypeId(const StructureType &type)
 {
 	return ids_.getTypeId(type);
 }
@@ -28,6 +33,11 @@ Id CompilerContext::getTypeId(const StructureType & type)
 Id CompilerContext::getTypeId(const FunctionType &funcType)
 {
 	return ids_.getTypeId(funcType);
+}
+
+Id CompilerContext::getConstantId(const Type &t, Literal &value)
+{
+	return ids_.getConstantId(t, value);
 }
 
 Id CompilerContext::getVariableId(const BaseVariable & var)

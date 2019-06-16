@@ -6,7 +6,6 @@
 #include <optional>
 #include <any>
 #include <map>
-#include <list>
 
 #include <spirv.hpp11>
 
@@ -281,8 +280,8 @@ struct Attributable
 	std::vector<struct Attribute> attributes;
 };
 
-typedef std::list<struct Expression> ExpressionParams;
-typedef std::list<struct LocalVariable> LocalVariables;
+typedef std::vector<struct Expression> ExpressionParams;
+typedef std::vector<struct LocalVariable> LocalVariables;
 
 struct Expression
 {
@@ -346,6 +345,12 @@ struct GlobalVariable : Attributable, BaseVariable
 	std::optional<struct Expression> initialization;
 };
 
+struct ConstExpression
+{
+	struct Type type;
+	struct Literal literal;
+};
+
 using VarNamesAndInits =
 std::vector<std::pair<std::string, std::optional<Expression>>>;
 using Vars = std::pair<Type, VarNamesAndInits>;
@@ -355,6 +360,7 @@ bool operator!=(const Type &t1, const Type &t2);
 bool operator==(const TypeInner &t1, const TypeInner &t2);
 bool operator!=(const TypeInner &t1, const TypeInner &t2);
 bool operator<(const TypeInner &t1, const TypeInner &t2);
-bool operator>(const TypeInner &t1, const TypeInner &t2);
+bool operator<(const Literal &l1, const Literal &l2);
+bool operator<(const ConstExpression &e1, const ConstExpression &e2);
 
 #endif

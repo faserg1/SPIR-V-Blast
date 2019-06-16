@@ -21,6 +21,12 @@ bool CompilerIdentifiers::hasType(const FunctionType &t) const
 	return functionTypes_.find(t) != functionTypes_.end();
 }
 
+bool CompilerIdentifiers::hasConstant(const Type & t, Literal & value) const
+{
+	ConstExpression e{ t, value };
+	return constants_.find(e) != constants_.end();
+}
+
 Id CompilerIdentifiers::getTypeId(const TypeInner &t)
 {
 	auto searchResult = types_.find(t);
@@ -51,9 +57,15 @@ Id CompilerIdentifiers::getTypeId(const FunctionType &t)
 	return id;
 }
 
-Id CompilerIdentifiers::getConstantId(const Type & t, Literal & value)
+Id CompilerIdentifiers::getConstantId(const Type &t, Literal &value)
 {
-	return Id();
+	ConstExpression e{t, value};
+	auto searchResult = constants_.find(e);
+	if (searchResult != constants_.end())
+		return searchResult->second;
+	auto id = createId(toDebugName(e));
+	constants_.insert(std::make_pair(e, id));
+	return id;
 }
 
 Id CompilerIdentifiers::getVariableId(const BaseVariable &var)
@@ -159,7 +171,8 @@ std::string CompilerIdentifiers::toDebugName(const TypeInner &t)
 
 std::string CompilerIdentifiers::toDebugName(const StructureType &t)
 {
-	return "struct " + t.name;
+	using namespace std::string_literals;
+	return "struct "s + t.name;
 }
 
 std::string CompilerIdentifiers::toDebugName(const FunctionType &t)
@@ -176,4 +189,11 @@ std::string CompilerIdentifiers::toDebugName(const FunctionType &t)
 	}
 	funcTypeDebugName += ")"s;
 	return funcTypeDebugName;
+}
+
+std::string CompilerIdentifiers::toDebugName(const ConstExpression &e)
+{
+	using namespace std::string_literals;
+	//TODO: print literal?
+	return "const "s + toDebugName(e.type.innerType);
 }

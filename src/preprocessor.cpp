@@ -274,11 +274,15 @@ std::string Preprocessor::replaceByPreprocessorDefines(std::string text, const d
 				});
 		}
 	}
-	int offset = 0;
+	if (reps.empty())
+		return std::move(text);
+	std::sort(reps.begin(), reps.end(), [](const Replaces &r1, const Replaces &r2) -> bool
+	{
+		return r1.begin > r2.begin;
+	});
 	for (auto &rep : reps)
 	{
-		auto where = text.erase(rep.begin + offset, rep.begin + offset + rep.count);
-		offset += ((int64_t) rep.replacer.size()) - ((int64_t) rep.count);
+		auto where = text.erase(rep.begin, rep.begin + rep.count);
 		text.insert(where, rep.replacer.begin(), rep.replacer.end());
 	}
 	return std::move(text);

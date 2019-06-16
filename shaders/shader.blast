@@ -3,6 +3,9 @@
 #capability Shader
 #capability Int64
 
+#define ALLOW_THINGS true
+#define SKIP_THINGS true
+
 enum MySuperEnum
 {
 	Nice,
@@ -29,6 +32,13 @@ struct FirstStruct
 };
 
 FirstStruct *myWings;
+const bool doJob = false;
+const bool skipThings = !ALLOW_THINGS || SKIP_THINGS;
+const bool magic = true;
+const bool star = true && false;
+const bool lava = true && true;
+const bool invert = false && true;
+const bool invert2 = true || false; 
 
 float func(int i, float f)
 {

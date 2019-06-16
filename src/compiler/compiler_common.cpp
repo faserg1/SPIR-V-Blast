@@ -271,7 +271,7 @@ void CompilerCommon::compileGlobalVariable(GlobalVariable &var)
 	compileStorageClass(var);
 
 	auto resultTypeId = compileType(var.type);
-	auto id = ctx_.getVariableId(var);
+	Id id;
 	
 	compileDecorations(id, var);
 	
@@ -284,23 +284,43 @@ void CompilerCommon::compileGlobalVariable(GlobalVariable &var)
 			op.op = spv::Op::OpConstantNull;
 			op.params.push_back(paramId(resultTypeId));
 			op.params.push_back(paramId(id));
+
+			// TODO: Check if has null constant already
 		}
 		else
 		{
+			// TODO: Id must be getted as var id if constant is spec constant, and no check if constant exists
 			const auto etype = var.type.innerType.etype;
 			const std::set<EType> scalarTypes = { EType::Int, EType::Float };
+			const std::set<EType> compositeTypes = { EType::Vector, EType::Matrix, EType::Array, EType::Struct };
 			if (etype == EType::Bool)
 			{
-
+				Literal bl;
+				compileConstExpression(var.initialization.value(), bl);
+				if (ctx_.hasConstant(var.type, bl))
+					return;
+				op.op = (bl.boolean ? spv::Op::OpConstantTrue : spv::Op::OpConstantFalse);
+				id = ctx_.getConstantId(var.type, bl);
+				op.params.push_back(paramId(resultTypeId));
+				op.params.push_back(paramId(id));
 			}
 			else if (scalarTypes.find(etype) != scalarTypes.end())
 			{
-
+				throw std::runtime_error("Unsupported type for constant creation");
+			}
+			else if (compositeTypes.find(etype) != compositeTypes.end())
+			{
+				throw std::runtime_error("Unsupported type for constant creation");
+			}
+			else
+			{
+				throw std::runtime_error("Unsupported type for constant creation");
 			}
 		}
 	}
 	else
 	{
+		id = ctx_.getVariableId(var);
 		op.op = spv::Op::OpVariable;
 		op.params.push_back(paramId(resultTypeId));
 		op.params.push_back(paramId(id));
@@ -391,6 +411,44 @@ void CompilerCommon::compileConstExpression(const Expression &expression, Litera
 	case ExpressionType::Literal:
 	{
 		l = expression.literal;
+		if (l.type == LiteralType::String)
+			l.boolean = !l.string.empty();
+		return;
+	}
+	case ExpressionType::And:
+	{
+		Literal l1, l2;
+		l.type = LiteralType::Boolean;
+		compileConstExpression(expression.params[0], l1);
+		if (!l1.boolean)
+		{
+			l.boolean = false;
+			return;
+		}
+		compileConstExpression(expression.params[1], l2);
+		l.boolean = l2.boolean;
+		return;
+	}
+	case ExpressionType::Or:
+	{
+		Literal l1, l2;
+		l.type = LiteralType::Boolean;
+		compileConstExpression(expression.params[0], l1);
+		if (l1.boolean)
+		{
+			l.boolean = true;
+			return;
+		}
+		compileConstExpression(expression.params[1], l2);
+		l.boolean = l2.boolean;
+		return;
+	}
+	case ExpressionType::Not:
+	{
+		Literal l1;
+		l.type = LiteralType::Boolean;
+		compileConstExpression(expression.params[0], l1);
+		l.boolean = !l1.boolean;
 		return;
 	}
 	default:
