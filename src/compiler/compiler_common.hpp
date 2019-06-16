@@ -15,8 +15,12 @@ private:
 	Id compileType(const Type &type);
 	Id compileType(const FunctionType &type);
 	Id compileType(const TypeInner &type);
-	void applyStorageClass(Type &type, spv::StorageClass storageClass);
+
+	void applyStorageClass(TypeInner &type, spv::StorageClass storageClass);
 	void applyStorageClass(BaseVariable &type, spv::StorageClass storageClass);
+
+	void compileStorageClass(GlobalVariable &var);
+	void compileDecorations(const Id &id, GlobalVariable &var);
 
 	void compileMemoryModel(spv::MemoryModel memModel, spv::AddressingModel addrModel);
 	void compileCapability(spv::Capability cap);
@@ -26,6 +30,8 @@ private:
 	void compileFunction(const Function &func);
 	std::vector<SpirVOp> compileFunctionBody(const Function &func);
 
+	void compileConstExpression(const Expression &expression, Literal &l);
+	void compileConstExpression(const Expression &expression, Identifier &i);
 	void decorate(const Id &id, spv::Decoration dec, std::vector<AttributeParam> params);
 	void decorateMember(const Id &id, uint32_t memberPosition, spv::Decoration dec, std::vector<AttributeParam> params);
 	void writeDecorationParams(SpirVOp &op, std::vector<AttributeParam> params);

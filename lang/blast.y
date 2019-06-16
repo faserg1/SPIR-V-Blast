@@ -1,19 +1,29 @@
 // Use the default C++ style
 %skeleton "lalr1.cc"
+//Set the C++ language
+%language "c++"
 // Define the ParserClass
 %define api.parser.class {BlastParser}
 // Define namespace
 %define api.namespace {gen}
 // Request that symbols be handled as a whole (type, value, and possibly location) in the scanner.
+// Used only when `api.value.type` is `variant`
+// Generate methods MAKE_<symbol>... but... it wont work in GLR
 %define api.token.constructor
 // Use the default variant type as semantic type
 %define api.value.type variant
 // Enable locations!
 %locations
+//Enabling the GLR parser
+//%glr-parser
+
+%code top
+{
+
+} // %code top
 
 %code requires
 {
-
 #include <functional>
 #include "../parser/parser_types.hpp"
 #include "../parser/parser_lex_context.hpp"
@@ -22,16 +32,11 @@
 namespace gen
 {
 	class location;
-}
-
-typedef std::function<void(const gen::location &, const std::string &)> ErrorCallback;
-
-class Context;
-namespace gen
-{
 	class BlastScanner;
 }
+class Context;
 
+typedef std::function<void(const gen::location &, const std::string &)> ErrorCallback;
 } //%code requires
 
 %param { gen::BlastScanner *scanner }
@@ -55,7 +60,7 @@ gen::BlastParser::symbol_type yylex(gen::BlastScanner *scanner, LexContext &ctx)
 %token CONST "const"
 %token C_TRUE "true" C_FALSE "false"
 %token BITCAST "bit_cast"
-%token VOID "void" INT "int" FLOAT "float" BOOL "bool"
+%token VOID "void" INT "int" UINT "uint" FLOAT "float" BOOL "bool"
 %token MATRIX "mat" VECTOR "vec"
 %token IMAGE "img" SAMPLER "smpl" SAMPLED_IMAGE "simg"
 %token STRUCT "struct" ENUM "enum" CLASS "class"
@@ -366,9 +371,10 @@ type: type_mod type_variant type_array_suffix type_pointer_suffix {$$ = Constant
 type_pointer_suffix: type_pointer_suffix '*' {$$ = $1 + 1;}
 | %empty {$$ = 0;};
 
-type_array_suffix: '[' NUMLITERAL ']' {$$ = TypeArraySuffix{true, false, ConstantHelper::uintFromLiteral($2)};}
-| '[' ']' {$$ = TypeArraySuffix{true, true, 0};}
-| %empty {$$ = TypeArraySuffix{false, false, 0};};
+type_array_suffix: '[' NUMLITERAL ']' {$$ = TypeArraySuffix{true, false, ConstantHelper::uintFromLiteral($2), {}};}
+| '[' IDENTIFIER ']' {$$ = TypeArraySuffix{true, false, 0, ctx.use($2)};}
+| '[' ']' {$$ = TypeArraySuffix{true, true, 0, {}};}
+| %empty {$$ = TypeArraySuffix{false, false, 0, {}};};
 
 type_mod: CONST {$$ = {true};}
 | %empty {$$ = {};};
@@ -393,10 +399,11 @@ complex_type_variant: matrix_type {$$ = TypeInner {EType::Matrix, $1};}
 
 void_type: VOID {$$ = VoidType {};};
 int_type: INT {$$ = ConstantHelper::createIntType(32, true);}
+| UINT {$$ = ConstantHelper::createIntType(32, false);}
 | INT '<' '>'{$$ = ConstantHelper::createIntType(32, true);}
+| UINT '<' '>'{$$ = ConstantHelper::createIntType(32, false);}
 | INT '<' NUMLITERAL '>'{$$ = ConstantHelper::createIntType((uint8_t) ConstantHelper::uintFromLiteral($3), true);}
-| INT '<' NUMLITERAL ',' NUMLITERAL '>' {$$ = ConstantHelper::createIntType((uint8_t) ConstantHelper::uintFromLiteral($3), ConstantHelper::uintFromLiteral($5) != 0);}
-| INT '<' NUMLITERAL ',' boolean_const_expr '>' {$$ = ConstantHelper::createIntType((uint8_t) ConstantHelper::uintFromLiteral($3), $5);};
+| UINT '<' NUMLITERAL '>' {$$ = ConstantHelper::createIntType((uint8_t) ConstantHelper::uintFromLiteral($3), false);}
 float_type: FLOAT {$$ = ConstantHelper::createFloatType(32);}
 | FLOAT '<' '>' {$$ = ConstantHelper::createFloatType(32);}
 | FLOAT '<' NUMLITERAL '>' {$$ = ConstantHelper::createFloatType((uint8_t) ConstantHelper::uintFromLiteral($3));};

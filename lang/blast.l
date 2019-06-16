@@ -87,6 +87,7 @@ namespace gen
 
 "void" {return s_make(&gen::BlastParser::make_VOID);}
 "int" {return s_make(&gen::BlastParser::make_INT);}
+"uint" {return s_make(&gen::BlastParser::make_UINT);}
 "float" {return s_make(&gen::BlastParser::make_FLOAT);}
 "bool" {return s_make(&gen::BlastParser::make_BOOL);}
 

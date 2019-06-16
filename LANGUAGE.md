@@ -81,13 +81,13 @@ Include some files is shader! Reuse your code :)
 There are some basic type, you can use:
  - `void`
  - `bool`
- - `int`
+ - `int` and `uint`
  - `float`
 
-For int you can also change the size and signedness, and change size of float:
+For int and float you can also change the size:
 ```
 int<64> //as int64_t in C++
-int<64, 0> //as uint64_t in C++
+uint<64> //as uint64_t in C++
 float<64> //as float64_t in C++
 ```
 

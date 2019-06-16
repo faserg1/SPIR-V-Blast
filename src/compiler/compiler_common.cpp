@@ -1,4 +1,5 @@
 #include "compiler_common.hpp"
+#include <set>
 #include "../gen/blast_tokens.hpp"
 #include "../gen/spirv_enums.hpp"
 #include "../shader_preprocessed_info.hpp"
@@ -26,15 +27,16 @@ std::vector<SpirVOp> CompilerCommon::compile(std::shared_ptr<AbstractSyntaxTreeC
 	return std::move(collectResult());
 }
 
-void CompilerCommon::applyStorageClass(Type &type, spv::StorageClass storageClass)
+void CompilerCommon::applyStorageClass(TypeInner &type, spv::StorageClass storageClass)
 {
-	switch (type.innerType.etype)
+	switch (type.etype)
 	{
 	case EType::Pointer:
 	{
-		auto &pt = std::any_cast<PointerType>(type.innerType.innerType);
+		auto &pt = std::any_cast<PointerType>(type.innerType);
 		pt.storageClass = static_cast<uint32_t>(storageClass);
-		type.innerType.innerType.swap(std::any(pt));
+		applyStorageClass(pt.innerType, storageClass);
+		type.innerType.swap(std::any(pt));
 		break;
 	}
 	default:
@@ -45,7 +47,48 @@ void CompilerCommon::applyStorageClass(Type &type, spv::StorageClass storageClas
 void CompilerCommon::applyStorageClass(BaseVariable &var, spv::StorageClass storageClass)
 {
 	var.storageClass = static_cast<uint32_t>(storageClass);
-	applyStorageClass(var.type, storageClass);
+	applyStorageClass(var.type.innerType, storageClass);
+}
+
+void CompilerCommon::compileStorageClass(GlobalVariable & var)
+{
+	var.storageClass = UINT32_MAX;
+
+	for (auto &attribute : var.attributes)
+	{
+		if (attribute.name == "in" && !var.type.isConst)
+			applyStorageClass(var, spv::StorageClass::Input);
+		else if (attribute.name == "out" && !var.type.isConst)
+			applyStorageClass(var, spv::StorageClass::Output);
+	}
+
+	if (var.storageClass == UINT32_MAX)
+		applyStorageClass(var, spv::StorageClass::Private);
+}
+
+void CompilerCommon::compileDecorations(const Id &id, GlobalVariable &var)
+{
+	for (auto &attribute : var.attributes)
+	{
+		if (attribute.name == "in" && !var.type.isConst)
+			decorate(id, spv::Decoration::Location, attribute.params);
+		else if (attribute.name == "out" && !var.type.isConst)
+			decorate(id, spv::Decoration::Location, attribute.params);
+		else if (attribute.name == "bind" && !var.type.isConst)
+			decorate(id, spv::Decoration::Binding, attribute.params);
+		else if (attribute.name == "builtIn" && !var.type.isConst)
+		{
+			auto &bType = attribute.params[0];
+			if (bType.type == AttributeParamType::Identifier)
+			{
+				auto builtId = fromString<spv::BuiltIn>(bType.paramIdent);
+				bType.paramLiteral.unum = static_cast<uint32_t>(builtId);
+				bType.paramLiteral.type = LiteralType::UNumber;
+				bType.type = AttributeParamType::Literal;
+			}
+			decorate(id, spv::Decoration::BuiltIn, attribute.params);
+		}
+	}
 }
 
 Id CompilerCommon::compileType(const Type &type)
@@ -159,6 +202,26 @@ Id CompilerCommon::compileType(const TypeInner &type)
 		ctx_.addDebug(debugOp(id));
 		return id;
 	}
+	case EType::Array:
+	{
+		auto arrayType = std::any_cast<ArrayType>(type.innerType);
+		auto componentTypeId = getOrCreateInnerType(arrayType.innerType);
+		auto id = ctx_.getTypeId(type);
+		SpirVOp op;
+		op.op = (arrayType.isRuntime ? spv::Op::OpTypeRuntimeArray : spv::Op::OpTypePointer);
+		op.params.push_back(paramId(id));
+		op.params.push_back(paramId(componentTypeId));
+		if (!arrayType.isRuntime)
+		{
+			if (arrayType.lengthId.id)
+			{
+				//op.params.push_back(paramId(arrayType.lengthId));
+			}
+			//op.params.push_back(paramId());
+		}
+		
+		ctx_.addType(op);
+	}
 	case EType::Pointer:
 	{
 		auto pointerType = std::any_cast<PointerType>(type.innerType);
@@ -205,50 +268,46 @@ void CompilerCommon::compileCapability(spv::Capability cap)
 
 void CompilerCommon::compileGlobalVariable(GlobalVariable &var)
 {
-	var.storageClass = UINT32_MAX;
-
-	for (auto &attribute : var.attributes)
-	{
-		if (attribute.name == "in")
-			applyStorageClass(var, spv::StorageClass::Input);
-		else if (attribute.name == "out")
-			applyStorageClass(var, spv::StorageClass::Output);
-	}
-
-	if (var.storageClass == UINT32_MAX)
-		applyStorageClass(var, spv::StorageClass::Private);
+	compileStorageClass(var);
 
 	auto resultTypeId = compileType(var.type);
 	auto id = ctx_.getVariableId(var);
-	for (auto &attribute : var.attributes)
+	
+	compileDecorations(id, var);
+	
+	SpirVOp op;
+
+	if (var.type.isConst)
 	{
-		if (attribute.name == "in")
-			decorate(id, spv::Decoration::Location, attribute.params);
-		else if (attribute.name == "out")
-			decorate(id, spv::Decoration::Location, attribute.params);
-		else if (attribute.name == "bind")
-			decorate(id, spv::Decoration::Binding, attribute.params);
-		else if (attribute.name == "builtIn")
+		if (!var.initialization.has_value())
 		{
-			auto &bType = attribute.params[0];
-			if (bType.type == AttributeParamType::Identifier)
+			op.op = spv::Op::OpConstantNull;
+			op.params.push_back(paramId(resultTypeId));
+			op.params.push_back(paramId(id));
+		}
+		else
+		{
+			const auto etype = var.type.innerType.etype;
+			const std::set<EType> scalarTypes = { EType::Int, EType::Float };
+			if (etype == EType::Bool)
 			{
-				auto builtId = fromString<spv::BuiltIn>(bType.paramIdent);
-				bType.paramLiteral.unum = static_cast<uint32_t>(builtId);
-				bType.paramLiteral.type = LiteralType::UNumber;
-				bType.type = AttributeParamType::Literal;
+
 			}
-			decorate(id, spv::Decoration::BuiltIn, attribute.params);
+			else if (scalarTypes.find(etype) != scalarTypes.end())
+			{
+
+			}
 		}
 	}
+	else
+	{
+		op.op = spv::Op::OpVariable;
+		op.params.push_back(paramId(resultTypeId));
+		op.params.push_back(paramId(id));
+		op.params.push_back(paramUint(var.storageClass, 32));
 
-	SpirVOp op;
-	op.op = spv::Op::OpVariable;
-	op.params.push_back(paramId(resultTypeId));
-	op.params.push_back(paramId(id));
-	op.params.push_back(paramUint(var.storageClass, 32));
-
-	// TODO: initializer
+		// TODO: initializer
+	}
 
 	ctx_.addGlobal(op);
 	auto opDebug = debugOp(id);
@@ -323,6 +382,25 @@ void CompilerCommon::compileFunction(const Function &func)
 std::vector<SpirVOp> CompilerCommon::compileFunctionBody(const Function & func)
 {
 	return {};
+}
+
+void CompilerCommon::compileConstExpression(const Expression &expression, Literal &l)
+{
+	switch (expression.type)
+	{
+	case ExpressionType::Literal:
+	{
+		l = expression.literal;
+		return;
+	}
+	default:
+		break;
+	}
+}
+
+void CompilerCommon::compileConstExpression(const Expression &expression, Identifier &i)
+{
+
 }
 
 void CompilerCommon::decorate(const Id &id, spv::Decoration dec, std::vector<AttributeParam> params)

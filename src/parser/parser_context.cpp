@@ -250,7 +250,7 @@ void Context::operator--()
 
 int64_t Context::pushIdentifierToScope(Identifier id)
 {
-	static int counter = 0;
+	static int counter = 1;
 	id.id = counter++;
 	auto &topScope = scopes.back();
 	topScope.identifiers.insert(std::make_pair(id.name, id));

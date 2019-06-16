@@ -1,4 +1,5 @@
 #include "compiler_identifiers.hpp"
+#include "../gen/spirv_enums.hpp"
 
 CompilerIdentifiers::CompilerIdentifiers() :
 	counter_(1) // identifiers must start from 1
@@ -48,6 +49,11 @@ Id CompilerIdentifiers::getTypeId(const FunctionType &t)
 	auto id = createId(toDebugName(t));
 	functionTypes_.insert(std::make_pair(t, id));
 	return id;
+}
+
+Id CompilerIdentifiers::getConstantId(const Type & t, Literal & value)
+{
+	return Id();
 }
 
 Id CompilerIdentifiers::getVariableId(const BaseVariable &var)
@@ -109,16 +115,36 @@ std::string CompilerIdentifiers::toDebugName(const TypeInner &t)
 		return "vec<"s + toDebugName(vectorType.componentType) + ","s + std::to_string(vectorType.componentCount) + ">"s;
 	}
 	case EType::Image:
+	{
+		auto b = [](bool b) -> std::string
+		{
+			return b ? "true"s : "false"s;
+		};
+		auto imageType = std::any_cast<ImageType>(t.innerType);
+		return "img<"s + toDebugName(imageType.sampledType) + ","s + toString(imageType.dimension) + ","s +
+			b(imageType.isDepth) + ","s + b(imageType.isArrayed) + ","s + b(imageType.isMultisampled) + ","s +
+			std::to_string(imageType.isSampled) + ","s + toString(imageType.imageFormat) +
+			(imageType.accessQualifier.has_value() ? (","s + toString(imageType.accessQualifier.value()) + ">"s) : (">"s));
+	}
 	case EType::Sampler:
+	{
+		return "smpl"s;
+	}
 	case EType::SampledImage:
-		break;
+	{
+		auto sampledImageType = std::any_cast<SampledImageType>(t.innerType);
+		return "simg<"s + toDebugName(sampledImageType.innerType) + ">"s;
+	}
 	case EType::Pointer:
 	{
 		auto ptrType = std::any_cast<PointerType>(t.innerType);
 		return toDebugName(ptrType.innerType) + "*"s;
 	}
 	case EType::Array:
-		break;
+	{
+		auto arrayType = std::any_cast<ArrayType>(t.innerType);
+		return toDebugName(arrayType.innerType) + "["s + (arrayType.isRuntime ? ""s : std::to_string(arrayType.length)) + "]"s;
+	}
 	case EType::Struct:
 	{
 		auto structType = std::any_cast<TypeStruct>(t.innerType);

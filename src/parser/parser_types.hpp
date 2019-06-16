@@ -219,6 +219,7 @@ struct ArrayType
 {
 	bool isRuntime;
 	uint64_t length;
+	Identifier lengthId;
 	TypeInner innerType;
 };
 
@@ -227,6 +228,7 @@ struct TypeArraySuffix
 	bool isArray;
 	bool isRuntime;
 	uint64_t length;
+	Identifier lengthId;
 };
 
 struct TypeModification

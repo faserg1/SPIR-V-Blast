@@ -18,6 +18,7 @@ public:
 	Id getTypeId(const TypeInner &t);
 	Id getTypeId(const StructureType &t);
 	Id getTypeId(const FunctionType &t);
+	Id getConstantId(const Type &t, Literal &value);
 	Id getVariableId(const BaseVariable &var);
 	Id getFunctionId(const Function &func);
 private:

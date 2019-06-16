@@ -132,7 +132,7 @@ Type ConstantHelper::createType(const TypeModification &mod, TypeInner innerType
 		pointerSuffixCount--;
 	}
 	if (arraySuffix.isArray)
-		innerType = TypeInner{ EType::Array, ArrayType{arraySuffix.isRuntime, arraySuffix.length, innerType} };
+		innerType = TypeInner{ EType::Array, ArrayType{arraySuffix.isRuntime, arraySuffix.length, arraySuffix.lengthId, innerType} };
 	t.innerType = innerType;
 	return t;
 }
