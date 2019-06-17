@@ -104,7 +104,7 @@ std::string CompilerIdentifiers::toDebugName(const TypeInner &t)
 	case EType::Int:
 	{
 		auto intType = std::any_cast<IntType>(t.innerType);
-		return "int<"s + std::to_string(intType.width) + ","s + (intType.signedness ? "true"s : "false"s) + ">"s;
+		return (intType.signedness ? ""s : "u"s) + "int<"s + std::to_string(intType.width) + ">"s;
 	}
 	case EType::Float:
 	{

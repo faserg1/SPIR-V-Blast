@@ -84,6 +84,14 @@ std::vector<uint32_t> Translator::translateBinary(const SpirVOp &op)
 				words.push_back(*reinterpret_cast<uint32_t*>(&num));
 				break;
 			}
+			case 64:
+			{
+				auto num = static_cast<int64_t>(param.inum);
+				auto ptr = reinterpret_cast<uint32_t*>(&num);
+				words.push_back(*ptr++);
+				words.push_back(*ptr);
+				break;
+			}
 			default:
 				throw std::runtime_error("Unsupported number size");
 			}
@@ -95,6 +103,14 @@ std::vector<uint32_t> Translator::translateBinary(const SpirVOp &op)
 			{
 				auto num = static_cast<uint32_t>(param.inum);
 				words.push_back(*reinterpret_cast<uint32_t*>(&num));
+				break;
+			}
+			case 64:
+			{
+				auto num = static_cast<uint64_t>(param.unum);
+				auto ptr = reinterpret_cast<uint32_t*>(&num);
+				words.push_back(*ptr++);
+				words.push_back(*ptr);
 				break;
 			}
 			default:
@@ -111,6 +127,14 @@ std::vector<uint32_t> Translator::translateBinary(const SpirVOp &op)
 			{
 				auto num = static_cast<float>(param.dnum);
 				words.push_back(*reinterpret_cast<uint32_t*>(&num));
+				break;
+			}
+			case 64:
+			{
+				auto num = static_cast<double>(param.dnum);
+				auto ptr = reinterpret_cast<uint32_t*>(&num);
+				words.push_back(*ptr++);
+				words.push_back(*ptr);
 				break;
 			}
 			default:

@@ -2,6 +2,7 @@
 
 #capability Shader
 #capability Int64
+#capability Float64
 
 enum MySuperEnum
 {
@@ -18,6 +19,9 @@ vec<int, 4> *posIn;
 [[out:0]]
 [[builtIn:Position]]
 vec<int, 4> *posOut;
+
+const int<64> bigConstInt = 123457890987654321;
+const float<64> bigConstFloat = 123457890.0987654321;
 
 /*
 oh yeah!
