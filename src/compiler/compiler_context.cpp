@@ -70,6 +70,16 @@ void CompilerContext::addDebug(SpirVOp debugInstruction)
 	debugNameOps_.push_back(debugInstruction);
 }
 
+void CompilerContext::addConst(SpirVOp constInstruction)
+{
+	constOps_.push_back(constInstruction);
+}
+
+void CompilerContext::addSpecConst(SpirVOp specConstInstruction)
+{
+	specConstOps_.push_back(specConstInstruction);
+}
+
 void CompilerContext::addGlobal(SpirVOp globalInstruction)
 {
 	globalOps_.push_back(globalInstruction);

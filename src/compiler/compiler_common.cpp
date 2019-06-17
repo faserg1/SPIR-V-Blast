@@ -278,13 +278,13 @@ void CompilerCommon::compileGlobalVariable(GlobalVariable &var)
 	Id id;
 	SpirVOp op;
 
+	bool isSpecConst = var.type.isConst && std::find_if(var.attributes.begin(), var.attributes.end(), [](const Attribute &attr) -> bool
+	{
+		return attr.name == "spec";
+	}) != var.attributes.end();
+
 	if (var.type.isConst)
 	{
-		bool isSpecConst = std::find_if(var.attributes.begin(), var.attributes.end(), [](const Attribute &attr) -> bool
-		{
-			return attr.name == "spec";
-		}) != var.attributes.end();
-
 		if (!var.initialization.has_value())
 		{
 			op.op = spv::Op::OpConstantNull;
@@ -339,7 +339,15 @@ void CompilerCommon::compileGlobalVariable(GlobalVariable &var)
 
 	compileDecorations(id, var);
 
-	ctx_.addGlobal(op);
+	if (var.type.isConst)
+	{
+		if (isSpecConst)
+			ctx_.addSpecConst(op);
+		else
+			ctx_.addConst(op);
+	}
+	else
+		ctx_.addGlobal(op);
 	auto opDebug = debugOp(id);
 	ctx_.addDebug(opDebug);
 }

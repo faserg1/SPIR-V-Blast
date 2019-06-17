@@ -24,6 +24,8 @@ public:
 	void addDecorate(SpirVOp decorateInstruction);
 	void addType(SpirVOp typeInstruction);
 	void addDebug(SpirVOp debugInstruction);
+	void addConst(SpirVOp constInstruction);
+	void addSpecConst(SpirVOp specConstInstruction);
 	void addGlobal(SpirVOp globalInstruction);
 
 	std::vector<SpirVOp> getHeaderOps() const;
