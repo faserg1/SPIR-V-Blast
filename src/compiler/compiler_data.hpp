@@ -31,6 +31,7 @@ enum class OpParamType
 	Id,
 	LiteralU,
 	LiteralI,
+	Float,
 	String,
 };
 
@@ -42,6 +43,7 @@ struct OpParam
 	{
 		int64_t inum;
 		uint64_t unum;
+		long double dnum;
 	};
 	uint8_t numSize;
 	std::string str;

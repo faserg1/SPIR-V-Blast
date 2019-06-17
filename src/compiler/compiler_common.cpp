@@ -314,7 +314,33 @@ void CompilerCommon::compileGlobalVariable(GlobalVariable &var)
 			}
 			else if (scalarTypes.find(etype) != scalarTypes.end())
 			{
-				throw std::runtime_error("Unsupported type for constant creation");
+				Literal bl;
+				auto expression = std::get<ScalarInitialization>(var.initialization.value().value);
+				compileConstExpression(expression, bl);
+				bl = castToType(var.type, bl);
+				if (!isSpecConst && ctx_.hasConstant(var.type, bl))
+					return;
+				op.op = (isSpecConst ? spv::Op::OpSpecConstant : spv::Op::OpConstant);
+				id = isSpecConst ? id = ctx_.getVariableId(var) : ctx_.getConstantId(var.type, bl);
+				op.params.push_back(paramId(resultTypeId));
+				op.params.push_back(paramId(id));
+				switch (etype)
+				{
+				case EType::Int:
+				{
+					auto intType = std::any_cast<IntType>(var.type.innerType.innerType);
+					op.params.push_back(intType.signedness ? paramInt(bl.inum, intType.width) : paramUint(bl.unum, intType.width));
+					break;
+				}
+				case EType::Float:
+				{
+					auto floatType = std::any_cast<FloatType>(var.type.innerType.innerType);
+					op.params.push_back(paramFloat(bl.dnum, floatType.width));
+					break;
+				}
+				default:
+					throw std::runtime_error("Unsupported scalar type for constant creation");
+				}
 			}
 			else if (compositeTypes.find(etype) != compositeTypes.end())
 			{
@@ -533,6 +559,66 @@ void CompilerCommon::compileConstExpression(const Expression &expression, Identi
 
 }
 
+Literal CompilerCommon::castToType(const Type &t, const Literal &l)
+{
+	Literal r;
+	switch (t.innerType.etype)
+	{
+	case EType::Bool:
+		r.type = LiteralType::Boolean;
+		switch (l.type)
+		{
+		case LiteralType::DNumber:
+			r.boolean = l.dnum != 0;
+			break;
+		default:
+			r.boolean = l.boolean;
+			break;
+		}
+		break;
+	case EType::Int:
+	{
+		auto intType = std::any_cast<IntType>(t.innerType.innerType);
+		r.type = (intType.signedness ? LiteralType::INumber : LiteralType::UNumber);
+		switch (l.type)
+		{
+		case LiteralType::DNumber:
+			if (intType.signedness)
+				r.inum = static_cast<int64_t>(l.dnum);
+			else
+				r.unum = static_cast<uint64_t>(l.dnum);
+			break;
+		case LiteralType::String:
+			throw std::runtime_error("Invalid literal cast");
+		default:
+			r.unum = l.unum;
+			break;
+		}
+		break;
+	}
+	case EType::Float:
+		r.type = LiteralType::DNumber;
+		switch (l.type)
+		{
+		case LiteralType::INumber:
+			r.dnum = static_cast<long double>(l.inum);
+			break;
+		case LiteralType::UNumber:
+			r.dnum = static_cast<long double>(l.unum);
+			break;
+		case LiteralType::String:
+			throw std::runtime_error("Invalid literal cast");
+		default:
+			r.dnum = l.dnum;
+			break;
+		}
+		break;
+	default:
+		throw std::runtime_error("Invalid literal cast");
+	}
+	return r;
+}
+
 void CompilerCommon::decorate(const Id &id, spv::Decoration dec, std::vector<AttributeParam> params)
 {
 	SpirVOp op;
@@ -650,6 +736,15 @@ OpParam CompilerCommon::paramUint(uint64_t u, uint8_t size)
 	OpParam p;
 	p.type = OpParamType::LiteralU;
 	p.unum = u;
+	p.numSize = size;
+	return p;
+}
+
+OpParam CompilerCommon::paramFloat(long double d, uint8_t size)
+{
+	OpParam p;
+	p.type = OpParamType::Float;
+	p.dnum = d;
 	p.numSize = size;
 	return p;
 }

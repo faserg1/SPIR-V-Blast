@@ -32,6 +32,7 @@ private:
 
 	void compileConstExpression(const Expression &expression, Literal &l);
 	void compileConstExpression(const Expression &expression, Identifier &i);
+	Literal castToType(const Type &t, const Literal &l);
 	void decorate(const Id &id, spv::Decoration dec, std::vector<AttributeParam> params);
 	void decorateMember(const Id &id, uint32_t memberPosition, spv::Decoration dec, std::vector<AttributeParam> params);
 	void writeDecorationParams(SpirVOp &op, std::vector<AttributeParam> params);
@@ -43,6 +44,7 @@ private:
 	OpParam paramId(const Id &id);
 	OpParam paramInt(int64_t i, uint8_t size);
 	OpParam paramUint(uint64_t u, uint8_t size);
+	OpParam paramFloat(long double d, uint8_t size);
 	OpParam paramString(std::string str);
 private:
 	CompilerContext ctx_;

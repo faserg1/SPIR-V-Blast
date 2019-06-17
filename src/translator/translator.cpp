@@ -1,6 +1,8 @@
 #include "translator.hpp"
 #include <stdexcept>
 #include <spirv.hpp11>
+#include <numeric>
+#include <limits>
 
 Translator::Translator() :
 	humanReadable_(false)
@@ -92,6 +94,22 @@ std::vector<uint32_t> Translator::translateBinary(const SpirVOp &op)
 			case 32:
 			{
 				auto num = static_cast<uint32_t>(param.inum);
+				words.push_back(*reinterpret_cast<uint32_t*>(&num));
+				break;
+			}
+			default:
+				throw std::runtime_error("Unsupported number size");
+			}
+			break;
+		case OpParamType::Float:
+			static_assert(std::numeric_limits<float>::is_iec559, "Unsupported compiler! Compiler must support IEEE 754 floating points.");
+			static_assert(sizeof(float) == 4);
+			static_assert(sizeof(double) == 8);
+			switch (param.numSize)
+			{
+			case 32:
+			{
+				auto num = static_cast<float>(param.dnum);
 				words.push_back(*reinterpret_cast<uint32_t*>(&num));
 				break;
 			}
