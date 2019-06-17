@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <variant>
 #include <optional>
 #include <any>
 #include <map>
@@ -293,9 +294,17 @@ struct Expression
 	LocalVariables declaredVariables;
 };
 
+typedef std::vector<struct VariableInitialization> CompositeInitialization;
+typedef struct Expression ScalarInitialization;
+
+struct VariableInitialization
+{
+	std::variant<ScalarInitialization, CompositeInitialization> value;
+};
+
 struct LocalVariable : BaseVariable
 {
-	std::optional<struct Expression> initialization;
+	std::optional<struct VariableInitialization> initialization;
 };
 
 typedef std::vector<struct FunctionParameter> FunctionParameters;
@@ -342,7 +351,7 @@ struct StructMember : Attributable, BaseVariable
 
 struct GlobalVariable : Attributable, BaseVariable
 {
-	std::optional<struct Expression> initialization;
+	std::optional<struct VariableInitialization> initialization;
 };
 
 struct ConstExpression
@@ -352,7 +361,7 @@ struct ConstExpression
 };
 
 using VarNamesAndInits =
-std::vector<std::pair<std::string, std::optional<Expression>>>;
+std::vector<std::pair<std::string, std::optional<VariableInitialization>>>;
 using Vars = std::pair<Type, VarNamesAndInits>;
 
 bool operator==(const Type &t1, const Type &t2);
@@ -360,7 +369,13 @@ bool operator!=(const Type &t1, const Type &t2);
 bool operator==(const TypeInner &t1, const TypeInner &t2);
 bool operator!=(const TypeInner &t1, const TypeInner &t2);
 bool operator<(const TypeInner &t1, const TypeInner &t2);
+bool op_less_map(const Literal &l1, const Literal &l2);
 bool operator<(const Literal &l1, const Literal &l2);
+bool operator>(const Literal &l1, const Literal &l2);
+bool operator<=(const Literal &l1, const Literal &l2);
+bool operator>=(const Literal &l1, const Literal &l2);
+bool operator==(const Literal &l1, const Literal &l2);
+bool operator!=(const Literal &l1, const Literal &l2);
 bool operator<(const ConstExpression &e1, const ConstExpression &e2);
 
 #endif

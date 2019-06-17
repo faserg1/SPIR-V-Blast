@@ -140,6 +140,8 @@ gen::BlastParser::symbol_type yylex(gen::BlastScanner *scanner, LexContext &ctx)
 %type<TypeInner> enum_base_opt
 %type<EnumDecls> enum_body enum_ident_rec
 %type<EnumDecl> enum_ident
+%type<VariableInitialization> var_init
+%type<CompositeInitialization> var_init_rec
 
 %%
 
@@ -359,10 +361,17 @@ var_def_a: var_def {ctx.defineGlobalVariables($1.first, $1.second);}
 
 var_def: type var_def_continious {$$ = std::make_pair($1, $2);};
 
-var_def_continious: var_def_continious ',' IDENTIFIER {auto prev = $1; prev.push_back(std::make_pair($3, std::optional<Expression>())); $$ = prev;}
-| var_def_continious ',' IDENTIFIER '=' expression {auto prev = $1; prev.push_back(std::make_pair($3, $5)); $$ = prev;}
-| IDENTIFIER {$$ = {std::make_pair($1, std::optional<Expression>())};}
-| IDENTIFIER '=' expression {$$ = {std::make_pair($1, $3)};};
+var_def_continious: var_def_continious ',' IDENTIFIER {auto prev = $1; prev.push_back(std::make_pair($3, std::optional<VariableInitialization>())); $$ = prev;}
+| var_def_continious ',' IDENTIFIER '=' var_init {auto prev = $1; prev.push_back(std::make_pair($3, $5)); $$ = prev;}
+| IDENTIFIER {$$ = {std::make_pair($1, std::optional<VariableInitialization>())};}
+| IDENTIFIER '=' var_init {$$ = {std::make_pair($1, $3)};};
+
+var_init: expression { $$ = {$1};}
+| '{' '}' {$$ = {};}
+| '{' var_init_rec '}' {$$ = {$2};};
+
+var_init_rec: var_init {$$ = {$1};}
+| var_init_rec ',' var_init {auto vec = $1; vec.push_back($3); $$ = std::move(vec);};
 
 /* TYPES */
 

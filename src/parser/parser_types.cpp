@@ -1,4 +1,5 @@
 #include "parser_types.hpp"
+#include <stdexcept>
 
 bool operator==(const TypeInner &t1, const TypeInner &t2)
 {
@@ -179,7 +180,7 @@ bool operator<(const TypeInner &t1, const TypeInner &t2)
 	return false;
 }
 
-bool operator<(const Literal &l1, const Literal &l2)
+bool op_less_map(const Literal & l1, const Literal & l2)
 {
 	if (l1.type < l2.type)
 		return true;
@@ -204,13 +205,65 @@ bool operator<(const Literal &l1, const Literal &l2)
 	return false;
 }
 
+template <class CompareFunc>
+bool literalCompare(const Literal &l1, const Literal &l2, CompareFunc cf)
+{
+	if (l1.type != l2.type)
+		throw std::runtime_error("Cannot compare two different literals!");
+	switch (l1.type)
+	{
+	case LiteralType::Boolean:
+		return cf(l1.boolean, l2.boolean);
+	case LiteralType::INumber:
+		return cf(l1.inum, l2.inum);
+	case LiteralType::UNumber:
+		return cf(l1.unum, l2.unum);
+	case LiteralType::DNumber:
+		return cf(l1.dnum, l2.dnum);
+	case LiteralType::String:
+		return cf(l1.string, l2.string);
+	default:
+		throw std::runtime_error("Unknow literal type to compare!");
+	}
+}
+
+bool operator<(const Literal &l1, const Literal &l2)
+{
+	return literalCompare(l1, l2, [](auto v1, auto v2) {return v1 < v2; });
+}
+
+bool operator>(const Literal & l1, const Literal & l2)
+{
+	return literalCompare(l1, l2, [](auto v1, auto v2) {return v1 > v2; });
+}
+
+bool operator<=(const Literal & l1, const Literal & l2)
+{
+	return literalCompare(l1, l2, [](auto v1, auto v2) {return v1 <= v2; });
+}
+
+bool operator>=(const Literal & l1, const Literal & l2)
+{
+	return literalCompare(l1, l2, [](auto v1, auto v2) {return v1 >= v2; });
+}
+
+bool operator==(const Literal & l1, const Literal & l2)
+{
+	return literalCompare(l1, l2, [](auto v1, auto v2) {return v1 == v2; });
+}
+
+bool operator!=(const Literal & l1, const Literal & l2)
+{
+	return literalCompare(l1, l2, [](auto v1, auto v2) {return v1 != v2; });
+}
+
 bool operator<(const ConstExpression &e1, const ConstExpression &e2)
 {
 	if (e1.type.innerType < e2.type.innerType)
 		return true;
 	if (e1.type.innerType == e2.type.innerType)
 	{
-		if (e1.literal < e2.literal)
+		if (op_less_map(e1.literal, e2.literal))
 			return true;
 		return false;
 	}

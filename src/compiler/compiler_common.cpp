@@ -70,6 +70,7 @@ void CompilerCommon::compileDecorations(const Id &id, GlobalVariable &var)
 {
 	for (auto &attribute : var.attributes)
 	{
+		// Non-constant decorations
 		if (attribute.name == "in" && !var.type.isConst)
 			decorate(id, spv::Decoration::Location, attribute.params);
 		else if (attribute.name == "out" && !var.type.isConst)
@@ -88,6 +89,9 @@ void CompilerCommon::compileDecorations(const Id &id, GlobalVariable &var)
 			}
 			decorate(id, spv::Decoration::BuiltIn, attribute.params);
 		}
+		//Constant decoration
+		else if (attribute.name == "spec" && var.type.isConst)
+			decorate(id, spv::Decoration::SpecId, attribute.params);
 	}
 }
 
@@ -272,13 +276,15 @@ void CompilerCommon::compileGlobalVariable(GlobalVariable &var)
 
 	auto resultTypeId = compileType(var.type);
 	Id id;
-	
-	compileDecorations(id, var);
-	
 	SpirVOp op;
 
 	if (var.type.isConst)
 	{
+		bool isSpecConst = std::find_if(var.attributes.begin(), var.attributes.end(), [](const Attribute &attr) -> bool
+		{
+			return attr.name == "spec";
+		}) != var.attributes.end();
+
 		if (!var.initialization.has_value())
 		{
 			op.op = spv::Op::OpConstantNull;
@@ -289,18 +295,20 @@ void CompilerCommon::compileGlobalVariable(GlobalVariable &var)
 		}
 		else
 		{
-			// TODO: Id must be getted as var id if constant is spec constant, and no check if constant exists
 			const auto etype = var.type.innerType.etype;
 			const std::set<EType> scalarTypes = { EType::Int, EType::Float };
 			const std::set<EType> compositeTypes = { EType::Vector, EType::Matrix, EType::Array, EType::Struct };
 			if (etype == EType::Bool)
 			{
 				Literal bl;
-				compileConstExpression(var.initialization.value(), bl);
-				if (ctx_.hasConstant(var.type, bl))
+				auto expression = std::get<ScalarInitialization>(var.initialization.value().value);
+				compileConstExpression(expression, bl);
+				if (!isSpecConst && ctx_.hasConstant(var.type, bl))
 					return;
-				op.op = (bl.boolean ? spv::Op::OpConstantTrue : spv::Op::OpConstantFalse);
-				id = ctx_.getConstantId(var.type, bl);
+				op.op = (bl.boolean ?
+					(isSpecConst ? spv::Op::OpSpecConstantTrue : spv::Op::OpConstantTrue) :
+					(isSpecConst ? spv::Op::OpSpecConstantFalse : spv::Op::OpConstantFalse));
+				id = isSpecConst ? id = ctx_.getVariableId(var) : ctx_.getConstantId(var.type, bl);
 				op.params.push_back(paramId(resultTypeId));
 				op.params.push_back(paramId(id));
 			}
@@ -328,6 +336,8 @@ void CompilerCommon::compileGlobalVariable(GlobalVariable &var)
 
 		// TODO: initializer
 	}
+
+	compileDecorations(id, var);
 
 	ctx_.addGlobal(op);
 	auto opDebug = debugOp(id);
@@ -449,6 +459,60 @@ void CompilerCommon::compileConstExpression(const Expression &expression, Litera
 		l.type = LiteralType::Boolean;
 		compileConstExpression(expression.params[0], l1);
 		l.boolean = !l1.boolean;
+		return;
+	}
+	case ExpressionType::Less:
+	{
+		Literal l1, l2;
+		l.type = LiteralType::Boolean;
+		compileConstExpression(expression.params[0], l1);
+		compileConstExpression(expression.params[1], l2);
+		l.boolean = (l1 < l2);
+		return;
+	}
+	case ExpressionType::More:
+	{
+		Literal l1, l2;
+		l.type = LiteralType::Boolean;
+		compileConstExpression(expression.params[0], l1);
+		compileConstExpression(expression.params[1], l2);
+		l.boolean = (l1 > l2);
+		return;
+	}
+	case ExpressionType::LessOrEqual:
+	{
+		Literal l1, l2;
+		l.type = LiteralType::Boolean;
+		compileConstExpression(expression.params[0], l1);
+		compileConstExpression(expression.params[1], l2);
+		l.boolean = (l1 <= l2);
+		return;
+	}
+	case ExpressionType::MoreOrEqual:
+	{
+		Literal l1, l2;
+		l.type = LiteralType::Boolean;
+		compileConstExpression(expression.params[0], l1);
+		compileConstExpression(expression.params[1], l2);
+		l.boolean = (l1 >= l2);
+		return;
+	}
+	case ExpressionType::Equal:
+	{
+		Literal l1, l2;
+		l.type = LiteralType::Boolean;
+		compileConstExpression(expression.params[0], l1);
+		compileConstExpression(expression.params[1], l2);
+		l.boolean = (l1 == l2);
+		return;
+	}
+	case ExpressionType::NonEqual:
+	{
+		Literal l1, l2;
+		l.type = LiteralType::Boolean;
+		compileConstExpression(expression.params[0], l1);
+		compileConstExpression(expression.params[1], l2);
+		l.boolean = (l1 != l2);
 		return;
 	}
 	default:
