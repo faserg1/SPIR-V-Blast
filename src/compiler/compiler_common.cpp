@@ -50,7 +50,7 @@ void CompilerCommon::applyStorageClass(BaseVariable &var, spv::StorageClass stor
 	applyStorageClass(var.type.innerType, storageClass);
 }
 
-void CompilerCommon::compileStorageClass(GlobalVariable & var)
+void CompilerCommon::compileStorageClass(GlobalVariable &var)
 {
 	var.storageClass = UINT32_MAX;
 
@@ -60,6 +60,8 @@ void CompilerCommon::compileStorageClass(GlobalVariable & var)
 			applyStorageClass(var, spv::StorageClass::Input);
 		else if (attribute.name == "out" && !var.type.isConst)
 			applyStorageClass(var, spv::StorageClass::Output);
+		else if (attribute.name == "push" && !var.type.isConst)
+			applyStorageClass(var, spv::StorageClass::PushConstant);
 	}
 
 	if (var.storageClass == UINT32_MAX)
@@ -92,6 +94,34 @@ void CompilerCommon::compileDecorations(const Id &id, GlobalVariable &var)
 		//Constant decoration
 		else if (attribute.name == "spec" && var.type.isConst)
 			decorate(id, spv::Decoration::SpecId, attribute.params);
+	}
+}
+
+void CompilerCommon::compileDecorations(const Id &structId, const Struct &userStruct)
+{
+	for (auto &attribute : userStruct.attributes)
+	{
+		if (attribute.name == "block")
+			decorate(structId, spv::Decoration::Block, attribute.params);
+		if (attribute.name == "bufferBlock")
+			decorate(structId, spv::Decoration::BufferBlock, attribute.params);
+	}
+}
+
+void CompilerCommon::compileDecorations(const Id &structId, uint32_t memberPosition, const StructMember &member)
+{
+	for (auto &attribute : member.attributes)
+	{
+		if (attribute.name == "rowMajor")
+			decorateMember(structId, memberPosition, spv::Decoration::RowMajor, attribute.params);
+		else if (attribute.name == "colMajor")
+			decorateMember(structId, memberPosition, spv::Decoration::ColMajor, attribute.params);
+		else if (attribute.name == "matrixStride")
+			decorateMember(structId, memberPosition, spv::Decoration::MatrixStride, attribute.params);
+		else if (attribute.name == "component")
+			decorateMember(structId, memberPosition, spv::Decoration::Component, attribute.params);
+		else if (attribute.name == "offset")
+			decorateMember(structId, memberPosition, spv::Decoration::Offset, attribute.params);
 	}
 }
 
@@ -386,12 +416,15 @@ void CompilerCommon::compileStruct(const Struct &userStruct)
 		sType.memberTypes.push_back(compileType(member.type));
 	auto id = ctx_.getTypeId(sType);
 
+	compileDecorations(id, userStruct);
+
 	SpirVOp op;
 	op.op = spv::Op::OpTypeStruct;
 	op.params.push_back(paramId(id));
 	for (uint32_t i = 0; i < userStruct.members.size(); i++)
 	{
 		op.params.push_back(paramId(sType.memberTypes[i]));
+		compileDecorations(id, i, userStruct.members[i]);
 		auto dOp = debugMemberOp(id, i, userStruct.members[i].name);
 		ctx_.addDebug(dOp);
 	}

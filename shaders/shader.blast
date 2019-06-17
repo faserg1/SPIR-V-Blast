@@ -22,13 +22,15 @@ vec<int, 4> *posOut;
 /*
 oh yeah!
 */
-struct FirstStruct
+[[block]]
+struct PushStruct
 {
-	int i, i1, i2;
-	float f, f1, f2;
+	int count;
+	float mul;
 };
 
-FirstStruct *myWings;
+[[push]]
+PushStruct *myWings;
 
 const bool trueBool = true;
 const bool falseBool = false;

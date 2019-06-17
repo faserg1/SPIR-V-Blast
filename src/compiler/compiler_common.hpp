@@ -21,6 +21,8 @@ private:
 
 	void compileStorageClass(GlobalVariable &var);
 	void compileDecorations(const Id &id, GlobalVariable &var);
+	void compileDecorations(const Id &structId, const Struct &userStruct);
+	void compileDecorations(const Id &structId, uint32_t memberPosition, const StructMember &member);
 
 	void compileMemoryModel(spv::MemoryModel memModel, spv::AddressingModel addrModel);
 	void compileCapability(spv::Capability cap);
