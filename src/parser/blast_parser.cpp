@@ -1,4 +1,5 @@
 #include "../gen/blast_parser.hpp"
+#include <memory>
 
 std::shared_ptr<Context> buildContext()
 {
