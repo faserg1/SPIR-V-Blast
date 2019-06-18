@@ -173,5 +173,5 @@ std::vector<uint32_t> Translator::translateBinary(const SpirVOp &op)
 
 uint32_t Translator::makeFirstWord(uint16_t wordCount, uint16_t opCode)
 {
-	return (opCode & spv::OpCodeMask | (static_cast<uint32_t>(wordCount) << spv::WordCountShift));
+	return ((opCode & spv::OpCodeMask) | (static_cast<uint32_t>(wordCount) << spv::WordCountShift));
 }
