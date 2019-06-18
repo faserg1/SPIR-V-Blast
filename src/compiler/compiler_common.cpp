@@ -36,7 +36,7 @@ void CompilerCommon::applyStorageClass(TypeInner &type, spv::StorageClass storag
 		auto pt = std::any_cast<PointerType>(type.innerType);
 		pt.storageClass = static_cast<uint32_t>(storageClass);
 		applyStorageClass(pt.innerType, storageClass);
-		type.innerType.swap(std::any(pt));
+		type.innerType.swap(pt);
 		break;
 	}
 	default:
