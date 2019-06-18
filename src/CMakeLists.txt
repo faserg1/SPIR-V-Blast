@@ -71,6 +71,12 @@ set(BlastGenerated
 	${SOURCE_GENERATED_DIR}/spirv_enums.cpp
 )
 
+set_source_files_properties(
+    ${SOURCE_GENERATED_DIR}/spirv_enums.hpp
+	${SOURCE_GENERATED_DIR}/spirv_enums.cpp
+    PROPERTIES GENERATED TRUE
+)
+
 set(BlastHeaders
 	${SOURCE_DIR}/args_parser.hpp
 	${SOURCE_DIR}/args_processor.hpp
