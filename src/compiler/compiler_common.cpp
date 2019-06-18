@@ -8,19 +8,19 @@ std::vector<SpirVOp> CompilerCommon::compile(std::shared_ptr<AbstractSyntaxTreeC
 {
 	compileMemoryModel(ppInfo.memoryModel(), ppInfo.addressingModel());
 
-	auto &caps = ppInfo.capabilities();
+	auto caps = ppInfo.capabilities();
 	for (auto cap : caps)
 		compileCapability(cap);
 
-	auto &userStructs = container->getStructs();
+	auto userStructs = container->getStructs();
 	for (auto &userStruct : userStructs)
 		compileStruct(userStruct);
 
-	auto &globalVariables = container->getGlobalVariables();
+	auto globalVariables = container->getGlobalVariables();
 	for (auto &globalVar : globalVariables)
 		compileGlobalVariable(globalVar);
 
-	auto &functions = container->getFunctions();
+	auto functions = container->getFunctions();
 	for (auto &function : functions)
 		compileFunction(function);
 
@@ -33,7 +33,7 @@ void CompilerCommon::applyStorageClass(TypeInner &type, spv::StorageClass storag
 	{
 	case EType::Pointer:
 	{
-		auto &pt = std::any_cast<PointerType>(type.innerType);
+		auto pt = std::any_cast<PointerType>(type.innerType);
 		pt.storageClass = static_cast<uint32_t>(storageClass);
 		applyStorageClass(pt.innerType, storageClass);
 		type.innerType.swap(std::any(pt));
@@ -281,6 +281,7 @@ Id CompilerCommon::compileType(const TypeInner &type)
 	default:
 		break;
 	}
+	throw std::runtime_error("Unsupported type");
 }
 
 void CompilerCommon::compileMemoryModel(spv::MemoryModel memModel, spv::AddressingModel addrModel)
