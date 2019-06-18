@@ -50,6 +50,16 @@ Id CompilerContext::getFunctionId(const Function &func)
 	return ids_.getFunctionId(func);
 }
 
+void CompilerContext::addConstantIdAssociation(const BaseVariable &var, const Id &id)
+{
+	ids_.addConstantIdAssociation(var, id);
+}
+
+Id CompilerContext::createId(const std::string debugName)
+{
+	return ids_.createId(debugName);
+}
+
 void CompilerContext::addHeader(SpirVOp headerInstruction)
 {
 	headerOps_.push_back(headerInstruction);

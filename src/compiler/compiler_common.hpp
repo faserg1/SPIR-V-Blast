@@ -1,11 +1,13 @@
 #ifndef COMPILER_COMMON
 #define COMPILER_COMMON
 
+#include <memory>
 #include "compiler_data.hpp"
 #include "compiler_context.hpp"
 
 class ShaderPreprocessedInfo;
 class AbstractSyntaxTreeContainer;
+class CompilerBodyCompilationContext;
 
 class CompilerCommon
 {
@@ -30,7 +32,8 @@ private:
 	void compileGlobalVariable(GlobalVariable &var);
 	void compileStruct(const Struct &userStruct);
 	void compileFunction(const Function &func);
-	std::vector<SpirVOp> compileFunctionBody(const Function &func);
+	std::vector<SpirVOp> compileFunctionBody(const Function &func, const Id &funcId);
+	std::vector<SpirVOp> compileExpression(const Expression &expression, std::shared_ptr<CompilerBodyCompilationContext> parentContext);
 
 	void compileConstExpression(const Expression &expression, Literal &l);
 	void compileConstExpression(const Expression &expression, Identifier &i);
@@ -40,14 +43,6 @@ private:
 	void writeDecorationParams(SpirVOp &op, std::vector<AttributeParam> params);
 
 	std::vector<SpirVOp> collectResult();
-
-	SpirVOp debugOp(const Id &id);
-	SpirVOp debugMemberOp(const Id &id, uint32_t memberPosition, std::string debugMemberName);
-	OpParam paramId(const Id &id);
-	OpParam paramInt(int64_t i, uint8_t size);
-	OpParam paramUint(uint64_t u, uint8_t size);
-	OpParam paramFloat(long double d, uint8_t size);
-	OpParam paramString(std::string str);
 private:
 	CompilerContext ctx_;
 	std::map<std::string, Id> structIds_;

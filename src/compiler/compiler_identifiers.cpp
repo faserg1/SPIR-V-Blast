@@ -88,6 +88,11 @@ Id CompilerIdentifiers::getFunctionId(const Function &func)
 	return id;
 }
 
+void CompilerIdentifiers::addConstantIdAssociation(const BaseVariable &var, const Id &id)
+{
+	constantAssociations_.insert(std::make_pair(var.id, id));
+}
+
 Id CompilerIdentifiers::createId(const std::string &debugName)
 {
 	Id id;

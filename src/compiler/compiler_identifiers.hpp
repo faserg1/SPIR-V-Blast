@@ -16,12 +16,17 @@ public:
 	bool hasType(const StructureType &t) const;
 	bool hasType(const FunctionType &t) const;
 	bool hasConstant(const Type &t, Literal &value) const;
+	
 	Id getTypeId(const TypeInner &t);
 	Id getTypeId(const StructureType &t);
 	Id getTypeId(const FunctionType &t);
 	Id getConstantId(const Type &t, Literal &value);
 	Id getVariableId(const BaseVariable &var);
 	Id getFunctionId(const Function &func);
+	
+	void addConstantIdAssociation(const BaseVariable &var, const Id &id);
+
+	Id createId(const std::string &debugName);
 private:
 	uint32_t counter_;
 	std::map<TypeInner, Id> types_;
@@ -29,9 +34,9 @@ private:
 	std::map<FunctionType, Id> functionTypes_;
 	std::map<ConstExpression, Id> constants_;
 	std::map<uint64_t, Id> vars_;
+	std::map<uint64_t, Id> constantAssociations_;
 	std::map<uint64_t, Id> functions_;
 private:
-	Id createId(const std::string &debugName);
 	std::string toDebugName(const TypeInner &t);
 	std::string toDebugName(const StructureType &t);
 	std::string toDebugName(const FunctionType &t);

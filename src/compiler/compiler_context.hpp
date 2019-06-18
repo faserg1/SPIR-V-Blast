@@ -13,12 +13,17 @@ public:
 	bool hasType(const StructureType &type) const;
 	bool hasType(const FunctionType &type) const;
 	bool hasConstant(const Type &t, Literal &value) const;
+
 	Id getTypeId(const TypeInner &type);
 	Id getTypeId(const StructureType &type);
 	Id getTypeId(const FunctionType &funcType);
 	Id getConstantId(const Type &t, Literal &value);
 	Id getVariableId(const BaseVariable &var);
 	Id getFunctionId(const Function &func);
+
+	void addConstantIdAssociation(const BaseVariable &var, const Id &id);
+
+	Id createId(const std::string debugName);
 
 	void addHeader(SpirVOp headerInstruction);
 	void addDecorate(SpirVOp decorateInstruction);

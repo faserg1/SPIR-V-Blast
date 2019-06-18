@@ -45,6 +45,8 @@ set(BlastCompilerHeaders
 	${SOURCE_COMPILER_DIR}/compiler_common.hpp
 	${SOURCE_COMPILER_DIR}/compiler_context.hpp
 	${SOURCE_COMPILER_DIR}/compiler_identifiers.hpp
+	${SOURCE_COMPILER_DIR}/compiler_body_compilation_context.hpp
+	${SOURCE_COMPILER_DIR}/compiler_helper.hpp
 	${SOURCE_COMPILER_DIR}/compiler_validator.hpp
 )
 
@@ -53,6 +55,8 @@ set(BlastCompilerSources
 	${SOURCE_COMPILER_DIR}/compiler_common.cpp
 	${SOURCE_COMPILER_DIR}/compiler_context.cpp
 	${SOURCE_COMPILER_DIR}/compiler_identifiers.cpp
+	${SOURCE_COMPILER_DIR}/compiler_body_compilation_context.cpp
+	${SOURCE_COMPILER_DIR}/compiler_helper.cpp
 	${SOURCE_COMPILER_DIR}/compiler_validator.cpp
 )
 
