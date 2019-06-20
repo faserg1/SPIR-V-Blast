@@ -3,11 +3,21 @@
 
 #include <string>
 #include <cstdint>
+#include <spirv.hpp11>
 #include "compiler_data.hpp"
 
 class CompilerHelper
 {
 public:
+	template <class ... TOpParams>
+	static SpirVOp op(spv::Op opId, TOpParams ...params)
+	{
+		SpirVOp op;
+		op.op = opId;
+		op.params = { params... };
+		return op;
+	}
+
 	static SpirVOp labelOp(const Id &id);
 	static SpirVOp debugOp(const Id &id);
 	static SpirVOp debugMemberOp(const Id &id, uint32_t memberPosition, std::string debugMemberName);

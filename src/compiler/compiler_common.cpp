@@ -499,10 +499,73 @@ std::vector<SpirVOp> CompilerCommon::compileFunctionBody(const Function &func, c
 	return std::move(ops);
 }
 
-std::vector<SpirVOp> CompilerCommon::compileExpression(const Expression & expression, std::shared_ptr<CompilerBodyCompilationContext> parentContext)
+std::vector<SpirVOp> CompilerCommon::compileExpression(const Expression &expression, std::shared_ptr<CompilerBodyCompilationContext> parentContext)
 {
+	using namespace std::string_literals;
+	std::vector<SpirVOp> ops;
+	const auto append = [&ops](std::vector<SpirVOp> opsToInsert)
+	{
+		ops.insert(ops.end(), opsToInsert.begin(), opsToInsert.end());
+	};
 	auto bodyCtx = CompilerBodyCompilationContext::create(&ctx_, parentContext);
-	return {};
+	switch (expression.type)
+	{
+	case ExpressionType::StatementGroup:
+		for (auto statement : expression.params)
+		{
+			auto statementOps = compileExpression(statement, bodyCtx);
+			ops.insert(ops.end(), statementOps.begin(), statementOps.end());
+		}
+		break;
+	case ExpressionType::If:
+	{
+		auto it = expression.params.begin();
+		Expression init;
+		if (expression.params.size() == 3)
+		{
+			init = *it;
+			it++;
+		}
+		Expression cond = *it++;
+		Expression doIfTrue = *it++;
+		break;
+	}
+	case ExpressionType::IfElse:
+	{
+		auto it = expression.params.begin();
+		Expression init;
+		if (expression.params.size() == 4)
+		{
+			init = *it;
+			it++;
+			append(compileExpression(init, bodyCtx));
+		}
+		Expression cond = *it++;
+		Expression doIfTrue = *it++;
+		Expression doIfFalse = *it++;
+
+		const auto idTrue = bodyCtx->createLabelId("cond_true"s);
+		const auto labelTrue = CompilerHelper::labelOp(idTrue);
+		const auto idFalse = bodyCtx->createLabelId("cond_false"s);
+		const auto labelFalse = CompilerHelper::labelOp(idFalse);
+		const auto idMerge = bodyCtx->createLabelId("cond_stop"s);
+		const auto labelMerge = CompilerHelper::labelOp(idMerge);
+
+
+		append(compileExpression(cond, bodyCtx));
+		const auto selectionMerge = CompilerHelper::op(spv::Op::OpSelectionMerge,
+			CompilerHelper::paramId(idMerge), CompilerHelper::paramInt((int64_t) spv::SelectionControlMask::MaskNone, 32));
+		
+
+		ops.push_back(labelTrue);
+		append(compileExpression(doIfTrue, bodyCtx));
+		ops.push_back(labelFalse);
+		append(compileExpression(doIfFalse, bodyCtx));
+		ops.push_back(labelMerge);
+		break;
+	}
+	}
+	return std::move(ops);
 }
 
 void CompilerCommon::compileConstExpression(const Expression &expression, Literal &l)
