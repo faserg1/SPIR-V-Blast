@@ -320,6 +320,7 @@ void CompilerCommon::compileGlobalVariable(GlobalVariable &var)
 	{
 		if (!var.initialization.has_value())
 		{
+			id = ctx_.getConstantId(var.type, bl);
 			op.op = spv::Op::OpConstantNull;
 			op.params.push_back(CompilerHelper::paramId(resultTypeId));
 			op.params.push_back(CompilerHelper::paramId(id));
@@ -341,7 +342,7 @@ void CompilerCommon::compileGlobalVariable(GlobalVariable &var)
 				op.op = (bl.boolean ?
 					(isSpecConst ? spv::Op::OpSpecConstantTrue : spv::Op::OpConstantTrue) :
 					(isSpecConst ? spv::Op::OpSpecConstantFalse : spv::Op::OpConstantFalse));
-				id = isSpecConst ? id = ctx_.getVariableId(var) : ctx_.getConstantId(var.type, bl);
+				id = isSpecConst ? ctx_.getVariableId(var) : ctx_.getConstantId(var.type, bl);
 				op.params.push_back(CompilerHelper::paramId(resultTypeId));
 				op.params.push_back(CompilerHelper::paramId(id));
 			}
@@ -354,7 +355,7 @@ void CompilerCommon::compileGlobalVariable(GlobalVariable &var)
 				if (!isSpecConst && ctx_.hasConstant(var.type, bl))
 					return;
 				op.op = (isSpecConst ? spv::Op::OpSpecConstant : spv::Op::OpConstant);
-				id = isSpecConst ? id = ctx_.getVariableId(var) : ctx_.getConstantId(var.type, bl);
+				id = isSpecConst ? ctx_.getVariableId(var) : ctx_.getConstantId(var.type, bl);
 				op.params.push_back(CompilerHelper::paramId(resultTypeId));
 				op.params.push_back(CompilerHelper::paramId(id));
 				switch (etype)
