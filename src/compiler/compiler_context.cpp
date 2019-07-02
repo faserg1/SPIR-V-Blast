@@ -50,6 +50,11 @@ Id CompilerContext::getFunctionId(const Function &func)
 	return ids_.getFunctionId(func);
 }
 
+Id CompilerContext::findIdentifier(const Identifier &ident)
+{
+	return ids_.findIdentifier(ident);
+}
+
 void CompilerContext::addConstantIdAssociation(const BaseVariable &var, const Id &id)
 {
 	ids_.addConstantIdAssociation(var, id);

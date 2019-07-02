@@ -24,6 +24,8 @@ public:
 	Id getVariableId(const BaseVariable &var);
 	Id getFunctionId(const Function &func);
 	
+	Id findIdentifier(const Identifier &ident);
+
 	void addConstantIdAssociation(const BaseVariable &var, const Id &id);
 
 	Id createId(const std::string &debugName);

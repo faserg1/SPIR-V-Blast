@@ -290,8 +290,8 @@ expression: IDENTIFIER {$$ = Op::ident(ctx.use($1));}
 | literal {$$ = Op::literal($1);}
 | enum_use {$$ = Op::literal($1);}
 | '(' comma_expression ')' {$$ = $2;}
-| expression '(' ')'
-| expression '(' comma_expression ')'
+| expression '(' ')' {$$ = Op::simple(ExpressionType::FunctionCall, {$1});}
+| expression '(' comma_expression ')' {$$ = Op::simple(ExpressionType::FunctionCall, {$1, $3});}
 | expression '[' expression ']' {$$ = Op::simple(ExpressionType::ArrayAccess, {$1, $3});}
 | expression "->" expression {$$ = Op::simple(ExpressionType::PointerAccess, {$1, $3});}
 | expression '.' expression {$$ = Op::simple(ExpressionType::ObjectAccess, {$1, $3});}

@@ -15,6 +15,21 @@ std::shared_ptr<CompilerBodyCompilationContext> CompilerBodyCompilationContext::
 	return ptr;
 }
 
+Id CompilerBodyCompilationContext::findIdentifier(const Identifier &ident)
+{
+	Id id;
+	// TODO: [OOKAMI] Look localy
+	if (id.id)
+		return id;
+	// Look in panrent context
+	if (auto parent = parent_.lock(); parent)
+		id = parent->findIdentifier(ident);
+	if (id.id)
+		return id;
+	// Look globaly
+	return ctx_->findIdentifier(ident);
+}
+
 Id CompilerBodyCompilationContext::createLabelId(const std::string &name)
 {
 	using namespace std::string_literals;
@@ -36,6 +51,19 @@ Id CompilerBodyCompilationContext::getLabel(const std::string &name, bool recurs
 			return parent->getLabel(name, recursive);
 	}
 	return {};
+}
+
+void CompilerBodyCompilationContext::pushResultId(const Id &id)
+{
+	if (auto parent = parent_.lock())
+		parent->resultIds_.push(id);
+}
+
+Id CompilerBodyCompilationContext::topResultId()
+{
+	if (!resultIds_.empty())
+		return resultIds_.top();
+	return Id();
 }
 
 void CompilerBodyCompilationContext::addChild(std::shared_ptr<CompilerBodyCompilationContext> child)

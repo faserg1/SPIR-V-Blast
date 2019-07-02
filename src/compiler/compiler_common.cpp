@@ -320,7 +320,8 @@ void CompilerCommon::compileGlobalVariable(GlobalVariable &var)
 	{
 		if (!var.initialization.has_value())
 		{
-			id = ctx_.getConstantId(var.type, bl);
+			auto nullType = castToType(var.type, {});
+			id = ctx_.getConstantId(var.type, nullType);
 			op.op = spv::Op::OpConstantNull;
 			op.params.push_back(CompilerHelper::paramId(resultTypeId));
 			op.params.push_back(CompilerHelper::paramId(id));
@@ -516,8 +517,24 @@ std::vector<SpirVOp> CompilerCommon::compileExpression(const Expression &express
 		{
 			auto statementOps = compileExpression(statement, bodyCtx);
 			ops.insert(ops.end(), statementOps.begin(), statementOps.end());
+			const auto breakStatements = {ExpressionType::Return, ExpressionType::Break, ExpressionType::Continue};
+
 		}
 		break;
+	/*Basic*/
+	case ExpressionType::Literal:
+	{
+		auto &literal = expression.literal;
+		break;
+	}
+	case ExpressionType::Identifier:
+	{
+		auto &ident = expression.ident;
+		auto id = bodyCtx->findIdentifier(ident);
+		bodyCtx->pushResultId(id);
+		break;
+	}
+	/*Control Switch - condition and loops */
 	case ExpressionType::If:
 	{
 		auto it = expression.params.begin();
@@ -563,6 +580,25 @@ std::vector<SpirVOp> CompilerCommon::compileExpression(const Expression &express
 		ops.push_back(labelFalse);
 		append(compileExpression(doIfFalse, bodyCtx));
 		ops.push_back(labelMerge);
+		break;
+	}
+	/*Logical*/
+	case ExpressionType::Less:
+	case ExpressionType::More:
+	case ExpressionType::LessOrEqual:
+	case ExpressionType::MoreOrEqual:
+	case ExpressionType::Equal:
+	case ExpressionType::NonEqual:
+	{
+		auto left = compileExpression(expression.params[0], bodyCtx);
+		append(left);
+		auto leftId = bodyCtx->topResultId();
+		auto right = compileExpression(expression.params[1], bodyCtx);
+		append(right);
+		auto rightId = bodyCtx->topResultId();
+		// TODO: [OOKAMI] Compare types
+		// Make cast if needed
+		// place compare op
 		break;
 	}
 	}

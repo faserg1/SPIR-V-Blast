@@ -88,6 +88,22 @@ Id CompilerIdentifiers::getFunctionId(const Function &func)
 	return id;
 }
 
+Id CompilerIdentifiers::findIdentifier(const Identifier &ident)
+{
+	switch (ident.type)
+	{
+	case IdentifierType::Variable:
+	{
+		auto it = vars_.find(ident.id);
+		if (it == vars_.end())
+			throw std::runtime_error("CompilerIdentifiers::findIdentifier: cannot find identifier");
+		return it->second;
+	}
+	default:
+		throw std::runtime_error("CompilerIdentifiers::findIdentifier: unknow type of identifer");
+	}
+}
+
 void CompilerIdentifiers::addConstantIdAssociation(const BaseVariable &var, const Id &id)
 {
 	constantAssociations_.insert(std::make_pair(var.id, id));
