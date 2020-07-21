@@ -6,6 +6,7 @@
 #include <map>
 #include <stack>
 #include "compiler_data.hpp"
+#include "../parser/parser_types.hpp"
 
 class CompilerContext;
 

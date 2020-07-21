@@ -12,11 +12,13 @@ public:
 	bool hasType(const TypeInner &type) const;
 	bool hasType(const StructureType &type) const;
 	bool hasType(const FunctionType &type) const;
+	bool hasNullConstant(const Type &t) const;
 	bool hasConstant(const Type &t, Literal &value) const;
 
 	Id getTypeId(const TypeInner &type);
 	Id getTypeId(const StructureType &type);
 	Id getTypeId(const FunctionType &funcType);
+	Id getNullConstantId(const Type &t);
 	Id getConstantId(const Type &t, Literal &value);
 	Id getVariableId(const BaseVariable &var);
 	Id getFunctionId(const Function &func);

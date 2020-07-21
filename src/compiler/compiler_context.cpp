@@ -15,6 +15,11 @@ bool CompilerContext::hasType(const FunctionType &funcType) const
 	return ids_.hasType(funcType);
 }
 
+bool CompilerContext::hasNullConstant(const Type &t) const
+{
+	return ids_.hasNullConstant(t);
+}
+
 bool CompilerContext::hasConstant(const Type &t, Literal &value) const
 {
 	return ids_.hasConstant(t, value);
@@ -33,6 +38,11 @@ Id CompilerContext::getTypeId(const StructureType &type)
 Id CompilerContext::getTypeId(const FunctionType &funcType)
 {
 	return ids_.getTypeId(funcType);
+}
+
+Id CompilerContext::getNullConstantId(const Type &t)
+{
+	return ids_.getNullConstantId(t);
 }
 
 Id CompilerContext::getConstantId(const Type &t, Literal &value)

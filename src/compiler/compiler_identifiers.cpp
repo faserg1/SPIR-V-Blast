@@ -27,6 +27,12 @@ bool CompilerIdentifiers::hasConstant(const Type & t, Literal & value) const
 	return constants_.find(e) != constants_.end();
 }
 
+bool CompilerIdentifiers::hasNullConstant(const Type & t) const
+{
+	ConstExpression e{ t, {} };
+	return constants_.find(e) != constants_.end();
+}
+
 Id CompilerIdentifiers::getTypeId(const TypeInner &t)
 {
 	auto searchResult = types_.find(t);
@@ -60,6 +66,17 @@ Id CompilerIdentifiers::getTypeId(const FunctionType &t)
 Id CompilerIdentifiers::getConstantId(const Type &t, Literal &value)
 {
 	ConstExpression e{t, value};
+	auto searchResult = constants_.find(e);
+	if (searchResult != constants_.end())
+		return searchResult->second;
+	auto id = createId(toDebugName(e));
+	constants_.insert(std::make_pair(e, id));
+	return id;
+}
+
+Id CompilerIdentifiers::getNullConstantId(const Type &t)
+{
+	ConstExpression e{t, {}};
 	auto searchResult = constants_.find(e);
 	if (searchResult != constants_.end())
 		return searchResult->second;

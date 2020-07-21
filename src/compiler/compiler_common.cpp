@@ -320,13 +320,14 @@ void CompilerCommon::compileGlobalVariable(GlobalVariable &var)
 	{
 		if (!var.initialization.has_value())
 		{
-			auto nullType = castToType(var.type, {});
-			id = ctx_.getConstantId(var.type, nullType);
+			if (!ctx_.hasNullConstant(var.type)) {
+				// TODO: [OOKAMI] Throw exception?
+				return;
+			}
+			id = ctx_.getNullConstantId(var.type);
 			op.op = spv::Op::OpConstantNull;
 			op.params.push_back(CompilerHelper::paramId(resultTypeId));
 			op.params.push_back(CompilerHelper::paramId(id));
-
-			// TODO: Check if has null constant already
 		}
 		else
 		{

@@ -23,6 +23,7 @@ enum class IdentifierType
 
 enum class LiteralType
 {
+	Null,
 	String,
 	UNumber,
 	INumber,

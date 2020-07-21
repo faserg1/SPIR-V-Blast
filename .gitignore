@@ -6,5 +6,6 @@ gen
 *.py
 gen_by_hand.bat
 __pycache__
+*.pyc
 *.spv
 *.spv.dis
