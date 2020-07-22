@@ -1,0 +1,20 @@
+#memory Logical Simple
+
+#capability Shader
+#capability Int64
+#capability Float64
+
+[[bind:0]]
+[[in:0]]
+vec<int, 4> *posIn;
+[[bind:0]]
+[[out:0]]
+[[builtIn:Position]]
+vec<int, 4> *posOut;
+
+[[entry]]
+void main()
+{
+	float a = 1 + 1;
+	a + a;
+}

@@ -526,6 +526,9 @@ std::vector<SpirVOp> CompilerCommon::compileExpression(const Expression &express
 	case ExpressionType::Literal:
 	{
 		auto &literal = expression.literal;
+		// TODO: [OOKAMI] Find or create constant
+		// auto id = bodyCtx->findConstant(ident);
+		// bodyCtx->pushResultId(id);
 		break;
 	}
 	case ExpressionType::Identifier:
@@ -600,6 +603,23 @@ std::vector<SpirVOp> CompilerCommon::compileExpression(const Expression &express
 		// TODO: [OOKAMI] Compare types
 		// Make cast if needed
 		// place compare op
+		break;
+	}
+	/*Arifmetics*/
+	case ExpressionType::Add:
+	case ExpressionType::Negate:
+	case ExpressionType::Multiply:
+	case ExpressionType::Divide:
+	{
+		// right first
+		auto right = compileExpression(expression.params[1], bodyCtx);
+		append(right);
+		auto rightId = bodyCtx->topResultId();
+		// then left
+		auto left = compileExpression(expression.params[0], bodyCtx);
+		append(left);
+		auto leftId = bodyCtx->topResultId();
+		
 		break;
 	}
 	}
